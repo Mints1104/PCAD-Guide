@@ -1,0 +1,150 @@
+[
+  {
+    "objective": "4.1.1",
+    "oneLine": "Find and fix missing, duplicate and inconsistent values with pandas, and filter and sort without losing track of what returns a copy.",
+    "know": [
+      {"cue": "What does `dropna()` with no arguments drop?", "fact": "Every row with at least one missing value; use `subset=` for specific columns, `how=\"all\"` for fully empty rows, `thresh=n` to keep rows with at least n values, and `axis=1` for columns.", "why": "Items ask for the shape after dropna."},
+      {"cue": "How do you fill missing values with a different value per column?", "fact": "Pass a dict: `df.fillna({\"city\": \"Unknown\", \"sales\": 0})`; use `ffill()` / `bfill()` to carry values forward or back.", "why": "Expect to predict the column after filling."},
+      {"cue": "What does `drop_duplicates()` compare?", "fact": "Whole rows by default, keeping the first occurrence; `subset=` compares only some columns and `keep=\"last\"` or `keep=False` changes which copies stay.", "why": "Row counts after de-duplication are common items."},
+      {"cue": "What does a pandas method return when called with `inplace=True`?", "fact": "None: it modifies the DataFrame in place, so `df = df.dropna(inplace=True)` sets `df` to None.", "why": "A favourite trap in code items."},
+      {"cue": "How do you change values that match a condition?", "fact": "`df.loc[mask, \"col\"] = value`; chained indexing like `df[mask][\"col\"] = value` modifies a temporary copy (and never `df` under pandas 3 copy-on-write).", "why": "Items show both and ask which updates the DataFrame."}
+    ],
+    "traps": [
+      {"cue": "Does `df.sort_values(\"x\")` change `df`?", "answer": "No, it returns a new sorted DataFrame. Assign it back."},
+      {"cue": "Why might 'Oslo' and 'oslo ' be counted as two cities?", "answer": "Case and trailing whitespace differ; normalize with `.str.strip().str.title()` (or `.lower()`) before grouping."}
+    ],
+    "terms": ["NaN"],
+    "maps": ["missing-data"]
+  },
+  {
+    "objective": "4.1.2",
+    "oneLine": "merge joins on keys, join on the index, concat stacks; pivot and pivot_table go long to wide, melt goes wide to long.",
+    "know": [
+      {"cue": "What is the default join type of `merge`, and of `join`?", "fact": "`merge` defaults to `how=\"inner\"` (unmatched rows disappear); `DataFrame.join` defaults to `how=\"left\"` and matches on the index.", "why": "Row-count items depend on the default."},
+      {"cue": "How many rows does a left merge return?", "fact": "Every row of the left table, plus extra rows wherever a left key matches several right rows; unmatched rows get NaN in the right-hand columns.", "why": "Expect to count rows and NaNs."},
+      {"cue": "What does `pd.concat` do along each axis?", "fact": "`axis=0` (default) stacks rows, aligning on column names (NaN where a column is missing); `axis=1` places frames side by side aligned on the index; `ignore_index=True` renumbers.", "why": "Items ask for the shape after concat."},
+      {"cue": "How do `pivot` and `pivot_table` differ?", "fact": "`pivot` only reshapes and fails on duplicate index/column pairs; `pivot_table` aggregates duplicates with `aggfunc` (mean by default) and supports `fill_value` and `margins`.", "why": "Expect to pick the call that produces a given summary table."},
+      {"cue": "What does `melt` do?", "fact": "It converts wide data to long: `id_vars` stay as identifier columns, other columns become `variable`/`value` pairs (renamed with `var_name` and `value_name`).", "why": "Code items show a melted table and ask for its shape."}
+    ],
+    "traps": [
+      {"cue": "Two tables share a column `amount` besides the key. What happens after merge?", "answer": "The clashing columns get suffixes `amount_x` and `amount_y` (change them with `suffixes=`)."},
+      {"cue": "What is `pivot_table`'s default aggregation?", "answer": "The mean, not the sum."}
+    ],
+    "terms": ["Merge", "Concat", "Pivot table", "Melt"],
+    "maps": ["pandas-combine"]
+  },
+  {
+    "objective": "4.1.3",
+    "oneLine": "A Series is one labeled column; a DataFrame is a table of Series sharing an index; operations align on labels and run vectorized.",
+    "know": [
+      {"cue": "What is the difference between `df[\"a\"]` and `df[[\"a\"]]`?", "fact": "`df[\"a\"]` returns a Series; `df[[\"a\"]]` (a list of column names) returns a one-column DataFrame.", "why": "Type-of-result items test this constantly."},
+      {"cue": "How does arithmetic between two Series work?", "fact": "It aligns on index labels, not positions; labels present in only one Series produce NaN.", "why": "Output items add two Series with different indexes."},
+      {"cue": "Why prefer vectorized operations over loops?", "fact": "Vectorized operations (`s * 2`, `.str.upper()`, `np.log(s)`) run in optimized compiled code over the whole column, far faster than Python loops or row-wise `apply`.", "why": "Performance items reward the vectorized option."},
+      {"cue": "What do `axis=0` and `axis=1` mean in a DataFrame aggregation?", "fact": "`axis=0` aggregates down the rows, giving one result per column; `axis=1` aggregates across columns, giving one result per row.", "why": "Expect to predict the length of `df.sum(axis=1)`."},
+      {"cue": "What do `set_index` and `reset_index` do?", "fact": "`set_index(\"col\")` makes a column the row index; `reset_index()` moves the index back into a column (`drop=True` discards it).", "why": "Items check which labels remain after reset_index."}
+    ],
+    "traps": [
+      {"cue": "What is the shape of a Series with 5 values?", "answer": "(5,): a one-element tuple, because a Series is one-dimensional."}
+    ],
+    "terms": ["Series", "DataFrame", "Index", "Vectorization"],
+    "maps": []
+  },
+  {
+    "objective": "4.1.4",
+    "oneLine": ".loc selects by label with inclusive slices, .iloc selects by position with exclusive slices, and masks select by condition.",
+    "know": [
+      {"cue": "How do `.loc` and `.iloc` slices differ at the end?", "fact": "`.loc[\"b\":\"d\"]` includes the end label d; `.iloc[1:3]` excludes position 3, like a Python slice.", "why": "The most tested pandas detail on the exam."},
+      {"cue": "With a default integer index, how many rows does `df.loc[0:2]` return, and `df.iloc[0:2]`?", "fact": "`df.loc[0:2]` returns 3 rows (labels 0, 1, 2); `df.iloc[0:2]` returns 2 rows (positions 0 and 1).", "why": "Expect exactly this comparison."},
+      {"cue": "How do you select a column's values for rows meeting a condition?", "fact": "`df.loc[df[\"qty\"] > 2, \"price\"]`: a boolean mask for rows, a label for the column; the same form assigns values.", "why": "Filter-and-update items use this pattern."},
+      {"cue": "What do `df.iloc[0]`, `df.iloc[:, 0]` and `df.iloc[-1]` return?", "fact": "The first row as a Series, the first column as a Series, and the last row as a Series.", "why": "Position-based recall items."},
+      {"cue": "What do plain brackets select?", "fact": "`df[\"col\"]` selects a column, `df[1:3]` slices rows by position, and `df[mask]` filters rows.", "why": "Distractors mix these with `.loc`."}
+    ],
+    "traps": [
+      {"cue": "A Series has index labels 3, 2, 1, 0. Do `s.loc[1]` and `s.iloc[1]` return the same item?", "answer": "No. `s.loc[1]` returns the item labeled 1 (the third one); `s.iloc[1]` returns the item in position 1 (the second one)."},
+      {"cue": "What do `df.at` and `df.iat` do?", "answer": "Get or set a single value quickly: `at` by labels, `iat` by positions."}
+    ],
+    "terms": [".loc", ".iloc", "Boolean mask"],
+    "maps": ["pandas-select"]
+  },
+  {
+    "objective": "4.1.5",
+    "oneLine": "NumPy arrays are fast, single-type and element-wise; broadcasting stretches size-1 dimensions; axis decides what an aggregation collapses.",
+    "know": [
+      {"cue": "What is the broadcasting rule?", "fact": "Compare shapes from the right; dimensions are compatible if they are equal or one is 1. `(2, 3) + (3,)` works, `(3, 1) + (1, 4)` gives `(3, 4)`, and `(2, 3) + (2,)` raises ValueError.", "why": "Items ask for the result shape or whether an operation fails."},
+      {"cue": "What does `a.sum(axis=0)` return for a 2-D array?", "fact": "One sum per column (it collapses the rows); `axis=1` gives one per row; no axis gives the grand total.", "why": "Expect to compute one of these."},
+      {"cue": "How do lists and arrays differ under `*` and `+`?", "fact": "`[1, 2] * 2` repeats the list to `[1, 2, 1, 2]`; `np.array([1, 2]) * 2` multiplies element-wise to `[2, 4]`; `+` concatenates lists but adds arrays.", "why": "A frequent output trap."},
+      {"cue": "What happens when you mix types in one NumPy array?", "fact": "Everything is upcast to one dtype: ints and floats become float, and anything mixed with a string becomes a string array.", "why": "Items ask for an array's dtype."},
+      {"cue": "When do you choose an ndarray, a Series or a DataFrame?", "fact": "An ndarray for fast numeric math on one type; a Series for one labeled column; a DataFrame for a labeled table whose columns can have different types.", "why": "The syllabus asks you to evaluate each structure's use case."}
+    ],
+    "traps": [
+      {"cue": "What does `np.mean` return for an array containing NaN?", "answer": "nan. Use `np.nanmean` to skip missing values."},
+      {"cue": "Is `a * b` matrix multiplication for 2-D arrays?", "answer": "No, it multiplies element-wise. Use `a @ b` (or `np.dot`) for matrix multiplication."}
+    ],
+    "terms": ["ndarray", "Broadcasting", "Axis"],
+    "maps": []
+  },
+  {
+    "objective": "4.1.6",
+    "oneLine": "Split-apply-combine with groupby, choose agg or transform, and use pivot tables and crosstabs to summarize.",
+    "know": [
+      {"cue": "What does `df.groupby(\"region\")[\"amount\"].sum()` return?", "fact": "A Series indexed by region, holding the total amount per region.", "why": "The basic groupby output item."},
+      {"cue": "How do `agg` and `transform` differ?", "fact": "`agg` reduces each group to one row; `transform` returns a result the same length as the original, aligned to each row (for shares or group-mean filling).", "why": "Items ask for the length or values of the result."},
+      {"cue": "How do you name aggregated columns?", "fact": "Named aggregation: `df.groupby(\"g\").agg(total=(\"amount\", \"sum\"), orders=(\"id\", \"count\"))`.", "why": "Expect to match a call to its output columns."},
+      {"cue": "How do `size()` and `count()` differ after groupby?", "fact": "`size()` counts rows in each group, including NaN; `count()` counts non-null values per column.", "why": "Results differ when data have missing values."},
+      {"cue": "What does `pd.crosstab` produce?", "fact": "A frequency table counting each combination of two categorical variables; `normalize=True` gives proportions and `margins=True` adds totals.", "why": "Items pick between crosstab, pivot_table and groupby."}
+    ],
+    "traps": [
+      {"cue": "Why does grouping by two keys produce a MultiIndex, and how do you flatten it?", "answer": "Each group is identified by a pair of keys. Use `as_index=False` or `.reset_index()` to turn them back into columns."}
+    ],
+    "terms": ["GroupBy", "Split-apply-combine", "Crosstab"],
+    "maps": ["pandas-combine"]
+  },
+  {
+    "objective": "4.2.1",
+    "oneLine": "Compute mean, median, mode, variance and standard deviation in pandas and NumPy, and know how each handles NaN and degrees of freedom.",
+    "know": [
+      {"cue": "How do pandas and NumPy treat NaN in statistics?", "fact": "pandas skips NaN by default (`skipna=True`); NumPy propagates it, so `np.mean` returns nan unless you use `np.nanmean`.", "why": "Output items include a NaN on purpose."},
+      {"cue": "Which ddof do pandas and NumPy use for std and var?", "fact": "pandas uses ddof=1 (sample); NumPy uses ddof=0 (population) unless you pass `ddof=1`.", "why": "Items compute both and ask which is larger (pandas' sample value)."},
+      {"cue": "Why does `s.mode()` return a Series?", "fact": "Data can have several modes, so pandas returns all of them; take `s.mode()[0]` for the first.", "why": "Distractors show mode as a single number."},
+      {"cue": "What does `describe()` report for a numeric column?", "fact": "count (non-null), mean, std, min, 25%, 50% (median), 75% and max.", "why": "Items ask which statistic is missing from describe (the mode)."}
+    ],
+    "traps": [
+      {"cue": "Can `describe()`'s count differ from `len(df)`?", "answer": "Yes. count excludes missing values."}
+    ],
+    "terms": ["Descriptive statistics", "ddof"],
+    "maps": ["center-measure"]
+  },
+  {
+    "objective": "4.2.2",
+    "oneLine": "Hold out a representative test set, use it once at the end, and keep every bit of it out of training and tuning.",
+    "know": [
+      {"cue": "What is the test set for?", "fact": "An unbiased estimate of how the model performs on new, unseen data (generalization), used once after all training and tuning is finished.", "why": "Items ask why scoring on training data is misleading."},
+      {"cue": "How do training, validation and test sets differ?", "fact": "Training data fits the model; validation data (or cross-validation) chooses models and settings; test data gives the final estimate.", "why": "Expect to match each set to its role."},
+      {"cue": "How do you make a test set representative?", "fact": "Random shuffling for independent rows, `stratify=y` to keep class proportions, and a time-based split for time series (train on the past, test on the future).", "why": "Imbalanced and time-series scenarios each have a specific answer."},
+      {"cue": "What is data leakage?", "fact": "Information from the test set or from the future reaches training: preprocessing fitted on all data, duplicates in both sets, or features that encode the answer; it inflates scores.", "why": "Leakage scenarios are frequent."},
+      {"cue": "What does k-fold cross-validation do?", "fact": "It splits data into k folds and trains k times, each time holding out a different fold, giving a more stable estimate for model selection when data are limited.", "why": "Items ask how to evaluate reliably with little data."}
+    ],
+    "traps": [
+      {"cue": "If you tune your model repeatedly on the test set, is its score still unbiased?", "answer": "No. The test set has become a validation set and the score is now optimistic."}
+    ],
+    "terms": ["Test set", "Validation set", "Cross-validation", "Data leakage", "Generalization"],
+    "maps": ["fit-diagnosis"]
+  },
+  {
+    "objective": "4.2.3",
+    "oneLine": "Overfitting is high variance, underfitting is high bias; compare training and test scores and move model complexity toward the balance point.",
+    "know": [
+      {"cue": "What are the signs of overfitting?", "fact": "A very high training score with a much lower test score: the model has learned noise (high variance). Fix with more data, a simpler model, regularization or fewer features.", "why": "Items give train and test scores and ask for the diagnosis."},
+      {"cue": "What are the signs of underfitting?", "fact": "Low scores on both training and test data: the model is too simple (high bias). Fix with better features or a more flexible model, or less regularization.", "why": "The mirror-image item."},
+      {"cue": "What is the bias-variance trade-off?", "fact": "Expected error = bias² + variance + irreducible noise; more complexity lowers bias but raises variance, and the best model balances the two.", "why": "Direct definition items."},
+      {"cue": "What are the tendencies of linear and logistic regression?", "fact": "Both are low-variance, higher-bias models: stable and interpretable, but they underfit curved relationships unless you add features; regularization (smaller `C` in LogisticRegression) curbs overfitting.", "why": "The syllabus asks for linear and logistic regression tendencies."},
+      {"cue": "Why can accuracy mislead on imbalanced classes?", "fact": "With 95% negatives, always predicting \"negative\" scores 95% accuracy; check precision, recall and F1 instead.", "why": "The syllabus asks how to prevent model accuracy issues."}
+    ],
+    "traps": [
+      {"cue": "Will more training data fix a model that underfits?", "answer": "Not much. Underfitting comes from a model too simple for the pattern; add features or complexity."},
+      {"cue": "Is supervised learning possible without labels?", "answer": "No. Supervised learning needs a known target (y); learning from unlabeled data is unsupervised."}
+    ],
+    "terms": ["Supervised learning", "Overfitting", "Underfitting", "Bias-variance trade-off", "Regularization"],
+    "maps": ["fit-diagnosis", "regression"]
+  }
+]

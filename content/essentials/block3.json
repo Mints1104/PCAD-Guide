@@ -1,0 +1,71 @@
+[
+  {
+    "objective": "3.1.1",
+    "oneLine": "Describe data with a centre (mean, median, mode) and a spread (variance, standard deviation), know the normal and uniform shapes, and read a confidence interval correctly.",
+    "know": [
+      {"cue": "When is the median a better centre than the mean?", "fact": "When the data are skewed or have outliers: the median ignores extremes, while the mean is pulled toward them.", "why": "Income, house prices and delivery times are the usual scenarios."},
+      {"cue": "Where is the mean relative to the median in right-skewed data?", "fact": "Above it: the long right tail pulls the mean up, so mean > median; in left-skewed data mean < median.", "why": "Items give a mean and median and ask about the shape."},
+      {"cue": "How do population and sample variance differ?", "fact": "Population variance divides by N; sample variance divides by n − 1. NumPy's `std`/`var` default to ddof=0 (population); pandas defaults to ddof=1 (sample).", "why": "Code items compute both and ask why they differ."},
+      {"cue": "What is the 68-95-99.7 rule?", "fact": "In a normal distribution about 68% of values lie within 1 standard deviation of the mean, 95% within 2 and 99.7% within 3.", "why": "Expect a quick percentage calculation."},
+      {"cue": "What are the mean and variance of a uniform distribution on [a, b]?", "fact": "Every value in [a, b] is equally likely; the mean is (a + b) / 2 and the variance is (b − a)² / 12.", "why": "The syllabus names Gaussian and uniform distributions."},
+      {"cue": "What does a 95% confidence interval mean?", "fact": "If the sampling were repeated many times, about 95% of intervals built this way would contain the true value; it narrows with larger samples and widens with more variability or a higher confidence level.", "why": "The wrong reading (\"95% chance this interval contains it\") is a common distractor."}
+    ],
+    "traps": [
+      {"cue": "Which is wider from the same data: a 95% or a 99% confidence interval?", "answer": "The 99% interval. More confidence needs a wider range."},
+      {"cue": "What is the only average that works for nominal categories like colours?", "answer": "The mode."}
+    ],
+    "terms": ["Mean", "Median", "Mode", "Variance", "Standard deviation", "Normal distribution", "Uniform distribution", "Confidence interval", "Standard error"],
+    "maps": ["center-measure"]
+  },
+  {
+    "objective": "3.1.2",
+    "oneLine": "Pearson's r measures linear association from −1 to +1; read box plots, histograms, scatter plots, line plots and heatmaps for what each can and can't show.",
+    "know": [
+      {"cue": "What does Pearson's r measure, and what is its range?", "fact": "The strength and direction of a linear relationship between two numeric variables, from −1 (perfect negative) through 0 (no linear relationship) to +1 (perfect positive).", "why": "Items give r values and ask which describes the strongest relationship."},
+      {"cue": "Does r = 0 mean the variables are unrelated?", "fact": "No. It means no linear relationship; a strong curved (for example U-shaped) relationship can still give r ≈ 0.", "why": "The classic Pearson trap."},
+      {"cue": "What does each part of a box plot show?", "fact": "The line is the median, the box spans Q1 to Q3 (the IQR), the whiskers reach up to 1.5 × IQR, and points beyond them are outliers.", "why": "Chart-reading items ask which group has the larger spread or higher median."},
+      {"cue": "What do you read from a correlation heatmap?", "fact": "A symmetric matrix of pairwise r values with 1s on the diagonal; the strongest relationships are the darkest cells of a diverging scale centred on 0.", "why": "Items ask which pair is most strongly correlated."},
+      {"cue": "Why is correlation not causation?", "fact": "A confounder can drive both variables (temperature drives ice-cream sales and drownings), or the direction may run the other way.", "why": "Communication items reward cautious causal language."}
+    ],
+    "traps": [
+      {"cue": "Does converting one variable from metres to centimetres change r?", "answer": "No. Pearson's r has no units and is unchanged by linear rescaling."},
+      {"cue": "Can one outlier change r a lot?", "answer": "Yes. Pearson's r is sensitive to outliers; always look at the scatter plot."}
+    ],
+    "terms": ["Pearson's r", "Correlation", "Box plot", "Histogram", "Scatter plot", "Heatmap", "Confounder"],
+    "maps": ["chart"]
+  },
+  {
+    "objective": "3.2.1",
+    "oneLine": "Resample your one sample with replacement thousands of times to see how a statistic varies, then read its standard error and percentile interval.",
+    "know": [
+      {"cue": "What are the steps of a bootstrap?", "fact": "Draw n values from the sample with replacement, compute the statistic, repeat thousands of times, then use the spread of the results as the standard error and the 2.5th and 97.5th percentiles as a 95% interval.", "why": "Items ask for the missing step or the wrong setting."},
+      {"cue": "Why must bootstrap resampling be with replacement?", "fact": "Without replacement, each resample of size n is just the original data reshuffled, so every statistic comes out identical.", "why": "`replace=False` in a bootstrap snippet is the bug to spot."},
+      {"cue": "When is bootstrapping especially useful?", "fact": "When the statistic has no simple standard-error formula (median, ratio, correlation) or the data aren't normal, provided the sample is representative and observations are independent.", "why": "Scenario items ask whether bootstrapping is appropriate."},
+      {"cue": "How do discrete and continuous data differ, and how does that affect bootstrapping?", "fact": "Discrete data take countable values (counts), continuous data any value in a range (weights); with discrete or small samples the bootstrap distribution is lumpy, so intervals are coarse.", "why": "The syllabus names discrete vs continuous data here."},
+      {"cue": "What limits a bootstrap's reliability?", "fact": "The original sample: more resamples reduce simulation noise but can't add information, fix bias, or rescue a tiny sample; dependent data (time series) need special versions.", "why": "Items ask what would actually narrow the interval: more real data."}
+    ],
+    "traps": [
+      {"cue": "Does running 100,000 resamples instead of 5,000 make the confidence interval narrower?", "answer": "Not meaningfully. It only reduces simulation noise; the width depends on the original sample's size and variability."}
+    ],
+    "terms": ["Bootstrapping", "Resampling", "Discrete data", "Continuous data"],
+    "maps": []
+  },
+  {
+    "objective": "3.2.2",
+    "oneLine": "Linear regression predicts a number, logistic regression predicts the probability of a class; know each one's assumptions, outputs and limits.",
+    "know": [
+      {"cue": "When do you choose linear vs logistic regression?", "fact": "Linear regression for a continuous target (price, demand); logistic regression for a binary target (churn yes/no, fraud or not).", "why": "The most direct item type in this objective."},
+      {"cue": "What does a linear regression coefficient mean?", "fact": "The expected change in y for a one-unit increase in that predictor, holding the others constant; the intercept is the prediction when all predictors are 0.", "why": "Items ask you to interpret a fitted coefficient."},
+      {"cue": "What are the assumptions of linear regression?", "fact": "LINE: Linearity, Independent errors, Normally distributed residuals, Equal variance of residuals (homoscedasticity), plus no strong multicollinearity.", "why": "Expect to spot which assumption a residual plot violates."},
+      {"cue": "What does logistic regression output, and how is it fitted?", "fact": "A probability between 0 and 1 from the sigmoid of a linear score (it models the log-odds), fitted by maximum likelihood; a threshold (0.5 by default) turns it into a class.", "why": "`predict_proba` vs `predict` items."},
+      {"cue": "What does R² tell you?", "fact": "The share of variance in y explained by the model (0 to 1 for OLS on training data); scikit-learn's `LinearRegression.score()` returns it.", "why": "Items compare R² values, or confuse R² with accuracy."}
+    ],
+    "traps": [
+      {"cue": "Is logistic regression a regression or a classification method?", "answer": "Classification: it predicts class probabilities, despite the name."},
+      {"cue": "What is wrong with linear regression on a 0/1 target?", "answer": "It can predict values below 0 or above 1, which are impossible as probabilities."},
+      {"cue": "Is a logistic coefficient a change in probability?", "answer": "No, it is a change in log-odds; e raised to the coefficient is the odds ratio."}
+    ],
+    "terms": ["Linear regression", "Logistic regression", "R²", "Log-odds", "Homoscedasticity"],
+    "maps": ["regression"]
+  }
+]

@@ -1,0 +1,2403 @@
+[
+ {
+  "id": "b1-001",
+  "objective": "1.1.1",
+  "type": "single",
+  "stem": "A product team wants to understand why users abandon the checkout page. They plan twelve one-hour conversations with people who recently abandoned a basket. Which collection method is this, and what kind of data will it produce?",
+  "options": [
+   "Interviews, producing qualitative data",
+   "A survey, producing quantitative data",
+   "Web scraping, producing semi-structured data",
+   "An A/B experiment, producing causal estimates"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Long, open conversations with a small group are interviews, and they produce qualitative data that explains why people behave as they do.",
+  "why_wrong": [
+   "",
+   "A survey reaches many people with fixed questions; twelve open conversations are interviews.",
+   "Scraping extracts published web content; it doesn't talk to users.",
+   "An experiment randomly assigns users to versions; nothing is being varied here."
+  ],
+  "source": "Syllabus 1.1.1",
+  "difficulty": 1,
+  "tags": [
+   "collection-methods",
+   "qualitative"
+  ]
+ },
+ {
+  "id": "b1-002",
+  "objective": "1.1.1",
+  "type": "single",
+  "stem": "A national retailer will survey 2,000 loyalty members. Rural stores serve only 8% of members, and the team must be sure rural views are represented in proportion. Which sampling method fits best?",
+  "options": [
+   "Stratified random sampling by store type",
+   "Convenience sampling at the five largest stores",
+   "Systematic sampling of every 10th visitor to the website",
+   "Cluster sampling of three city stores"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Stratified sampling divides the population into groups (urban and rural stores) and samples each in proportion, guaranteeing that small groups are represented.",
+  "why_wrong": [
+   "",
+   "The largest stores are urban, so rural members would be missed: a biased convenience sample.",
+   "Website visitors are a different population from loyalty members, and nothing guarantees rural coverage.",
+   "Picking three city clusters excludes rural members entirely."
+  ],
+  "source": "Syllabus 1.1.1",
+  "difficulty": 2,
+  "tags": [
+   "sampling",
+   "stratified"
+  ]
+ },
+ {
+  "id": "b1-003",
+  "objective": "1.1.1",
+  "type": "single",
+  "stem": "A hospital wants to share patient records with researchers so that no patient can be re-identified by anyone, including the hospital. Which approach achieves anonymization rather than pseudonymization?",
+  "options": [
+   "Remove names and IDs, generalize birth dates to 10-year bands and postcodes to regions, and keep no key that links records back to patients",
+   "Replace each patient name with a random token and keep the token-to-name table in a secure vault",
+   "Hash each national ID with a secret key held by the hospital",
+   "Encrypt the whole dataset and give researchers the decryption key"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Anonymization is irreversible: direct identifiers are removed and quasi-identifiers (birth date, postcode) are generalized so that nobody can re-identify a person, even by combining fields.",
+  "why_wrong": [
+   "",
+   "A stored lookup table makes the tokens reversible: that is pseudonymization, still personal data.",
+   "A keyed hash can be recomputed by the key holder to re-link records: pseudonymization.",
+   "Encryption is reversible by design; anyone with the key sees the identities."
+  ],
+  "source": "Syllabus 1.1.1 · GDPR recital 26",
+  "difficulty": 2,
+  "tags": [
+   "pii",
+   "anonymization"
+  ]
+ },
+ {
+  "id": "b1-004",
+  "objective": "1.1.1",
+  "type": "multi",
+  "stem": "Which two survey questions should be rewritten because they bias or confuse the answers? Select two.",
+  "options": [
+   "How satisfied are you with our delivery speed? (1 = very unsatisfied, 5 = very satisfied)",
+   "Don't you agree that our new app is much better than the old one?",
+   "How quick and easy was the checkout process?",
+   "In the last 30 days, how many times did you order online?",
+   "Which payment method did you use most recently?"
+  ],
+  "answer": [
+   1,
+   2
+  ],
+  "explanation": "\"Don't you agree…\" is a leading question that pushes respondents toward yes. \"Quick and easy\" is double-barreled: it asks about two things, so an answer can't be interpreted.",
+  "why_wrong": [
+   "A balanced 1-to-5 scale on one topic is a well-formed question.",
+   "",
+   "",
+   "A single, specific, neutral frequency question.",
+   "A single, factual question with no pressure toward an answer."
+  ],
+  "source": "Syllabus 1.1.1",
+  "difficulty": 2,
+  "tags": [
+   "survey-design",
+   "bias"
+  ]
+ },
+ {
+  "id": "b1-005",
+  "objective": "1.1.1",
+  "type": "single",
+  "stem": "An analyst plans to scrape a competitor's public product pages every day to track prices. What should come first to address the legal and ethical considerations?",
+  "options": [
+   "Read the site's terms of service and robots.txt, and plan a slow, rate-limited schedule",
+   "Rotate IP addresses so the site cannot block the scraper",
+   "Scrape every page as fast as possible overnight when traffic is low",
+   "Also collect reviewers' names and profile pages for richer data"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Ethical scraping starts with what the site permits (terms of service, robots.txt) and continues with gentle, rate-limited collection of only the data you need.",
+  "why_wrong": [
+   "",
+   "Evading blocks ignores the site owner's wishes and can breach terms of service.",
+   "Speed is still load on someone else's server, and nothing here checks what is allowed.",
+   "Collecting personal data needs a lawful basis and adds privacy risk without serving the goal."
+  ],
+  "source": "Syllabus 1.1.1, 1.4.3",
+  "difficulty": 2,
+  "tags": [
+   "web-scraping",
+   "ethics"
+  ]
+ },
+ {
+  "id": "b1-006",
+  "objective": "1.1.1",
+  "type": "single",
+  "stem": "An email survey about workload goes to all 4,000 employees. Only 9% respond, and most responses come from managers, who answer during quiet periods. Which problem most threatens the conclusions?",
+  "options": [
+   "Non-response bias: the people who answered differ from those who didn't",
+   "Survivorship bias: only successful projects are counted",
+   "Measurement error: the rating scale is too coarse",
+   "Overfitting: the sample is too small for a model"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "When responders systematically differ from non-responders (managers with lighter workloads answer; busy staff don't), the results are skewed by non-response bias no matter how many answers arrive.",
+  "why_wrong": [
+   "",
+   "Survivorship bias is about only seeing survivors (such as firms that didn't fail); here it's about who chose to reply.",
+   "Nothing suggests the scale is the problem; the issue is who answered.",
+   "Overfitting is a modeling problem, not a sampling one."
+  ],
+  "source": "Syllabus 1.1.1",
+  "difficulty": 3,
+  "tags": [
+   "sampling",
+   "bias"
+  ]
+ },
+ {
+  "id": "b1-010",
+  "objective": "1.1.2",
+  "type": "single",
+  "stem": "The CRM exports customer IDs as zero-padded text; the web shop stores them as integers. What does this code print?",
+  "options": [
+   "`2`",
+   "`3`",
+   "`0`",
+   "`1`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "After `astype(int)`, \"001\" becomes 1 and \"002\" becomes 2, so the inner merge matches customers 1 and 2: two rows.",
+  "why_wrong": [
+   "",
+   "Customer 4 exists only in `web` and customer 3 only in `crm`; an inner merge keeps matches only.",
+   "Zero would be the result without the `astype(int)` step, when the key types don't match.",
+   "Both 1 and 2 match once the keys are integers."
+  ],
+  "source": "Syllabus 1.1.2 · pandas: DataFrame.merge",
+  "difficulty": 2,
+  "tags": [
+   "merge",
+   "data-types"
+  ],
+  "code": "import pandas as pd\n\ncrm = pd.DataFrame({\"cust_id\": [\"001\", \"002\", \"003\"], \"tier\": [\"gold\", \"silver\", \"gold\"]})\nweb = pd.DataFrame({\"cust_id\": [1, 2, 4], \"visits\": [5, 3, 8]})\n\ncrm[\"cust_id\"] = crm[\"cust_id\"].astype(int)\nmerged = web.merge(crm, on=\"cust_id\", how=\"inner\")\nprint(len(merged))",
+  "verify": "stdout"
+ },
+ {
+  "id": "b1-011",
+  "objective": "1.1.2",
+  "type": "single",
+  "stem": "Twelve stores each send a monthly CSV with identical columns (date, sku, units, revenue). Which pandas operation combines them into one dataset?",
+  "options": [
+   "`pd.concat(frames, ignore_index=True)`",
+   "`frames[0].merge(frames[1], on=\"sku\")`, repeated for each file",
+   "`frames[0].pivot_table(values=\"units\", index=\"sku\")`",
+   "`frames[0].join(frames[1])`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Files with the same columns are stacked row-wise with `pd.concat`; `ignore_index=True` renumbers the rows.",
+  "why_wrong": [
+   "",
+   "Merging joins columns side by side on a key; it would create wide, duplicated columns.",
+   "A pivot table reshapes and aggregates one table; it doesn't combine files.",
+   "`join` aligns on the index and adds columns; the files need stacking, not joining."
+  ],
+  "source": "Syllabus 1.1.2 · pandas: concat",
+  "difficulty": 1,
+  "tags": [
+   "concat",
+   "integration"
+  ]
+ },
+ {
+  "id": "b1-012",
+  "objective": "1.1.2",
+  "type": "single",
+  "stem": "EU revenue arrives in euros with dates like 31/01/2025; US revenue arrives in dollars with dates like 2025-01-31. The goal is one monthly revenue report. What should happen before the data is combined?",
+  "options": [
+   "Convert both to one currency and parse both date columns into real datetimes",
+   "Concatenate first and let the monthly totals average out the differences",
+   "Drop the date column, since the months can be inferred from the file names",
+   "Round every amount to whole numbers so the currencies line up"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Standardize before integrating: one unit (currency) and one parsed date format, so values are comparable and group correctly.",
+  "why_wrong": [
+   "",
+   "Summing euros and dollars produces meaningless totals, and unparsed dates won't group by month.",
+   "Dropping dates removes the key needed for a monthly report.",
+   "Rounding doesn't convert currencies."
+  ],
+  "source": "Syllabus 1.1.2",
+  "difficulty": 2,
+  "tags": [
+   "standardization",
+   "integration"
+  ]
+ },
+ {
+  "id": "b1-013",
+  "objective": "1.1.2",
+  "type": "single",
+  "stem": "Customer `a` appears twice in both tables. What is the shape of the merged result?",
+  "options": [
+   "`(5, 3)`",
+   "`(3, 3)`",
+   "`(4, 3)`",
+   "`(6, 3)`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "A many-to-many key produces every combination: customer `a` gives 2 × 2 = 4 rows and `b` gives 1, so 5 rows with columns cust, amount and email.",
+  "why_wrong": [
+   "",
+   "Three rows would mean each order matched exactly one email, but `a` has two of each.",
+   "Four is the count for customer `a` alone; customer `b` adds one more.",
+   "Six would need three matches for `b` too."
+  ],
+  "source": "Syllabus 1.1.2 · pandas: DataFrame.merge",
+  "difficulty": 3,
+  "tags": [
+   "merge",
+   "duplicates"
+  ],
+  "code": "import pandas as pd\n\norders = pd.DataFrame({\"cust\": [\"a\", \"a\", \"b\"], \"amount\": [10, 20, 30]})\nemails = pd.DataFrame({\"cust\": [\"a\", \"a\", \"b\"], \"email\": [\"x@1\", \"x@2\", \"y@1\"]})\nprint(orders.merge(emails, on=\"cust\").shape)",
+  "verify": "stdout"
+ },
+ {
+  "id": "b1-014",
+  "objective": "1.1.2",
+  "type": "multi",
+  "stem": "After left-merging a transactions table with a customer table, which two checks best confirm the integration kept the data consistent? Select two.",
+  "options": [
+   "Compare the number of rows before and after the merge",
+   "Count new missing values in the customer columns",
+   "Sort the result alphabetically by customer name",
+   "Convert every column to text",
+   "Drop the key column to avoid duplicates"
+  ],
+  "answer": [
+   0,
+   1
+  ],
+  "explanation": "A row count that grew reveals duplicate keys; new NaNs in customer columns reveal transactions with no matching customer.",
+  "why_wrong": [
+   "",
+   "",
+   "Sorting changes order, not correctness; it reveals nothing about bad matches.",
+   "Converting to text loses types and checks nothing.",
+   "Dropping the key removes the ability to trace records; it doesn't check anything."
+  ],
+  "source": "Syllabus 1.1.2",
+  "difficulty": 2,
+  "tags": [
+   "merge",
+   "validation"
+  ]
+ },
+ {
+  "id": "b1-015",
+  "objective": "1.1.2",
+  "type": "single",
+  "stem": "A team loads raw clickstream data straight into a cloud warehouse and cleans and reshapes it there with SQL. Which integration pattern is this?",
+  "options": [
+   "ELT (extract, load, transform)",
+   "ETL (extract, transform, load)",
+   "OLTP",
+   "CRUD"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Loading raw data first and transforming it inside the target system is ELT.",
+  "why_wrong": [
+   "",
+   "ETL transforms data before loading it into the target.",
+   "OLTP describes transactional databases, not an integration pattern.",
+   "CRUD names the basic data operations, not an integration pattern."
+  ],
+  "source": "Syllabus 1.1.2",
+  "difficulty": 1,
+  "tags": [
+   "elt",
+   "integration"
+  ]
+ },
+ {
+  "id": "b1-020",
+  "objective": "1.1.3",
+  "type": "single",
+  "stem": "An IoT company wants to keep raw sensor logs, JSON events and camera images for future machine-learning projects, without deciding their structure yet. Which storage suits this?",
+  "options": [
+   "A data lake",
+   "A data warehouse",
+   "A shared Excel workbook",
+   "The production OLTP database"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "A data lake stores raw data of any type in its native format and applies structure only when it is read (schema-on-read).",
+  "why_wrong": [
+   "",
+   "Warehouses need a schema before loading and suit cleaned, structured data.",
+   "Excel can't hold images or billions of log lines.",
+   "OLTP databases run day-to-day transactions; loading bulk raw data would slow them and doesn't fit images."
+  ],
+  "source": "Syllabus 1.1.3",
+  "difficulty": 1,
+  "tags": [
+   "data-lake",
+   "storage"
+  ]
+ },
+ {
+  "id": "b1-021",
+  "objective": "1.1.3",
+  "type": "single",
+  "stem": "Finance wants consistent monthly KPI dashboards built with SQL from cleaned, integrated sales, inventory and HR data. Which storage fits best?",
+  "options": [
+   "A data warehouse",
+   "A data lake",
+   "One CSV file per department",
+   "An in-memory Python dictionary"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "A warehouse stores cleaned, integrated, structured data with a defined schema, optimized for SQL analytics and BI.",
+  "why_wrong": [
+   "",
+   "A lake holds raw data; dashboards would each have to repeat the cleaning.",
+   "Separate CSVs have no shared schema or integration for cross-department KPIs.",
+   "In-memory data disappears when the program stops and isn't shared."
+  ],
+  "source": "Syllabus 1.1.3",
+  "difficulty": 2,
+  "tags": [
+   "data-warehouse",
+   "storage"
+  ]
+ },
+ {
+  "id": "b1-022",
+  "objective": "1.1.3",
+  "type": "single",
+  "stem": "Which statement correctly contrasts data warehouses and data lakes?",
+  "options": [
+   "A warehouse applies a schema before data is loaded; a lake applies it when data is read",
+   "A lake applies a schema before loading; a warehouse applies it when data is read",
+   "Lakes can only store structured tables",
+   "Warehouses cannot be queried with SQL"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Warehouses are schema-on-write (structure defined up front); lakes are schema-on-read (structure applied at query time).",
+  "why_wrong": [
+   "",
+   "This reverses the two: lakes are schema-on-read.",
+   "Lakes are defined by accepting any format, including unstructured data.",
+   "SQL is the main way warehouses are queried."
+  ],
+  "source": "Syllabus 1.1.3",
+  "difficulty": 2,
+  "tags": [
+   "schema-on-read",
+   "storage"
+  ]
+ },
+ {
+  "id": "b1-023",
+  "objective": "1.1.3",
+  "type": "single",
+  "stem": "A marketing analyst saves a three-sheet Excel workbook full of formulas as a CSV and emails it. What does the recipient receive?",
+  "options": [
+   "The values of the active sheet only, with no formulas or formatting",
+   "All three sheets, one after another",
+   "The formulas as text, ready to recalculate",
+   "The values and the cell formatting of all sheets"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "CSV is a plain-text, single-table format: saving a workbook as CSV keeps only the active sheet's values.",
+  "why_wrong": [
+   "",
+   "CSV holds one table; the other sheets are not included.",
+   "CSV stores the computed values, not the formulas.",
+   "CSV is plain text: no formatting survives."
+  ],
+  "source": "Syllabus 1.1.3, 1.4.4",
+  "difficulty": 2,
+  "tags": [
+   "csv",
+   "excel"
+  ]
+ },
+ {
+  "id": "b1-024",
+  "objective": "1.1.3",
+  "type": "multi",
+  "stem": "Which two are genuine advantages of cloud object storage for an analytics team? Select two.",
+  "options": [
+   "Capacity scales up and down with pay-as-you-go pricing",
+   "Data is replicated for high durability",
+   "It enforces relational schemas and foreign keys automatically",
+   "It removes the need for access control",
+   "It is always faster than reading from local memory"
+  ],
+  "answer": [
+   0,
+   1
+  ],
+  "explanation": "Cloud storage offers elastic, pay-as-you-go capacity and durability through replication, and lets storage and compute scale separately.",
+  "why_wrong": [
+   "",
+   "",
+   "Object storage holds files; schemas and keys are enforced by databases, not by the storage layer.",
+   "Cloud data still needs access control; misconfigured permissions are a common leak.",
+   "Local memory is faster; the cloud's advantages are scale, durability and sharing."
+  ],
+  "source": "Syllabus 1.1.3",
+  "difficulty": 2,
+  "tags": [
+   "cloud-storage",
+   "storage"
+  ]
+ },
+ {
+  "id": "b1-030",
+  "objective": "1.2.1",
+  "type": "single",
+  "stem": "Which of these is semi-structured data?",
+  "options": [
+   "A JSON response from a weather API",
+   "An orders table in PostgreSQL",
+   "A JPEG product photo",
+   "An MP3 call recording"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "JSON carries self-describing keys and nesting but no fixed table schema, which makes it semi-structured.",
+  "why_wrong": [
+   "",
+   "A relational table with fixed, typed columns is structured.",
+   "Images have no predefined data model: unstructured.",
+   "Audio is unstructured."
+  ],
+  "source": "Syllabus 1.2.1",
+  "difficulty": 1,
+  "tags": [
+   "semi-structured",
+   "data-types"
+  ]
+ },
+ {
+  "id": "b1-031",
+  "objective": "1.2.1",
+  "type": "single",
+  "stem": "A company has 50,000 recorded support calls and wants to count complaints by topic with pandas. What must happen first?",
+  "options": [
+   "Transcribe the audio and extract topics into structured columns",
+   "Load the recordings with `pd.read_csv`",
+   "Min-max scale the recordings",
+   "Nothing; pandas reads audio files directly"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Unstructured data needs a processing step (here speech-to-text plus topic extraction) that turns it into structured features before tabular analysis.",
+  "why_wrong": [
+   "",
+   "`read_csv` reads delimited text, not audio.",
+   "Scaling applies to numeric columns; there are none yet.",
+   "pandas works with tabular data; audio must be converted first."
+  ],
+  "source": "Syllabus 1.2.1",
+  "difficulty": 2,
+  "tags": [
+   "unstructured",
+   "preprocessing"
+  ]
+ },
+ {
+  "id": "b1-032",
+  "objective": "1.2.1",
+  "type": "multi",
+  "stem": "Which two are examples of structured data? Select two.",
+  "options": [
+   "An orders table in a relational database",
+   "A spreadsheet of employee IDs, departments and salaries",
+   "Product photos",
+   "Free-text survey comments",
+   "Scanned PDF invoices"
+  ],
+  "answer": [
+   0,
+   1
+  ],
+  "explanation": "Structured data follows a fixed schema of rows and typed columns, like database tables and well-formed spreadsheets.",
+  "why_wrong": [
+   "",
+   "",
+   "Images are unstructured.",
+   "Free text is unstructured, even when stored in a column.",
+   "Scanned documents are images: unstructured until text is extracted."
+  ],
+  "source": "Syllabus 1.2.1",
+  "difficulty": 1,
+  "tags": [
+   "structured",
+   "data-types"
+  ]
+ },
+ {
+  "id": "b1-033",
+  "objective": "1.2.1",
+  "type": "single",
+  "stem": "How does unstructured data usually differ from structured data in storage and retrieval?",
+  "options": [
+   "It is kept in object storage or data lakes and found through metadata and search indexes rather than SQL on typed columns",
+   "It is kept in relational tables and retrieved with joins on primary keys",
+   "It needs less storage because it has no schema",
+   "Storage and retrieval work exactly the same way"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Without a schema you can't query columns directly, so unstructured data lives in object stores and lakes and is located via metadata, tags or search indexes.",
+  "why_wrong": [
+   "",
+   "That describes structured data.",
+   "Images, audio and video usually need far more storage than tabular records.",
+   "The lack of a schema changes both where it lives and how it is found."
+  ],
+  "source": "Syllabus 1.2.1",
+  "difficulty": 2,
+  "tags": [
+   "unstructured",
+   "storage"
+  ]
+ },
+ {
+  "id": "b1-040",
+  "objective": "1.2.2",
+  "type": "single",
+  "stem": "In a health survey, older participants skip the \"weekly exercise hours\" question more often than younger ones. Age is recorded for everyone. Which type of missingness is this?",
+  "options": [
+   "MAR (missing at random)",
+   "MCAR (missing completely at random)",
+   "MNAR (missing not at random)",
+   "Structural zeros"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "When missingness depends on another observed variable (age) rather than on the missing value itself, it is MAR, so impute using the related variables.",
+  "why_wrong": [
+   "",
+   "MCAR would mean missingness is unrelated to anything, but it depends on age.",
+   "MNAR would mean it depends on the exercise hours themselves; here it depends on an observed variable, age.",
+   "Structural zeros are true zeros by design, not missing answers."
+  ],
+  "source": "Syllabus 1.2.2",
+  "difficulty": 2,
+  "tags": [
+   "missing-data",
+   "mar"
+  ]
+ },
+ {
+  "id": "b1-041",
+  "objective": "1.2.2",
+  "type": "single",
+  "stem": "Customers with the largest debts are the least likely to report their debt in a financial survey. Which type of missingness is this?",
+  "options": [
+   "MNAR (missing not at random)",
+   "MAR (missing at random)",
+   "MCAR (missing completely at random)",
+   "Duplicate data"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Missingness driven by the unobserved value itself (large debts are hidden because they are large) is MNAR, the hardest case, where deletion and simple imputation are biased.",
+  "why_wrong": [
+   "",
+   "MAR depends on other observed variables; here missingness depends on the debt amount itself.",
+   "MCAR would be unrelated to anything.",
+   "Nothing is duplicated; values are absent."
+  ],
+  "source": "Syllabus 1.2.2",
+  "difficulty": 2,
+  "tags": [
+   "missing-data",
+   "mnar"
+  ]
+ },
+ {
+  "id": "b1-042",
+  "objective": "1.2.2",
+  "type": "single",
+  "stem": "A lab technician accidentally drops a random 2% of blood samples before testing. The lost results are:",
+  "options": [
+   "MCAR (missing completely at random)",
+   "MAR (missing at random)",
+   "MNAR (missing not at random)",
+   "Outliers"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Accidental, random loss unrelated to any variable is MCAR; dropping those rows loses power but doesn't bias results.",
+  "why_wrong": [
+   "",
+   "No other variable explains which samples were dropped.",
+   "The dropped samples' values had nothing to do with being dropped.",
+   "Outliers are extreme values, not missing ones."
+  ],
+  "source": "Syllabus 1.2.2",
+  "difficulty": 1,
+  "tags": [
+   "missing-data",
+   "mcar"
+  ]
+ },
+ {
+  "id": "b1-043",
+  "objective": "1.2.2",
+  "type": "single",
+  "stem": "What does this IQR outlier check print?",
+  "options": [
+   "`[45]`",
+   "`[12, 45]`",
+   "`[]`",
+   "`[19, 45]`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Q1 = 14.75 and Q3 = 18.25, so IQR = 3.5 and the fences are 9.5 and 23.5. Only 45 lies outside.",
+  "why_wrong": [
+   "",
+   "The lower fence is 9.5, so 12 is inside the normal range.",
+   "45 is far above the upper fence of 23.5.",
+   "19 is below the upper fence of 23.5."
+  ],
+  "source": "Syllabus 1.2.2 · pandas: Series.quantile",
+  "difficulty": 2,
+  "tags": [
+   "outliers",
+   "iqr"
+  ],
+  "code": "import pandas as pd\n\ns = pd.Series([12, 14, 15, 15, 16, 18, 19, 45])\nq1, q3 = s.quantile(0.25), s.quantile(0.75)\niqr = q3 - q1\nprint(s[(s < q1 - 1.5 * iqr) | (s > q3 + 1.5 * iqr)].tolist())",
+  "verify": "stdout"
+ },
+ {
+  "id": "b1-044",
+  "objective": "1.2.2",
+  "type": "single",
+  "stem": "The source system writes -999 for unknown ages and \"N/A\" for unknown cities. What does this code print?",
+  "options": [
+   "`1`",
+   "`3`",
+   "`2`",
+   "`4`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`isna()` only recognizes real missing markers (NaN, None). Sentinels such as -999, \"N/A\" or \"\" must be converted first, for example with `na_values=` or `replace`.",
+  "why_wrong": [
+   "",
+   "-999, \"N/A\" and the empty string are ordinary values to pandas; only the real NaN counts.",
+   "The empty string is not NaN either.",
+   "Only one cell holds an actual NaN."
+  ],
+  "source": "Syllabus 1.2.2 · pandas: isna",
+  "difficulty": 2,
+  "tags": [
+   "missing-data",
+   "sentinels"
+  ],
+  "code": "import numpy as np\nimport pandas as pd\n\ndf = pd.DataFrame({\"age\": [34, -999, 29, np.nan],\n                   \"city\": [\"Oslo\", \"N/A\", \"\", \"Rome\"]})\nprint(df.isna().sum().sum())",
+  "verify": "stdout"
+ },
+ {
+  "id": "b1-045",
+  "objective": "1.2.2",
+  "type": "single",
+  "stem": "An income column is strongly right-skewed by a few very high earners, and 6% of values are missing completely at random. Which simple imputation is most appropriate?",
+  "options": [
+   "The median income",
+   "The mean income",
+   "The mode of income",
+   "Zero"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "The median is robust to skew and outliers, so it gives a representative fill value for a skewed numeric column.",
+  "why_wrong": [
+   "",
+   "The high earners pull the mean upward, so it overstates a typical income.",
+   "Continuous incomes rarely repeat, so the mode is unstable and unrepresentative.",
+   "Zero invents a false value and drags every statistic down."
+  ],
+  "source": "Syllabus 1.2.2",
+  "difficulty": 2,
+  "tags": [
+   "imputation",
+   "median"
+  ]
+ },
+ {
+  "id": "b1-046",
+  "objective": "1.2.2",
+  "type": "single",
+  "stem": "What is the effect of replacing every missing value in a numeric column with the column's mean?",
+  "options": [
+   "The mean stays the same, the variance shrinks and correlations with other columns weaken",
+   "The mean increases and the variance grows",
+   "The median always becomes equal to the mean",
+   "No statistic changes, because only missing cells are touched"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Mean imputation piles values at the centre: the mean is preserved, but the spread shrinks and relationships with other variables are diluted.",
+  "why_wrong": [
+   "",
+   "Filling with the mean leaves the mean unchanged and adds values at the centre, reducing spread.",
+   "The median can move, but it doesn't have to equal the mean.",
+   "Adding many identical central values changes the variance and correlations."
+  ],
+  "source": "Syllabus 1.2.2",
+  "difficulty": 3,
+  "tags": [
+   "imputation",
+   "variance"
+  ]
+ },
+ {
+  "id": "b1-047",
+  "objective": "1.2.2",
+  "type": "multi",
+  "stem": "Which two checks help detect inconsistent entries in a categorical `country` column? Select two.",
+  "options": [
+   "`df[\"country\"].value_counts()` to spot variants such as \"UK\", \"U.K.\" and \"uk \"",
+   "Comparing the values with an allowed list of ISO country codes",
+   "Computing z-scores of the column",
+   "`df[\"country\"].mean()`",
+   "Min-max scaling the column"
+  ],
+  "answer": [
+   0,
+   1
+  ],
+  "explanation": "For categorical data, frequency tables and allowed-value lists reveal spelling, case and whitespace variants; numeric statistics don't apply.",
+  "why_wrong": [
+   "",
+   "",
+   "Z-scores need numbers; they are meaningless for categories.",
+   "A mean of text categories isn't defined.",
+   "Scaling applies to numeric columns."
+  ],
+  "source": "Syllabus 1.2.2",
+  "difficulty": 2,
+  "tags": [
+   "categorical",
+   "data-quality"
+  ]
+ },
+ {
+  "id": "b1-048",
+  "objective": "1.2.2",
+  "type": "single",
+  "stem": "A sales dataset shows one transaction of €250,000; typical transactions are €20 to €300. The store confirms it was a genuine bulk order from a corporate client. What should the analyst do?",
+  "options": [
+   "Keep it, and analyze it separately or use robust statistics where it would distort typical-customer results",
+   "Delete it, because it is an outlier",
+   "Replace it with the mean transaction value",
+   "Cap it at €300 and don't mention it"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Outliers that are genuine are information. Keep them, document the decision, and use methods (median, separate segment) that stop them dominating typical-case analysis.",
+  "why_wrong": [
+   "",
+   "Deleting a confirmed, real transaction throws away true information.",
+   "Replacing a verified value with the mean falsifies the data.",
+   "Silently capping a real value distorts revenue and hides a key customer."
+  ],
+  "source": "Syllabus 1.2.2",
+  "difficulty": 3,
+  "tags": [
+   "outliers",
+   "judgement"
+  ]
+ },
+ {
+  "id": "b1-050",
+  "objective": "1.2.3",
+  "type": "single",
+  "stem": "What does this min-max scaling print?",
+  "options": [
+   "`[0.0, 0.125, 0.375, 1.0]`",
+   "`[0.2, 0.3, 0.5, 1.0]`",
+   "`[0.0, 0.1, 0.3, 0.8]`",
+   "`[0.0, 0.25, 0.5, 1.0]`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Min-max scaling computes (x − 20) / (100 − 20): 0/80, 10/80, 30/80 and 80/80.",
+  "why_wrong": [
+   "",
+   "That divides by the maximum only (x / max) without subtracting the minimum.",
+   "That subtracts the minimum but divides by 100 instead of the range, 80.",
+   "That treats the values as evenly spaced; they aren't."
+  ],
+  "source": "Syllabus 1.2.3",
+  "difficulty": 2,
+  "tags": [
+   "min-max",
+   "scaling"
+  ],
+  "code": "import pandas as pd\n\ns = pd.Series([20, 30, 50, 100])\nprint(((s - s.min()) / (s.max() - s.min())).tolist())",
+  "verify": "stdout"
+ },
+ {
+  "id": "b1-051",
+  "objective": "1.2.3",
+  "type": "single",
+  "stem": "A feature has mean 50 and standard deviation 10. What is the z-score of the value 75?",
+  "options": [
+   "2.5",
+   "0.75",
+   "25",
+   "0.25"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "z = (x − mean) / std = (75 − 50) / 10 = 2.5: the value is 2.5 standard deviations above the mean.",
+  "why_wrong": [
+   "",
+   "0.75 is 75/100, which is not the z-score formula.",
+   "25 is the raw distance from the mean, not divided by the standard deviation.",
+   "0.25 would divide 25 by 100."
+  ],
+  "source": "Syllabus 1.2.3",
+  "difficulty": 1,
+  "tags": [
+   "z-score",
+   "standardization"
+  ]
+ },
+ {
+  "id": "b1-052",
+  "objective": "1.2.3",
+  "type": "single",
+  "stem": "A linear regression will use `payment_method` (card, cash or voucher) as a feature. Which encoding avoids implying a false order?",
+  "options": [
+   "One-hot encoding",
+   "Label encoding (card = 0, cash = 1, voucher = 2)",
+   "Min-max scaling",
+   "Z-score standardization"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "One-hot encoding creates one 0/1 column per category, so a nominal variable gets no artificial ordering.",
+  "why_wrong": [
+   "",
+   "Integer codes tell a linear model that voucher > cash > card, an order that doesn't exist.",
+   "Scaling applies to numbers; the column is categorical.",
+   "Standardization also needs numeric input."
+  ],
+  "source": "Syllabus 1.2.3",
+  "difficulty": 2,
+  "tags": [
+   "one-hot",
+   "encoding"
+  ]
+ },
+ {
+  "id": "b1-053",
+  "objective": "1.2.3",
+  "type": "single",
+  "stem": "A `satisfaction` column holds \"low\", \"medium\" and \"high\". The model should be able to use the fact that high > medium > low. Which encoding does that?",
+  "options": [
+   "An explicit ordinal mapping: low = 0, medium = 1, high = 2",
+   "One-hot encoding into three indicator columns",
+   "Alphabetical label encoding (high = 0, low = 1, medium = 2)",
+   "Dropping the column"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "For ordered categories, map to integers that follow the real order so the model can use it.",
+  "why_wrong": [
+   "",
+   "One-hot columns are valid but carry no order information between levels.",
+   "Alphabetical codes scramble the real order.",
+   "Dropping the column loses a useful feature."
+  ],
+  "source": "Syllabus 1.2.3",
+  "difficulty": 2,
+  "tags": [
+   "ordinal",
+   "encoding"
+  ]
+ },
+ {
+  "id": "b1-054",
+  "objective": "1.2.3",
+  "type": "single",
+  "stem": "An `income` feature contains one extreme outlier. What happens if it is min-max scaled?",
+  "options": [
+   "Most values are squeezed into a narrow band near 0",
+   "All values are bounded to the range [−1, 1]",
+   "Min-max scaling is unaffected by outliers",
+   "The outlier is removed automatically"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "The outlier becomes the max, so (x − min) / (max − min) is tiny for every ordinary value: they crowd near 0. Z-scores or robust scaling are less affected.",
+  "why_wrong": [
+   "",
+   "Min-max scaling maps to [0, 1], and z-scores are unbounded; neither gives [−1, 1].",
+   "The outlier becomes the maximum, which sets the scale for everything else.",
+   "Scaling transforms values; it removes nothing."
+  ],
+  "source": "Syllabus 1.2.3",
+  "difficulty": 3,
+  "tags": [
+   "min-max",
+   "outliers"
+  ]
+ },
+ {
+  "id": "b1-055",
+  "objective": "1.2.3",
+  "type": "single",
+  "stem": "A team reduces 40 customer attributes to 5 principal components with PCA, and model accuracy stays the same. What is the main cost when presenting the model to the marketing department?",
+  "options": [
+   "Each component mixes many original attributes, so the results are harder to explain",
+   "The model becomes much slower",
+   "The data needs more storage",
+   "PCA introduces missing values"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Data reduction trades explainability for simplicity: a component is a weighted blend of attributes, not a business variable anyone recognizes.",
+  "why_wrong": [
+   "",
+   "Five features are faster to process than forty.",
+   "Five columns need less storage than forty.",
+   "PCA doesn't create missing values."
+  ],
+  "source": "Syllabus 1.2.3",
+  "difficulty": 2,
+  "tags": [
+   "pca",
+   "data-reduction"
+  ]
+ },
+ {
+  "id": "b1-056",
+  "objective": "1.2.3",
+  "type": "single",
+  "stem": "Which date is written in ISO 8601 format?",
+  "options": [
+   "2025-07-15",
+   "15/07/2025",
+   "07-15-2025",
+   "July 15, 2025"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "ISO 8601 writes dates as YYYY-MM-DD, which is unambiguous and sorts correctly as text.",
+  "why_wrong": [
+   "",
+   "Day/month/year is a regional format.",
+   "Month-day-year is the US convention, not ISO.",
+   "Written-out months are for people, not a standard exchange format."
+  ],
+  "source": "Syllabus 1.2.3",
+  "difficulty": 1,
+  "tags": [
+   "dates",
+   "standardization"
+  ]
+ },
+ {
+  "id": "b1-060",
+  "objective": "1.2.4",
+  "type": "single",
+  "stem": "What does this bucketization print?",
+  "options": [
+   "`['young', 'young', 'mid', 'senior']`",
+   "`['young', 'mid', 'mid', 'senior']`",
+   "`['young', 'young', 'mid', 'mid']`",
+   "`['young', 'mid', 'mid', 'mid']`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`pd.cut` intervals are right-closed by default: (0, 30], (30, 64], (64, 120]. So 18 and 30 are young, 31 is mid and 65 is senior.",
+  "why_wrong": [
+   "",
+   "Bins are right-closed, so 30 belongs to (0, 30], the \"young\" band.",
+   "65 is above 64, so it falls in (64, 120], \"senior\".",
+   "30 is included in the first bin and 65 in the last."
+  ],
+  "source": "Syllabus 1.2.4 · pandas: cut",
+  "difficulty": 2,
+  "tags": [
+   "bucketization",
+   "cut"
+  ],
+  "code": "import pandas as pd\n\nages = pd.Series([18, 30, 31, 65])\nbands = pd.cut(ages, bins=[0, 30, 64, 120], labels=[\"young\", \"mid\", \"senior\"])\nprint(bands.tolist())",
+  "verify": "stdout"
+ },
+ {
+  "id": "b1-061",
+  "objective": "1.2.4",
+  "type": "single",
+  "stem": "What does this conversion print?",
+  "options": [
+   "`22.5`",
+   "`nan`",
+   "`21.5`",
+   "A ValueError is raised"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`errors=\"coerce\"` converts unparseable text to NaN, and `sum` skips NaN: 12 + 7.5 + 3 = 22.5.",
+  "why_wrong": [
+   "",
+   "pandas' `sum` skips NaN by default.",
+   "12 + 7.5 + 3 is 22.5.",
+   "`errors=\"coerce\"` turns \"n/a\" into NaN instead of raising."
+  ],
+  "source": "Syllabus 1.2.4 · pandas: to_numeric",
+  "difficulty": 2,
+  "tags": [
+   "to-numeric",
+   "cleaning"
+  ],
+  "code": "import pandas as pd\n\ns = pd.Series([\"12\", \"7.5\", \"n/a\", \"3\"])\nprint(pd.to_numeric(s, errors=\"coerce\").sum())",
+  "verify": "stdout"
+ },
+ {
+  "id": "b1-062",
+  "objective": "1.2.4",
+  "type": "single",
+  "stem": "What happens when this code runs?",
+  "options": [
+   "A ValueError is raised",
+   "It returns `[12.0, 7.5, nan]`",
+   "It returns `[12.0, 7.5, 0.0]`",
+   "A TypeError is raised"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`astype(float)` fails on the first string it can't parse, raising ValueError: could not convert string to float.",
+  "why_wrong": [
+   "",
+   "Only `pd.to_numeric(..., errors=\"coerce\")` silently produces NaN.",
+   "pandas never substitutes 0 for text it can't parse.",
+   "The type (string) is acceptable for conversion; the value \"n/a\" is not, so it's a ValueError."
+  ],
+  "source": "Syllabus 1.2.4 · pandas: Series.astype",
+  "difficulty": 2,
+  "tags": [
+   "astype",
+   "errors"
+  ],
+  "code": "import pandas as pd\n\ns = pd.Series([\"12\", \"7.5\", \"n/a\"])\ns.astype(float)",
+  "verify": "raises:ValueError"
+ },
+ {
+  "id": "b1-063",
+  "objective": "1.2.4",
+  "type": "single",
+  "stem": "Which column names does this print?",
+  "options": [
+   "`['id', 'color_blue', 'color_red']`",
+   "`['id', 'color', 'color_blue', 'color_red']`",
+   "`['color_blue', 'color_red']`",
+   "`['id', 'blue', 'red']`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`get_dummies` replaces `color` with one indicator column per category, named `<column>_<value>` and sorted: `color_blue`, `color_red`.",
+  "why_wrong": [
+   "",
+   "The original `color` column is replaced, not kept.",
+   "Columns not listed in `columns=` (such as `id`) are kept.",
+   "pandas prefixes the new columns with the original column name."
+  ],
+  "source": "Syllabus 1.2.4 · pandas: get_dummies",
+  "difficulty": 2,
+  "tags": [
+   "one-hot",
+   "get-dummies"
+  ],
+  "code": "import pandas as pd\n\ndf = pd.DataFrame({\"id\": [1, 2, 3], \"color\": [\"red\", \"blue\", \"red\"]})\nprint(list(pd.get_dummies(df, columns=[\"color\"]).columns))",
+  "verify": "stdout"
+ },
+ {
+  "id": "b1-064",
+  "objective": "1.2.4",
+  "type": "single",
+  "stem": "How many missing values does the normalized column contain?",
+  "options": [
+   "`1`",
+   "`0`",
+   "`2`",
+   "`4`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`map` with a dict returns NaN for any value that isn't a key. After lowercasing, only \"maybe\" is unmapped.",
+  "why_wrong": [
+   "",
+   "\"maybe\" has no key in the mapping dict.",
+   "\"Yes\" and \"Y\" become \"yes\" and \"y\" after `lower()`, which are both mapped.",
+   "Three of the four values are mapped."
+  ],
+  "source": "Syllabus 1.2.4 · pandas: Series.map",
+  "difficulty": 2,
+  "tags": [
+   "boolean-normalization",
+   "map"
+  ],
+  "code": "import pandas as pd\n\ns = pd.Series([\"Yes\", \"no\", \"Y\", \"maybe\"])\nclean = s.str.lower().map({\"yes\": True, \"y\": True, \"no\": False, \"n\": False})\nprint(clean.isna().sum())",
+  "verify": "stdout"
+ },
+ {
+  "id": "b1-065",
+  "objective": "1.2.4",
+  "type": "single",
+  "stem": "An analyst wants four spending groups, each containing roughly the same number of customers. Which call does that?",
+  "options": [
+   "`pd.qcut(df[\"spend\"], q=4)`",
+   "`pd.cut(df[\"spend\"], bins=4)`",
+   "`df[\"spend\"].rank()`",
+   "`pd.get_dummies(df[\"spend\"])`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`qcut` bins by quantiles, so each of the four groups holds about a quarter of the customers.",
+  "why_wrong": [
+   "",
+   "`cut` with `bins=4` makes four equal-width ranges; skewed spending would put most customers in one bin.",
+   "Ranking orders customers but doesn't create groups.",
+   "One-hot encoding a continuous column creates one column per distinct value."
+  ],
+  "source": "Syllabus 1.2.4 · pandas: qcut",
+  "difficulty": 2,
+  "tags": [
+   "bucketization",
+   "qcut"
+  ]
+ },
+ {
+  "id": "b1-066",
+  "objective": "1.2.4",
+  "type": "multi",
+  "stem": "When is excluding data a better choice than imputing it? Select two.",
+  "options": [
+   "The target variable itself is missing for those rows",
+   "A column is 85% empty and nothing reliable can estimate its values",
+   "2% of a feature is missing at random and related columns predict it well",
+   "The rows with gaps are the only examples of a rare class",
+   "The column's mean can be calculated"
+  ],
+  "answer": [
+   0,
+   1
+  ],
+  "explanation": "Exclude when imputation would invent answers (a missing target) or when there is too little information to estimate values (a mostly empty column).",
+  "why_wrong": [
+   "",
+   "",
+   "Few, predictable gaps are the ideal case for imputation.",
+   "Dropping the only rare-class examples would cripple the analysis; impute instead.",
+   "Being able to compute a mean says nothing about whether imputing is sensible."
+  ],
+  "source": "Syllabus 1.2.4",
+  "difficulty": 3,
+  "tags": [
+   "imputation",
+   "exclusion"
+  ]
+ },
+ {
+  "id": "b1-070",
+  "objective": "1.3.1",
+  "type": "single",
+  "stem": "A rule states that a booking's `end_date` must be on or after its `start_date`. Which type of validation check is this?",
+  "options": [
+   "Cross-field check",
+   "Cross-reference check",
+   "Range check",
+   "Type check"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Comparing two fields within the same record is a cross-field check.",
+  "why_wrong": [
+   "",
+   "Cross-reference checks look a value up in another dataset.",
+   "A range check compares one field with fixed limits.",
+   "A type check confirms the kind of value, not how two fields relate."
+  ],
+  "source": "Syllabus 1.3.1",
+  "difficulty": 1,
+  "tags": [
+   "validation",
+   "cross-field"
+  ]
+ },
+ {
+  "id": "b1-071",
+  "objective": "1.3.1",
+  "type": "single",
+  "stem": "Every `product_code` in the sales file must exist in the product master list. Which check enforces this?",
+  "options": [
+   "Cross-reference check",
+   "Cross-field check",
+   "Format check",
+   "Range check"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Looking a value up in another dataset is a cross-reference (referential) check, the job a foreign key does in a database.",
+  "why_wrong": [
+   "",
+   "Cross-field checks compare fields inside the same record.",
+   "A code can have the right format and still not exist in the master list.",
+   "Codes aren't numeric limits."
+  ],
+  "source": "Syllabus 1.3.1",
+  "difficulty": 1,
+  "tags": [
+   "validation",
+   "cross-reference"
+  ]
+ },
+ {
+  "id": "b1-072",
+  "objective": "1.3.1",
+  "type": "single",
+  "stem": "Which row positions does this validation flag?",
+  "options": [
+   "`[1, 2]`",
+   "`[2]`",
+   "`[1]`",
+   "`[0, 3]`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Row 1 has qty 0 (out of range) and row 2 has qty 12 and a negative price. `~between(1, 10)` OR `price <= 0` flags rows 1 and 2.",
+  "why_wrong": [
+   "",
+   "Row 1 fails too: a quantity of 0 is outside 1 to 10.",
+   "Row 2 fails both rules (quantity 12, price −2).",
+   "Rows 0 and 3 pass both rules."
+  ],
+  "source": "Syllabus 1.3.1 · pandas: Series.between",
+  "difficulty": 2,
+  "tags": [
+   "validation",
+   "range-check"
+  ],
+  "code": "import pandas as pd\n\ndf = pd.DataFrame({\"qty\": [3, 0, 12, 7], \"price\": [9.5, 4.0, -2.0, 15.0]})\nbad = ~df[\"qty\"].between(1, 10) | (df[\"price\"] <= 0)\nprint(df.index[bad].tolist())",
+  "verify": "stdout"
+ },
+ {
+  "id": "b1-073",
+  "objective": "1.3.1",
+  "type": "single",
+  "stem": "Why add type checks at the very start of a data ingestion script?",
+  "options": [
+   "A bad file fails immediately, before its errors spread into joins, aggregates and reports",
+   "Type checks make the script run faster",
+   "Type checks replace the need for range checks",
+   "Type checks convert every column to the right type automatically"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Validating early (fail fast) stops bad input at the door, where the cause is obvious, instead of letting it corrupt later results.",
+  "why_wrong": [
+   "",
+   "Checks add a little work; their value is catching problems, not speed.",
+   "A correctly typed value can still be out of range.",
+   "A check detects problems; converting is a separate step."
+  ],
+  "source": "Syllabus 1.3.1",
+  "difficulty": 2,
+  "tags": [
+   "validation",
+   "fail-fast"
+  ]
+ },
+ {
+  "id": "b1-074",
+  "objective": "1.3.1",
+  "type": "single",
+  "stem": "What does this validation code print?",
+  "options": [
+   "`['ok', 'type', 'range', 'ok']`",
+   "`['ok', 'type', 'range', 'type']`",
+   "`['ok', 'ok', 'range', 'type']`",
+   "`['ok', 'type', 'type', 'type']`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "42 passes; \"42\" is a str (type); 130 is an int outside 0–120 (range); True counts as the int 1, so it passes both checks, a known gap in naive type checks.",
+  "why_wrong": [
+   "",
+   "`bool` is a subclass of `int`, so `isinstance(True, int)` is True and True (1) is within 0–120.",
+   "The string \"42\" is not an int, so it fails the type check.",
+   "130 is an int; it fails the range check, not the type check."
+  ],
+  "source": "Syllabus 1.3.1",
+  "difficulty": 3,
+  "tags": [
+   "validation",
+   "isinstance"
+  ],
+  "code": "def validate(row):\n    if not isinstance(row[\"age\"], int):\n        return \"type\"\n    if not 0 <= row[\"age\"] <= 120:\n        return \"range\"\n    return \"ok\"\n\nrows = [{\"age\": 42}, {\"age\": \"42\"}, {\"age\": 130}, {\"age\": True}]\nprint([validate(r) for r in rows])",
+  "verify": "stdout"
+ },
+ {
+  "id": "b1-080",
+  "objective": "1.3.2",
+  "type": "single",
+  "stem": "Which constraint enforces referential integrity between an `orders` table and a `customers` table?",
+  "options": [
+   "FOREIGN KEY",
+   "PRIMARY KEY",
+   "CHECK",
+   "DEFAULT"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "A foreign key requires every referenced customer to exist in the customers table.",
+  "why_wrong": [
+   "",
+   "A primary key identifies rows uniquely within one table (entity integrity).",
+   "CHECK restricts a column's values (domain integrity).",
+   "DEFAULT supplies a value when none is given."
+  ],
+  "source": "Syllabus 1.3.2",
+  "difficulty": 1,
+  "tags": [
+   "integrity",
+   "foreign-key"
+  ]
+ },
+ {
+  "id": "b1-081",
+  "objective": "1.3.2",
+  "type": "single",
+  "stem": "Which statement best describes data integrity?",
+  "options": [
+   "Data stays accurate, complete, consistent and reliable throughout its life cycle",
+   "Data is encrypted while stored",
+   "Data can be retrieved quickly",
+   "Data takes up as little storage as possible"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Integrity is about correctness over time: data changes only through valid, authorized operations.",
+  "why_wrong": [
+   "",
+   "Encryption is a security measure; encrypted data can still be wrong.",
+   "Speed is performance, not correctness.",
+   "Compact storage says nothing about correctness."
+  ],
+  "source": "Syllabus 1.3.2",
+  "difficulty": 1,
+  "tags": [
+   "integrity",
+   "definitions"
+  ]
+ },
+ {
+  "id": "b1-082",
+  "objective": "1.3.2",
+  "type": "single",
+  "stem": "Customer 99 does not exist. What does this code print?",
+  "options": [
+   "`1`",
+   "`0`",
+   "An IntegrityError is raised",
+   "An OperationalError is raised"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "SQLite ignores FOREIGN KEY constraints unless the connection runs `PRAGMA foreign_keys = ON`, so the orphan order is inserted.",
+  "why_wrong": [
+   "",
+   "The insert succeeds, so the table has one row.",
+   "SQLite only enforces foreign keys after `PRAGMA foreign_keys = ON`.",
+   "The SQL is valid, so no OperationalError occurs."
+  ],
+  "source": "Syllabus 1.3.2 · SQLite docs: foreign key support",
+  "difficulty": 3,
+  "tags": [
+   "integrity",
+   "sqlite"
+  ],
+  "code": "import sqlite3\n\ncon = sqlite3.connect(\":memory:\")\ncon.execute(\"CREATE TABLE customers (id INTEGER PRIMARY KEY)\")\ncon.execute(\"CREATE TABLE orders (id INTEGER PRIMARY KEY, \"\n            \"customer_id INTEGER REFERENCES customers(id))\")\ncon.execute(\"INSERT INTO orders VALUES (1, 99)\")\nprint(con.execute(\"SELECT COUNT(*) FROM orders\").fetchone()[0])",
+  "verify": "stdout"
+ },
+ {
+  "id": "b1-083",
+  "objective": "1.3.2",
+  "type": "single",
+  "stem": "A script moves stock between warehouses with one UPDATE that subtracts and another that adds. It crashes between the two statements. What prevents the totals from becoming inconsistent?",
+  "options": [
+   "Running both updates in one transaction and committing only after both succeed",
+   "A CHECK constraint on the quantity column",
+   "An index on the warehouse column",
+   "Running `SELECT DISTINCT` after the updates"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Transactions are atomic: either both updates are committed, or a failure rolls both back.",
+  "why_wrong": [
+   "",
+   "CHECK validates individual values; it can't tie two updates together.",
+   "Indexes speed up lookups; they don't make changes atomic.",
+   "A query after the fact can't undo half a transfer."
+  ],
+  "source": "Syllabus 1.3.2",
+  "difficulty": 2,
+  "tags": [
+   "transactions",
+   "acid"
+  ]
+ },
+ {
+  "id": "b1-084",
+  "objective": "1.3.2",
+  "type": "multi",
+  "stem": "Which two constraints help maintain domain integrity for an order quantity column? Select two.",
+  "options": [
+   "`NOT NULL`",
+   "`CHECK (qty > 0)`",
+   "`FOREIGN KEY`",
+   "`ORDER BY qty`",
+   "`LIMIT 1`"
+  ],
+  "answer": [
+   0,
+   1
+  ],
+  "explanation": "Domain integrity keeps values in their allowed set: NOT NULL requires a value and CHECK enforces a rule on it.",
+  "why_wrong": [
+   "",
+   "",
+   "A foreign key protects references between tables, not the quantity's domain.",
+   "ORDER BY sorts query results; it isn't a constraint.",
+   "LIMIT restricts how many rows a query returns."
+  ],
+  "source": "Syllabus 1.3.2",
+  "difficulty": 2,
+  "tags": [
+   "integrity",
+   "constraints"
+  ]
+ },
+ {
+  "id": "b1-090",
+  "objective": "1.4.1",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "`False None list`",
+   "`false null list`",
+   "`False None tuple`",
+   "`0 None list`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "JSON → Python: false → False, null → None, array → list.",
+  "why_wrong": [
+   "",
+   "`json.loads` converts JSON `false` and `null` to Python `False` and `None`.",
+   "JSON arrays become Python lists, never tuples.",
+   "JSON `false` becomes the boolean `False`, not the integer 0."
+  ],
+  "source": "Syllabus 1.4.1 · Python docs: json",
+  "difficulty": 1,
+  "tags": [
+   "json",
+   "types"
+  ],
+  "code": "import json\n\nrecord = json.loads('{\"id\": 7, \"active\": false, \"tags\": [\"a\", \"b\"], \"score\": null}')\nprint(record[\"active\"], record[\"score\"], type(record[\"tags\"]).__name__)",
+  "verify": "stdout"
+ },
+ {
+  "id": "b1-091",
+  "objective": "1.4.1",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "`{\"point\": [1, 2], \"ok\": true}`",
+   "`{\"point\": (1, 2), \"ok\": True}`",
+   "`{'point': [1, 2], 'ok': True}`",
+   "A TypeError is raised"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`json.dumps` writes tuples as JSON arrays, `True` as `true`, and uses double-quoted keys.",
+  "why_wrong": [
+   "",
+   "JSON has no tuples and writes booleans in lowercase.",
+   "That is Python's own dict notation; JSON uses double quotes.",
+   "Tuples are serializable; they become arrays."
+  ],
+  "source": "Syllabus 1.4.1 · Python docs: json",
+  "difficulty": 2,
+  "tags": [
+   "json",
+   "serialization"
+  ],
+  "code": "import json\n\nprint(json.dumps({\"point\": (1, 2), \"ok\": True}))",
+  "verify": "stdout"
+ },
+ {
+  "id": "b1-092",
+  "objective": "1.4.1",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "`8 Tea`",
+   "`35 Tea`",
+   "`8 A1`",
+   "`2 Tea`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`findall(\"item\")` returns both items; `get(\"qty\")` reads each attribute (3 and 5); `find(\"item\").text` is the first item's content.",
+  "why_wrong": [
+   "",
+   "The attributes are converted with `int()` before summing, so 3 + 5 = 8, not string concatenation.",
+   "`.text` is the element's content (\"Tea\"); the sku is an attribute.",
+   "The sum adds the qty attributes, not the number of items."
+  ],
+  "source": "Syllabus 1.4.1 · Python docs: xml.etree.ElementTree",
+  "difficulty": 2,
+  "tags": [
+   "xml",
+   "elementtree"
+  ],
+  "code": "import xml.etree.ElementTree as ET\n\nxml = \"<shop><item sku='A1' qty='3'>Tea</item><item sku='B2' qty='5'>Coffee</item></shop>\"\nroot = ET.fromstring(xml)\nprint(sum(int(i.get(\"qty\")) for i in root.findall(\"item\")), root.find(\"item\").text)",
+  "verify": "stdout"
+ },
+ {
+  "id": "b1-093",
+  "objective": "1.4.1",
+  "type": "single",
+  "stem": "Which function reads JSON from an open file object?",
+  "options": [
+   "`json.load(f)`",
+   "`json.loads(f)`",
+   "`json.dump(f)`",
+   "`json.dumps(f)`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`load` / `dump` work with files; `loads` / `dumps` work with strings.",
+  "why_wrong": [
+   "",
+   "`loads` parses a string, not a file object.",
+   "`dump` writes an object to a file.",
+   "`dumps` converts an object to a JSON string."
+  ],
+  "source": "Syllabus 1.4.1 · Python docs: json",
+  "difficulty": 1,
+  "tags": [
+   "json",
+   "file-io"
+  ]
+ },
+ {
+  "id": "b1-094",
+  "objective": "1.4.1",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "`3 Smith, Jane`",
+   "`3 \"Smith`",
+   "`4 Smith`",
+   "`2 Smith, Jane`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`csv.reader` returns the header plus two data rows, and keeps the quoted \"Smith, Jane\" as one field.",
+  "why_wrong": [
+   "",
+   "The csv module honours quotes, so the comma inside the quotes doesn't split the field.",
+   "The quoted field stays one field, so there are 3 rows and the name is complete.",
+   "The header row is also returned by `csv.reader`, giving 3 rows."
+  ],
+  "source": "Syllabus 1.4.1 · Python docs: csv",
+  "difficulty": 2,
+  "tags": [
+   "csv",
+   "quoting"
+  ],
+  "code": "import csv\nimport io\n\ndata = 'name,city\\n\"Smith, Jane\",Oslo\\nLee,Rome\\n'\nrows = list(csv.reader(io.StringIO(data)))\nprint(len(rows), rows[1][0])",
+  "verify": "stdout"
+ },
+ {
+  "id": "b1-095",
+  "objective": "1.4.1",
+  "type": "single",
+  "stem": "A supplier sends a product feed where categories contain products, and each product carries attributes such as `sku` and `currency`. Which format is designed for this kind of tagged, hierarchical data?",
+  "options": [
+   "XML",
+   "CSV",
+   "TXT",
+   "A single-sheet spreadsheet"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "XML represents a tree of nested elements with attributes, which is exactly this structure.",
+  "why_wrong": [
+   "",
+   "CSV is flat: one table of rows and columns.",
+   "Plain text has no structure at all.",
+   "A sheet is a flat grid; nesting would have to be flattened."
+  ],
+  "source": "Syllabus 1.4.1",
+  "difficulty": 1,
+  "tags": [
+   "xml",
+   "file-formats"
+  ]
+ },
+ {
+  "id": "b1-100",
+  "objective": "1.4.2",
+  "type": "single",
+  "stem": "What happens when this code runs?",
+  "options": [
+   "A ValueError is raised",
+   "It prints the row where `a` is 2",
+   "It prints the rows where `a` is 2 and 3",
+   "A TypeError is raised"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Python's `and` asks for the truth value of a whole Series, which is ambiguous, so pandas raises ValueError. Use `&` with parentheses.",
+  "why_wrong": [
+   "",
+   "`and` needs a single True/False, so it never reaches the filtering step.",
+   "The code fails before any filtering happens.",
+   "The error is about an ambiguous truth value, which pandas reports as ValueError."
+  ],
+  "source": "Syllabus 1.4.2 · pandas: boolean indexing",
+  "difficulty": 2,
+  "tags": [
+   "filtering",
+   "boolean-mask"
+  ],
+  "code": "import pandas as pd\n\ndf = pd.DataFrame({\"a\": [1, 2, 3], \"b\": [4, 5, 6]})\nprint(df[df[\"a\"] > 1 and df[\"b\"] < 6])",
+  "verify": "raises:ValueError"
+ },
+ {
+  "id": "b1-101",
+  "objective": "1.4.2",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "`[90, 70, 50, 20]`",
+   "`[70, 90, 20, 50]`",
+   "`[50, 20, 90, 70]`",
+   "`[20, 50, 70, 90]`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Region sorts A→Z (EU, then US) and, within each region, `total` sorts high to low: EU 90, 70; US 50, 20.",
+  "why_wrong": [
+   "",
+   "`total` is sorted descending within each region.",
+   "EU sorts before US because region is ascending.",
+   "That is a single ascending sort on `total`."
+  ],
+  "source": "Syllabus 1.4.2 · pandas: DataFrame.sort_values",
+  "difficulty": 2,
+  "tags": [
+   "sorting",
+   "pandas"
+  ],
+  "code": "import pandas as pd\n\ndf = pd.DataFrame({\"region\": [\"US\", \"EU\", \"EU\", \"US\"], \"total\": [50, 70, 90, 20]})\nprint(df.sort_values([\"region\", \"total\"], ascending=[True, False])[\"total\"].tolist())",
+  "verify": "stdout"
+ },
+ {
+  "id": "b1-102",
+  "objective": "1.4.2",
+  "type": "single",
+  "stem": "An open-data portal publishes a CSV at a public URL. How can pandas load it in one step?",
+  "options": [
+   "`pd.read_csv(\"https://…/air_quality.csv\")`",
+   "`pd.read_sql(\"https://…/air_quality.csv\")`",
+   "`pd.read_html(\"https://…/air_quality.csv\")`",
+   "`pd.DataFrame(\"https://…/air_quality.csv\")`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`pd.read_csv` accepts URLs as well as local paths, so online repositories can be read directly.",
+  "why_wrong": [
+   "",
+   "`read_sql` runs a query against a database connection.",
+   "`read_html` looks for `<table>` elements in HTML, not CSV text.",
+   "The constructor would treat the URL as a single string value."
+  ],
+  "source": "Syllabus 1.4.2 · pandas: read_csv",
+  "difficulty": 1,
+  "tags": [
+   "read-csv",
+   "online-data"
+  ]
+ },
+ {
+  "id": "b1-103",
+  "objective": "1.4.2",
+  "type": "single",
+  "stem": "How many rows does this filter return?",
+  "options": [
+   "`3`",
+   "`2`",
+   "`1`",
+   "`4`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "EU 120 and EU 95 match `region == 'EU'`; APAC 130 matches `sales > 100`; US 80 matches neither. Three rows.",
+  "why_wrong": [
+   "",
+   "APAC also qualifies because its sales exceed 100.",
+   "Both EU rows qualify through the region condition.",
+   "The US row fails both conditions."
+  ],
+  "source": "Syllabus 1.4.2 · pandas: DataFrame.query",
+  "difficulty": 2,
+  "tags": [
+   "filtering",
+   "query"
+  ],
+  "code": "import pandas as pd\n\ndf = pd.DataFrame({\"region\": [\"EU\", \"US\", \"EU\", \"APAC\"], \"sales\": [120, 80, 95, 130]})\nprint(len(df.query(\"region == 'EU' or sales > 100\")))",
+  "verify": "stdout"
+ },
+ {
+  "id": "b1-104",
+  "objective": "1.4.2",
+  "type": "single",
+  "stem": "Monthly temperatures for three cities are stored with one row per city and one column per month. Which layout is tidy?",
+  "options": [
+   "One row per city and month, with columns `city`, `month` and `temperature`",
+   "One row per month, with one column per city",
+   "One row per city, with one column per month (as now)",
+   "One row holding every value, with a column per city-month pair"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Tidy data has each variable as a column and each observation (a city in a month) as a row.",
+  "why_wrong": [
+   "",
+   "Cities as columns spreads one variable (city) across column names.",
+   "Month values in column names mean one variable is stored as headers.",
+   "A single row hides both variables in column names."
+  ],
+  "source": "Syllabus 1.4.2",
+  "difficulty": 2,
+  "tags": [
+   "tidy-data",
+   "organization"
+  ]
+ },
+ {
+  "id": "b1-110",
+  "objective": "1.4.3",
+  "type": "single",
+  "stem": "What does this parsing code print?",
+  "options": [
+   "`[2.5, 3.1]`",
+   "`[2.5]`",
+   "`['2.50', '3.10']`",
+   "An AttributeError is raised"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "BeautifulSoup matches `class_=\"item\"` against each of an element's classes, so both list items match; their prices convert to 2.5 and 3.1. The note isn't an item.",
+  "why_wrong": [
+   "",
+   "`class_=\"item\"` also matches an element whose classes are \"item sale\".",
+   "Each price is converted with `float()`.",
+   "Both matched items contain a price span, so `find` never returns None."
+  ],
+  "source": "Syllabus 1.4.3 · Beautiful Soup docs: searching by CSS class",
+  "difficulty": 3,
+  "tags": [
+   "beautifulsoup",
+   "html"
+  ],
+  "code": "from bs4 import BeautifulSoup\n\nhtml = '''<ul>\n  <li class=\"item\">Tea <span class=\"price\">2.50</span></li>\n  <li class=\"item sale\">Coffee <span class=\"price\">3.10</span></li>\n  <li class=\"note\">Prices in EUR</li>\n</ul>'''\nsoup = BeautifulSoup(html, \"html.parser\")\nprices = [float(li.find(\"span\", class_=\"price\").get_text())\n          for li in soup.find_all(\"li\", class_=\"item\")]\nprint(prices)",
+  "verify": "stdout"
+ },
+ {
+  "id": "b1-111",
+  "objective": "1.4.3",
+  "type": "single",
+  "stem": "An API starts returning HTTP status 429. What does it mean, and what should the client do?",
+  "options": [
+   "Too many requests: slow down and retry later, respecting any Retry-After header",
+   "Not found: fix the URL",
+   "Unauthorized: supply valid credentials",
+   "Server error: the request was fine, so retry immediately in a tight loop"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "429 Too Many Requests signals a rate limit; back off before retrying.",
+  "why_wrong": [
+   "",
+   "\"Not found\" is 404.",
+   "Missing or invalid credentials give 401.",
+   "Server errors are 5xx, and hammering the server makes things worse."
+  ],
+  "source": "Syllabus 1.4.3",
+  "difficulty": 1,
+  "tags": [
+   "http",
+   "rate-limiting"
+  ]
+ },
+ {
+  "id": "b1-112",
+  "objective": "1.4.3",
+  "type": "single",
+  "stem": "A request to an API endpoint returns 404. What does `resp = requests.get(url)` do?",
+  "options": [
+   "Returns a Response whose `status_code` is 404; no exception is raised unless you call `resp.raise_for_status()`",
+   "Raises an HTTPError immediately",
+   "Returns None",
+   "Retries automatically until it succeeds"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "HTTP errors are data, not exceptions, in requests: check `status_code` or call `raise_for_status()`.",
+  "why_wrong": [
+   "",
+   "requests only raises for HTTP error codes when you call `raise_for_status()`.",
+   "`get` always returns a Response object when the server answers.",
+   "requests doesn't retry failed status codes by default."
+  ],
+  "source": "Syllabus 1.4.3 · requests docs",
+  "difficulty": 2,
+  "tags": [
+   "requests",
+   "http"
+  ]
+ },
+ {
+  "id": "b1-113",
+  "objective": "1.4.3",
+  "type": "single",
+  "stem": "Where is a site's robots.txt, and what does it do?",
+  "options": [
+   "At the root of the domain; it lists paths that automated crawlers are asked not to visit",
+   "In each page's HTML head; it technically blocks all scrapers",
+   "In the API documentation; it holds the API key",
+   "In the sitemap; it lists the prices of all products"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "robots.txt (e.g. https://example.com/robots.txt) uses `Disallow:` lines to tell crawlers what not to fetch. It is a convention that ethical scrapers respect.",
+  "why_wrong": [
+   "",
+   "robots.txt is a separate file at the site root and doesn't block anything by force.",
+   "API keys are never published in robots.txt.",
+   "A sitemap lists URLs; robots.txt lists crawl rules."
+  ],
+  "source": "Syllabus 1.4.3",
+  "difficulty": 1,
+  "tags": [
+   "robots-txt",
+   "ethics"
+  ]
+ },
+ {
+  "id": "b1-114",
+  "objective": "1.4.3",
+  "type": "multi",
+  "stem": "Which two practices make a web-scraping project more ethical? Select two.",
+  "options": [
+   "Pausing between requests so the server isn't overloaded",
+   "Using the site's official API when one exists",
+   "Spoofing a browser to get past blocks",
+   "Ignoring robots.txt because the pages are public",
+   "Collecting personal data from user profiles for later use"
+  ],
+  "answer": [
+   0,
+   1
+  ],
+  "explanation": "Rate-limiting protects the site, and an official API is the sanctioned route to the data.",
+  "why_wrong": [
+   "",
+   "",
+   "Evading blocks overrides the owner's choice and may breach terms of service.",
+   "Public doesn't mean unrestricted; robots.txt states the owner's wishes.",
+   "Personal data needs a lawful basis and a clear purpose."
+  ],
+  "source": "Syllabus 1.4.3",
+  "difficulty": 2,
+  "tags": [
+   "web-scraping",
+   "ethics"
+  ]
+ },
+ {
+  "id": "b1-115",
+  "objective": "1.4.3",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "`a 2 None`",
+   "`a 2 []`",
+   "`ab 3 None`",
+   "`a 1 None`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`find` returns the first match (\"a\"), `find_all` returns a list of all matches (2 paragraphs), and `find` gives None when nothing matches.",
+  "why_wrong": [
+   "",
+   "`find` returns None when there's no match; only `find_all` returns an empty list.",
+   "`find` returns only the first `<p>`, and `find_all(\"p\")` ignores the `<div>`.",
+   "`find_all` returns every `<p>`, and there are two."
+  ],
+  "source": "Syllabus 1.4.3 · Beautiful Soup docs",
+  "difficulty": 2,
+  "tags": [
+   "beautifulsoup",
+   "find"
+  ],
+  "code": "from bs4 import BeautifulSoup\n\nsoup = BeautifulSoup(\"<p>a</p><p>b</p><div>c</div>\", \"html.parser\")\nprint(soup.find(\"p\").get_text(), len(soup.find_all(\"p\")), soup.find(\"span\"))",
+  "verify": "stdout"
+ },
+ {
+  "id": "b1-116",
+  "objective": "1.4.3",
+  "type": "single",
+  "stem": "A page contains three HTML tables. What does `pd.read_html(page_html)` return?",
+  "options": [
+   "A list of three DataFrames",
+   "One DataFrame with all tables stacked",
+   "A dict keyed by table id",
+   "A BeautifulSoup object"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`pd.read_html` returns a list with one DataFrame per `<table>` found.",
+  "why_wrong": [
+   "",
+   "Tables are returned separately, never stacked.",
+   "It returns a list, in page order.",
+   "It parses tables into DataFrames, not a soup object."
+  ],
+  "source": "Syllabus 1.4.3 · pandas: read_html",
+  "difficulty": 1,
+  "tags": [
+   "read-html",
+   "html"
+  ]
+ },
+ {
+  "id": "b1-120",
+  "objective": "1.4.4",
+  "type": "single",
+  "stem": "A tax rate sits in cell B1. The formula `=A2*B1` in C2 gives wrong results when filled down to C3:C100. What should C2 contain?",
+  "options": [
+   "`=A2*$B$1`",
+   "`=$A$2*B1`",
+   "`=A2*B$2`",
+   "`=SUM(A2:B1)`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "An absolute reference ($B$1) stays fixed when the formula is copied, while the relative A2 moves to A3, A4…",
+  "why_wrong": [
+   "",
+   "Locking A2 would multiply the same first value in every row.",
+   "B$2 points at row 2, not the rate in row 1.",
+   "SUM of a range isn't a multiplication by the rate."
+  ],
+  "source": "Syllabus 1.4.4",
+  "difficulty": 1,
+  "tags": [
+   "spreadsheets",
+   "absolute-reference"
+  ]
+ },
+ {
+  "id": "b1-121",
+  "objective": "1.4.4",
+  "type": "single",
+  "stem": "Column D holds order statuses. Which formula counts how many orders are \"Late\"?",
+  "options": [
+   "`=COUNTIF(D:D, \"Late\")`",
+   "`=COUNT(D:D)`",
+   "`=COUNTA(D:D)`",
+   "`=SUM(D:D)`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "COUNTIF counts cells that meet a condition.",
+  "why_wrong": [
+   "",
+   "COUNT counts numeric cells; statuses are text.",
+   "COUNTA counts every non-empty cell, whatever the status.",
+   "SUM adds numbers; it can't count text values."
+  ],
+  "source": "Syllabus 1.4.4",
+  "difficulty": 1,
+  "tags": [
+   "spreadsheets",
+   "formulas"
+  ]
+ },
+ {
+  "id": "b1-122",
+  "objective": "1.4.4",
+  "type": "multi",
+  "stem": "Which two layout choices make a sheet easiest to sort, filter and read with `pd.read_excel`? Select two.",
+  "options": [
+   "A single header row in the first row",
+   "No merged cells and no blank rows inside the data",
+   "A subtotal row inserted after every ten orders",
+   "Colour-coding late orders instead of using a status column",
+   "A two-row header with merged group labels"
+  ],
+  "answer": [
+   0,
+   1
+  ],
+  "explanation": "One header row and a continuous block of records (no merges, no gaps) is the layout tools read without surprises.",
+  "why_wrong": [
+   "",
+   "",
+   "Subtotal rows mix summaries with records and break sorting and imports.",
+   "Colour isn't data; it is lost on import and can't be filtered by formulas.",
+   "Multi-row, merged headers need special handling to import."
+  ],
+  "source": "Syllabus 1.4.4",
+  "difficulty": 2,
+  "tags": [
+   "spreadsheets",
+   "layout"
+  ]
+ },
+ {
+  "id": "b1-123",
+  "objective": "1.4.4",
+  "type": "single",
+  "stem": "Cells formatted to one decimal show 3.1, but each holds 3.14159. What does `=SUM` of ten such cells return?",
+  "options": [
+   "31.4159, using the stored values",
+   "31.0, using the displayed values",
+   "An error, because formats differ",
+   "31, rounded to an integer"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Number formatting is cosmetic: formulas use the underlying values (the result then displays with the cell's format).",
+  "why_wrong": [
+   "",
+   "Formatting changes appearance only; calculations use the full stored value.",
+   "Formatting never causes calculation errors.",
+   "No rounding happens unless a formula rounds."
+  ],
+  "source": "Syllabus 1.4.4",
+  "difficulty": 2,
+  "tags": [
+   "spreadsheets",
+   "formatting"
+  ]
+ },
+ {
+  "id": "b1-130",
+  "objective": "1.4.5",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "`(9, 3)`",
+   "`(3, 4)`",
+   "`(9, 4)`",
+   "`(3, 9)`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`melt` turns 3 stores × 3 quarter columns into 9 rows, with columns store, quarter and sales.",
+  "why_wrong": [
+   "",
+   "That's the original wide shape.",
+   "Melting keeps one id column plus the new `quarter` and `sales` columns: three.",
+   "Rows multiply (3 stores × 3 quarters); columns shrink."
+  ],
+  "source": "Syllabus 1.4.5 · pandas: DataFrame.melt",
+  "difficulty": 2,
+  "tags": [
+   "melt",
+   "reshaping"
+  ],
+  "code": "import pandas as pd\n\nwide = pd.DataFrame({\"store\": [\"A\", \"B\", \"C\"],\n                     \"Q1\": [5, 3, 4], \"Q2\": [6, 2, 7], \"Q3\": [4, 4, 5]})\nlong = wide.melt(id_vars=\"store\", var_name=\"quarter\", value_name=\"sales\")\nprint(long.shape)",
+  "verify": "stdout"
+ },
+ {
+  "id": "b1-131",
+  "objective": "1.4.5",
+  "type": "single",
+  "stem": "An analyst standardizes all 10,000 rows with `StandardScaler().fit_transform(X)`, then splits them 80/20 into training and test sets. What is the problem?",
+  "options": [
+   "The scaler learned the mean and standard deviation from test rows too, leaking information into training",
+   "StandardScaler cannot be used before a split",
+   "The split should be 50/50",
+   "Standardization removes outliers from the test set"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Fitting any preprocessing on all data before splitting is data leakage; split first, fit on training data, then transform both.",
+  "why_wrong": [
+   "",
+   "It can be used, but must be fitted on training rows only.",
+   "80/20 is a normal split; the size isn't the issue.",
+   "Standardization rescales values; it removes nothing."
+  ],
+  "source": "Syllabus 1.4.5, 4.2.2",
+  "difficulty": 2,
+  "tags": [
+   "data-leakage",
+   "train-test-split"
+  ]
+ },
+ {
+  "id": "b1-132",
+  "objective": "1.4.5",
+  "type": "single",
+  "stem": "Only 5% of transactions in a dataset are fraud. Which `train_test_split` argument keeps that 5% share in both the training and test sets?",
+  "options": [
+   "`stratify=y`",
+   "`shuffle=False`",
+   "`random_state=42`",
+   "`test_size=0.05`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`stratify=y` splits within each class, preserving class proportions in both sets.",
+  "why_wrong": [
+   "",
+   "Turning off shuffling doesn't balance classes; it can make it worse.",
+   "`random_state` makes the split reproducible, not proportional.",
+   "This sets the test set to 5% of rows, not the fraud share."
+  ],
+  "source": "Syllabus 1.4.5 · scikit-learn: train_test_split",
+  "difficulty": 2,
+  "tags": [
+   "train-test-split",
+   "stratify"
+  ]
+ },
+ {
+  "id": "b1-133",
+  "objective": "1.4.5",
+  "type": "single",
+  "stem": "A model will forecast daily demand. How should the data be split for testing?",
+  "options": [
+   "Train on earlier dates and test on later dates, without shuffling",
+   "Shuffle all days, then take a random 20% as the test set",
+   "Use every other day for testing",
+   "Test on the same days used for training"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Time series must be split by time so that evaluation mimics forecasting the unknown future.",
+  "why_wrong": [
+   "",
+   "Shuffling lets the model train on days after the ones it's tested on: leakage from the future.",
+   "Interleaved days still let the model see the future around each test day.",
+   "Testing on training data measures memorization, not forecasting."
+  ],
+  "source": "Syllabus 1.4.5, 4.2.2",
+  "difficulty": 2,
+  "tags": [
+   "time-series",
+   "train-test-split"
+  ]
+ },
+ {
+  "id": "b1-134",
+  "objective": "1.4.5",
+  "type": "single",
+  "stem": "Store A has two January rows. What happens when this code runs?",
+  "options": [
+   "A ValueError is raised",
+   "It returns 5 for store A",
+   "It returns 12 for store A",
+   "It returns 6 for store A"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`pivot` requires each index/column pair to be unique; duplicates raise ValueError (\"Index contains duplicate entries\"). Use `pivot_table` to aggregate them.",
+  "why_wrong": [
+   "",
+   "`pivot` doesn't pick one of the duplicates.",
+   "`pivot` doesn't aggregate; that would need `pivot_table(aggfunc=\"sum\")`.",
+   "Averaging duplicates is `pivot_table`'s default, not `pivot`'s behaviour."
+  ],
+  "source": "Syllabus 1.4.5 · pandas: DataFrame.pivot",
+  "difficulty": 2,
+  "tags": [
+   "pivot",
+   "reshaping"
+  ],
+  "code": "import pandas as pd\n\nlong = pd.DataFrame({\"store\": [\"A\", \"A\", \"B\"],\n                     \"month\": [\"Jan\", \"Jan\", \"Jan\"],\n                     \"sales\": [5, 7, 3]})\nlong.pivot(index=\"store\", columns=\"month\", values=\"sales\")",
+  "verify": "raises:ValueError"
+ },
+ {
+  "id": "b1-135",
+  "objective": "1.4.5",
+  "type": "single",
+  "stem": "Forty rows have label 0 and ten have label 1. What does this code print?",
+  "options": [
+   "`10 2`",
+   "`10 5`",
+   "`5 1`",
+   "`10 0`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "The test set gets 20% of 50 = 10 rows, and stratification keeps 20% of them (2) in class 1.",
+  "why_wrong": [
+   "",
+   "Stratifying keeps the 20% share of class 1: 2 of the 10 test rows.",
+   "`test_size=0.2` of 50 rows is 10 rows.",
+   "With stratification, class 1 must appear in the test set in proportion."
+  ],
+  "source": "Syllabus 1.4.5 · scikit-learn: train_test_split",
+  "difficulty": 2,
+  "tags": [
+   "train-test-split",
+   "stratify"
+  ],
+  "code": "from sklearn.model_selection import train_test_split\n\nX = list(range(50))\ny = [0] * 40 + [1] * 10\nX_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.2, stratify=y, random_state=0)\nprint(len(X_te), sum(y_te))",
+  "verify": "stdout"
+ },
+ {
+  "id": "b1-136",
+  "objective": "1.4.5",
+  "type": "single",
+  "stem": "An analyst is asked to prepare customer data for a churn dashboard. What should they clarify first?",
+  "options": [
+   "The business question and how the stakeholders define churn and the time frame",
+   "Which chart colours to use",
+   "Whether to use pandas or SQL",
+   "How to scale every numeric column"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Preparation follows the objective: the definition of churn and the decision it supports determine which columns, filters and periods matter.",
+  "why_wrong": [
+   "",
+   "Styling comes long after deciding what the data must show.",
+   "Tools follow from the task, not the other way round.",
+   "Scaling may not even be needed for a dashboard."
+  ],
+  "source": "Syllabus 1.4.5",
+  "difficulty": 1,
+  "tags": [
+   "stakeholders",
+   "preparation"
+  ]
+ }
+]

@@ -1,0 +1,889 @@
+[
+ {
+  "id": "b5-001",
+  "objective": "5.1.1",
+  "type": "single",
+  "stem": "Which Seaborn function draws a histogram of a numeric column?",
+  "options": [
+   "`sns.histplot(data=df, x=\"order_value\")`",
+   "`sns.lineplot(data=df, x=\"order_value\")`",
+   "`sns.heatmap(df[\"order_value\"])`",
+   "`sns.countplot(data=df, x=\"order_value\")`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`sns.histplot` bins a numeric variable and shows the count in each bin (add `kde=True` for a density curve).",
+  "why_wrong": [
+   "",
+   "A line plot connects values in order; it doesn't bin them.",
+   "A heatmap needs a 2-D matrix of values.",
+   "`countplot` counts each distinct value, as for categories, instead of binning a continuous range."
+  ],
+  "source": "Syllabus 5.1.1 · Seaborn: histplot",
+  "difficulty": 1,
+  "tags": [
+   "seaborn",
+   "histogram"
+  ]
+ },
+ {
+  "id": "b5-002",
+  "objective": "5.1.1",
+  "type": "single",
+  "stem": "An analyst wants a chart of how many orders fall into each product category. Which Seaborn call does that?",
+  "options": [
+   "`sns.countplot(data=df, x=\"category\")`",
+   "`sns.barplot(data=df, x=\"category\", y=\"amount\")`",
+   "`sns.boxplot(data=df, x=\"category\")`",
+   "`sns.scatterplot(data=df, x=\"category\", y=\"amount\")`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`countplot` counts rows per category; `barplot` aggregates a numeric column (the mean by default).",
+  "why_wrong": [
+   "",
+   "`barplot` shows the mean of `amount` per category, not the number of orders.",
+   "A box plot shows a distribution, not counts.",
+   "A scatter plot shows individual points."
+  ],
+  "source": "Syllabus 5.1.1 · Seaborn: countplot",
+  "difficulty": 2,
+  "tags": [
+   "seaborn",
+   "countplot"
+  ]
+ },
+ {
+  "id": "b5-003",
+  "objective": "5.1.1",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "`(2, 3) Axes`",
+   "`(3, 2) Axes`",
+   "`(2, 3) Figure`",
+   "`6 Axes`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`plt.subplots(2, 3)` returns a Figure and a 2 × 3 array of Axes, indexed `axes[row, col]`.",
+  "why_wrong": [
+   "",
+   "The first argument is the number of rows.",
+   "Each element of the array is an Axes; the Figure is returned separately.",
+   "The Axes come back as a 2-D array, so `shape` is (2, 3)."
+  ],
+  "source": "Syllabus 5.1.1 · Matplotlib: subplots",
+  "difficulty": 2,
+  "tags": [
+   "matplotlib",
+   "subplots"
+  ],
+  "code": "import matplotlib\nmatplotlib.use(\"Agg\")\nimport matplotlib.pyplot as plt\n\nfig, axes = plt.subplots(2, 3)\nprint(axes.shape, type(axes[0, 1]).__name__)",
+  "verify": "stdout"
+ },
+ {
+  "id": "b5-004",
+  "objective": "5.1.1",
+  "type": "single",
+  "stem": "In `sns.heatmap(df.corr(), annot=True, fmt=\".2f\", cmap=\"coolwarm\", vmin=-1, vmax=1)`, what do `annot=True` and `vmin`/`vmax` do?",
+  "options": [
+   "`annot` writes each correlation value in its cell; `vmin`/`vmax` fix the colour scale to the full −1 to 1 range",
+   "`annot` adds a title; `vmin`/`vmax` hide values outside the range",
+   "`annot` sorts the variables; `vmin`/`vmax` set the figure size",
+   "`annot` adds arrows; `vmin`/`vmax` set the number of decimal places"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Annotating shows the numbers; fixing vmin and vmax makes colours comparable across heatmaps and keeps 0 at the palette's centre.",
+  "why_wrong": [
+   "",
+   "Titles come from `ax.set_title`; values outside the range are clipped to the end colours, not hidden.",
+   "The heatmap doesn't reorder variables, and figure size is set elsewhere.",
+   "Decimal places are set by `fmt`."
+  ],
+  "source": "Syllabus 5.1.1 · Seaborn: heatmap",
+  "difficulty": 2,
+  "tags": [
+   "heatmap",
+   "seaborn"
+  ]
+ },
+ {
+  "id": "b5-005",
+  "objective": "5.1.1",
+  "type": "single",
+  "stem": "A script calls `plt.show()` and then `plt.savefig(\"chart.png\")`, and the saved file is blank. What is the fix?",
+  "options": [
+   "Call `savefig` before `show`",
+   "Increase the `dpi`",
+   "Save as JPG instead of PNG",
+   "Call `plt.title` after saving"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`plt.show()` can close or clear the current figure; save first (or save through the Figure object `fig.savefig`).",
+  "why_wrong": [
+   "",
+   "Resolution doesn't matter if the figure was already cleared.",
+   "The format isn't the problem.",
+   "Anything added after saving isn't in the file."
+  ],
+  "source": "Syllabus 5.1.1 · Matplotlib: savefig",
+  "difficulty": 2,
+  "tags": [
+   "matplotlib",
+   "savefig"
+  ]
+ },
+ {
+  "id": "b5-006",
+  "objective": "5.1.1",
+  "type": "single",
+  "stem": "A DataFrame has several sales rows per month. What does `sns.lineplot(data=df, x=\"month\", y=\"sales\")` draw by default?",
+  "options": [
+   "The mean sales per month, with a shaded confidence band",
+   "Every raw row connected in file order",
+   "The total sales per month, with no band",
+   "A separate line for every row"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "When x values repeat, `lineplot` plots the mean at each x and shades a 95% confidence interval (`errorbar=None` removes it).",
+  "why_wrong": [
+   "",
+   "Seaborn aggregates repeated x values rather than connecting raw rows.",
+   "The default estimator is the mean, and a confidence band is added.",
+   "Separate lines come from `hue=`."
+  ],
+  "source": "Syllabus 5.1.1 · Seaborn: lineplot",
+  "difficulty": 2,
+  "tags": [
+   "seaborn",
+   "lineplot"
+  ]
+ },
+ {
+  "id": "b5-010",
+  "objective": "5.1.2",
+  "type": "single",
+  "stem": "Management asks how monthly revenue has changed over the last 24 months. Which chart fits best?",
+  "options": [
+   "Line chart",
+   "Pie chart",
+   "Histogram",
+   "Box plot"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Line charts show change over an ordered variable such as time.",
+  "why_wrong": [
+   "",
+   "A pie shows parts of one whole at one moment.",
+   "A histogram shows the distribution of values, losing the time order.",
+   "A box plot summarizes a distribution, hiding the trend."
+  ],
+  "source": "Syllabus 5.1.2",
+  "difficulty": 1,
+  "tags": [
+   "chart-choice",
+   "line-chart"
+  ]
+ },
+ {
+  "id": "b5-011",
+  "objective": "5.1.2",
+  "type": "single",
+  "stem": "Which chart best compares total sales across 8 regions?",
+  "options": [
+   "A bar chart sorted by sales",
+   "A pie chart with 8 slices",
+   "A line chart with regions on the x-axis",
+   "A scatter plot"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Bar lengths are easy to compare; sorting makes the ranking obvious.",
+  "why_wrong": [
+   "",
+   "Eight slices are hard to compare by angle.",
+   "Regions have no order, so a line implies a trend that doesn't exist.",
+   "A scatter plot needs two numeric variables."
+  ],
+  "source": "Syllabus 5.1.2",
+  "difficulty": 1,
+  "tags": [
+   "chart-choice",
+   "bar-chart"
+  ]
+ },
+ {
+  "id": "b5-012",
+  "objective": "5.1.2",
+  "type": "single",
+  "stem": "HR wants to compare the spread of salaries, including outliers, across 5 departments. Which chart fits best?",
+  "options": [
+   "Side-by-side box plots",
+   "A bar chart of mean salary per department",
+   "A pie chart of total salary",
+   "A line chart of salaries"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Box plots show median, IQR and outliers for each group side by side.",
+  "why_wrong": [
+   "",
+   "Means hide spread and outliers.",
+   "Totals show share of payroll, not distribution.",
+   "Salaries aren't ordered in time."
+  ],
+  "source": "Syllabus 5.1.2, 3.1.2",
+  "difficulty": 2,
+  "tags": [
+   "chart-choice",
+   "box-plot"
+  ]
+ },
+ {
+  "id": "b5-013",
+  "objective": "5.1.2",
+  "type": "single",
+  "stem": "Which chart shows whether higher advertising spend tends to go with higher revenue across 200 campaigns?",
+  "options": [
+   "Scatter plot",
+   "Pie chart",
+   "Histogram of revenue",
+   "Stacked bar chart"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "A scatter plot places each campaign by spend and revenue, revealing direction, form and strength.",
+  "why_wrong": [
+   "",
+   "A pie can't relate two numeric variables.",
+   "A histogram shows one variable only.",
+   "Stacked bars show composition, not a relationship between two measures."
+  ],
+  "source": "Syllabus 5.1.2",
+  "difficulty": 1,
+  "tags": [
+   "chart-choice",
+   "scatter-plot"
+  ]
+ },
+ {
+  "id": "b5-014",
+  "objective": "5.1.2",
+  "type": "single",
+  "stem": "A bar chart shows satisfaction of 96% for Team A and 98% for Team B, with the y-axis running from 95% to 100%. What is wrong with it?",
+  "options": [
+   "The truncated axis makes a 2-point gap look like Team B scores several times higher; bars should start at zero",
+   "Bar charts can't show percentages",
+   "It should be a pie chart",
+   "The bars should be sorted alphabetically"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Bar length encodes value, so a bar chart's value axis must start at zero; otherwise small differences are exaggerated.",
+  "why_wrong": [
+   "",
+   "Percentages are fine on a bar chart.",
+   "Two separate scores aren't parts of one whole.",
+   "Sorting doesn't fix the misleading scale."
+  ],
+  "source": "Syllabus 5.1.2",
+  "difficulty": 3,
+  "tags": [
+   "misleading-charts",
+   "axes"
+  ]
+ },
+ {
+  "id": "b5-015",
+  "objective": "5.1.2",
+  "type": "multi",
+  "stem": "Which two are genuine weaknesses of pie charts? Select two.",
+  "options": [
+   "Angles and areas are harder to compare precisely than bar lengths",
+   "With many slices they become unreadable",
+   "They cannot show parts of a whole",
+   "They must always be drawn in 3D",
+   "They cannot be labeled with percentages"
+  ],
+  "answer": [
+   0,
+   1
+  ],
+  "explanation": "Pies work only for a few parts; people judge lengths far more accurately than angles.",
+  "why_wrong": [
+   "",
+   "",
+   "Showing parts of a whole is exactly what pies do.",
+   "3D pies are optional and discouraged.",
+   "Pie slices can be labeled."
+  ],
+  "source": "Syllabus 5.1.2",
+  "difficulty": 2,
+  "tags": [
+   "pie-chart",
+   "chart-choice"
+  ]
+ },
+ {
+  "id": "b5-020",
+  "objective": "5.1.3",
+  "type": "single",
+  "stem": "In Matplotlib's object-oriented style, which call sets the y-axis label?",
+  "options": [
+   "`ax.set_ylabel(\"Revenue (EUR)\")`",
+   "`ax.ylabel(\"Revenue (EUR)\")`",
+   "`ax.label_y(\"Revenue (EUR)\")`",
+   "`ax.set_title(\"Revenue (EUR)\")`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Axes setters are `set_title`, `set_xlabel` and `set_ylabel`.",
+  "why_wrong": [
+   "",
+   "`ylabel` is the pyplot function (`plt.ylabel`); Axes methods use `set_`.",
+   "There is no `label_y` method.",
+   "`set_title` sets the title, not the axis label."
+  ],
+  "source": "Syllabus 5.1.3 · Matplotlib: Axes.set_ylabel",
+  "difficulty": 1,
+  "tags": [
+   "labels",
+   "matplotlib"
+  ]
+ },
+ {
+  "id": "b5-021",
+  "objective": "5.1.3",
+  "type": "single",
+  "stem": "Which call puts the legend in the upper-left corner, with small text on a white background?",
+  "options": [
+   "`ax.legend(loc=\"upper left\", fontsize=8, facecolor=\"white\")`",
+   "`ax.legend(position=\"top-left\", size=8, background=\"white\")`",
+   "`ax.set_legend(\"upper left\", 8, \"white\")`",
+   "`plt.legend(align=\"left\", font=8, color=\"white\")`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Legend position is `loc`, text size `fontsize`, and background colour `facecolor`.",
+  "why_wrong": [
+   "",
+   "Those parameter names don't exist; they are `loc`, `fontsize` and `facecolor`.",
+   "There is no `set_legend` method.",
+   "`align`, `font` and `color` aren't the legend's parameters for these properties."
+  ],
+  "source": "Syllabus 5.1.3 · Matplotlib: legend",
+  "difficulty": 2,
+  "tags": [
+   "legend",
+   "matplotlib"
+  ],
+  "verify": {
+   "py": "import matplotlib\nmatplotlib.use(\"Agg\")\nimport matplotlib.pyplot as plt\nfig, ax = plt.subplots()\nax.plot([1, 2], [1, 2], label=\"a\")\nleg = eval(opt(0), {\"ax\": ax})\nassert leg._loc == 2          # 2 == \"upper left\"\nassert leg.get_texts()[0].get_fontsize() == 8"
+  }
+ },
+ {
+  "id": "b5-022",
+  "objective": "5.1.3",
+  "type": "single",
+  "stem": "Which call draws the text \"Campaign launch\" with an arrow pointing at the data point (4, 190)?",
+  "options": [
+   "`ax.annotate(\"Campaign launch\", xy=(4, 190), xytext=(2, 215), arrowprops={\"arrowstyle\": \"->\"})`",
+   "`ax.text(4, 190, \"Campaign launch\", arrow=True)`",
+   "`ax.set_title(\"Campaign launch\", xy=(4, 190))`",
+   "`ax.legend(\"Campaign launch\", loc=(4, 190))`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`annotate` places text at `xytext` and draws an arrow to the point `xy`.",
+  "why_wrong": [
+   "",
+   "`text` places plain text; it has no arrow option.",
+   "A title labels the whole chart.",
+   "A legend lists series; it doesn't point at data."
+  ],
+  "source": "Syllabus 5.1.3 · Matplotlib: annotate",
+  "difficulty": 2,
+  "tags": [
+   "annotation",
+   "matplotlib"
+  ]
+ },
+ {
+  "id": "b5-023",
+  "objective": "5.1.3",
+  "type": "single",
+  "stem": "Which code colours scatter points by a numeric column `z` and adds a colour scale?",
+  "options": [
+   "sc = ax.scatter(df[\"x\"], df[\"y\"], c=df[\"z\"], cmap=\"viridis\")\nfig.colorbar(sc, ax=ax)",
+   "ax.scatter(df[\"x\"], df[\"y\"], color=\"z\")\nax.legend()",
+   "ax.scatter(df[\"x\"], df[\"y\"], hue=df[\"z\"])\nfig.colorbar()",
+   "ax.plot(df[\"x\"], df[\"y\"], cmap=\"viridis\")"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Pass the values to `c=` with a colormap; `fig.colorbar` adds the scale that explains the colours.",
+  "why_wrong": [
+   "",
+   "`color` expects one colour, and \"z\" isn't a colour name.",
+   "`hue` is a Seaborn parameter, not Matplotlib's `scatter`.",
+   "`plot` draws lines and doesn't map values through a colormap."
+  ],
+  "source": "Syllabus 5.1.3 · Matplotlib: scatter, colorbar",
+  "difficulty": 2,
+  "tags": [
+   "scatter",
+   "colormap"
+  ],
+  "verify": {
+   "py": "import matplotlib\nmatplotlib.use(\"Agg\")\nimport matplotlib.pyplot as plt\nimport pandas as pd\ndf = pd.DataFrame({\"x\": [1, 2, 3], \"y\": [3, 1, 2], \"z\": [0.1, 0.5, 0.9]})\nfig, ax = plt.subplots()\nexec(opt(0), {\"ax\": ax, \"fig\": fig, \"df\": df})\nassert len(fig.axes) == 2                   # the colour bar adds an Axes"
+  }
+ },
+ {
+  "id": "b5-024",
+  "objective": "5.1.3",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "`['Target']`",
+   "`[]`",
+   "`['_child0', 'Target']`",
+   "`['line 1', 'Target']`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Only artists with a `label=` appear in the legend; the unlabeled first line is left out.",
+  "why_wrong": [
+   "",
+   "The second line has a label, so it appears.",
+   "Unlabeled lines get internal names starting with an underscore, which the legend skips.",
+   "Matplotlib doesn't invent labels like \"line 1\"."
+  ],
+  "source": "Syllabus 5.1.3 · Matplotlib: legend",
+  "difficulty": 3,
+  "tags": [
+   "legend",
+   "labels"
+  ],
+  "code": "import matplotlib\nmatplotlib.use(\"Agg\")\nimport matplotlib.pyplot as plt\n\nfig, ax = plt.subplots()\nax.plot([1, 2, 3], [2, 4, 6])\nax.plot([1, 2, 3], [1, 3, 5], label=\"Target\")\nprint([t.get_text() for t in ax.legend().get_texts()])",
+  "verify": "stdout"
+ },
+ {
+  "id": "b5-025",
+  "objective": "5.1.3",
+  "type": "single",
+  "stem": "Which chart title works best for a slide shown to executives?",
+  "options": [
+   "\"Online sales overtook in-store sales in May\"",
+   "\"Sales by channel\"",
+   "\"Figure 3\"",
+   "\"Line chart of df.groupby(['month', 'channel'])\""
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Explanatory charts carry a title that states the takeaway.",
+  "why_wrong": [
+   "",
+   "A topic title makes readers work out the point themselves.",
+   "A figure number says nothing.",
+   "Code belongs in the appendix, not the title."
+  ],
+  "source": "Syllabus 5.1.3, 5.2.1",
+  "difficulty": 2,
+  "tags": [
+   "titles",
+   "storytelling"
+  ]
+ },
+ {
+  "id": "b5-026",
+  "objective": "5.1.3",
+  "type": "single",
+  "stem": "Early in an analysis, a quick scatter-plot matrix suggests that product returns rise in the weeks after promotions. What is the right next step?",
+  "options": [
+   "Treat it as a hypothesis and test it, for example by comparing return rates before and after promotions",
+   "Report to management that promotions cause returns",
+   "Remove the promotion weeks from the data",
+   "Polish the scatter matrix and put it in the final report"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Visual exploration generates hypotheses; they need testing before they become findings.",
+  "why_wrong": [
+   "",
+   "An exploratory pattern isn't yet evidence of causation.",
+   "Deleting data hides the pattern instead of testing it.",
+   "Exploratory charts generate questions; explanatory charts come after the answer."
+  ],
+  "source": "Syllabus 5.1.3",
+  "difficulty": 2,
+  "tags": [
+   "exploration",
+   "hypotheses"
+  ]
+ },
+ {
+  "id": "b5-030",
+  "objective": "5.2.1",
+  "type": "single",
+  "stem": "You are presenting a churn analysis to the executive board. How should you structure it?",
+  "options": [
+   "Lead with the recommendation and its business impact, support it with two or three simple charts, and put the methodology in an appendix",
+   "Start with the data-cleaning steps and model code, then reveal the result at the end",
+   "Show every chart you produced so nothing is missed",
+   "Use technical terms precisely and skip the recommendation"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "For decision-makers: bottom line up front, business impact, minimal but clear evidence, details on request.",
+  "why_wrong": [
+   "",
+   "Executives need the answer first; method details can wait for questions.",
+   "Too many charts bury the key message.",
+   "A board presentation must end in a decision; jargon gets in the way."
+  ],
+  "source": "Syllabus 5.2.1",
+  "difficulty": 2,
+  "tags": [
+   "audience",
+   "executives"
+  ]
+ },
+ {
+  "id": "b5-031",
+  "objective": "5.2.1",
+  "type": "single",
+  "stem": "The same analysis goes to a peer review by other data analysts. What should be added compared with the board version?",
+  "options": [
+   "Data sources, methods, assumptions and limitations, so reviewers can judge how far to trust the result",
+   "More decorative visuals",
+   "Fewer numbers",
+   "Only the final recommendation"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Technical audiences evaluate the reasoning, so they need the method and its caveats.",
+  "why_wrong": [
+   "",
+   "Decoration doesn't help a technical review.",
+   "Technical audiences want more detail, not less.",
+   "Reviewers need to see how the recommendation was reached."
+  ],
+  "source": "Syllabus 5.2.1",
+  "difficulty": 2,
+  "tags": [
+   "audience",
+   "technical"
+  ]
+ },
+ {
+  "id": "b5-032",
+  "objective": "5.2.1",
+  "type": "single",
+  "stem": "Which palette suits a correlation heatmap?",
+  "options": [
+   "A diverging palette centred on 0, such as \"coolwarm\"",
+   "A qualitative palette such as \"tab10\"",
+   "A single-colour sequential palette starting at −1",
+   "Random colours for each cell"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Correlations run from −1 through 0 to +1; a diverging palette makes the sign and strength visible.",
+  "why_wrong": [
+   "",
+   "Qualitative palettes are for unordered groups, not a numeric scale.",
+   "A one-colour ramp hides the difference between positive and negative correlations.",
+   "Colour must encode the value consistently."
+  ],
+  "source": "Syllabus 5.2.1",
+  "difficulty": 2,
+  "tags": [
+   "palettes",
+   "heatmap"
+  ]
+ },
+ {
+  "id": "b5-033",
+  "objective": "5.2.1",
+  "type": "single",
+  "stem": "A dashboard marks targets met in green and missed in red. Some managers can't tell them apart. What is the best fix?",
+  "options": [
+   "Use a colour-blind-safe palette (for example blue and orange) and add labels or icons",
+   "Make the red darker",
+   "Remove all colour",
+   "Add a note asking users to zoom in"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Pick palettes that stay distinct for common colour-vision deficiencies, and never rely on colour alone.",
+  "why_wrong": [
+   "",
+   "Red-green colour blindness affects hue, not just brightness.",
+   "Colour is useful; it just shouldn't be the only cue.",
+   "Zooming doesn't help anyone distinguish hues."
+  ],
+  "source": "Syllabus 5.2.1",
+  "difficulty": 2,
+  "tags": [
+   "accessibility",
+   "colour"
+  ]
+ },
+ {
+  "id": "b5-034",
+  "objective": "5.2.1",
+  "type": "multi",
+  "stem": "Which two practices reduce clutter on report slides? Select two.",
+  "options": [
+   "One key message per slide, stated in the title",
+   "Removing decoration such as 3D effects, heavy gridlines and extra decimals",
+   "Adding every table from the analysis to each slide",
+   "Giving every bar a different colour for variety",
+   "Pasting the full code under each chart"
+  ],
+  "answer": [
+   0,
+   1
+  ],
+  "explanation": "Focus each slide on one message and strip anything that doesn't carry information.",
+  "why_wrong": [
+   "",
+   "",
+   "Full tables belong in an appendix.",
+   "Colour should encode meaning; random variety distracts.",
+   "Code belongs in an appendix or repository."
+  ],
+  "source": "Syllabus 5.2.1",
+  "difficulty": 2,
+  "tags": [
+   "clutter",
+   "slides"
+  ]
+ },
+ {
+  "id": "b5-035",
+  "objective": "5.2.1",
+  "type": "single",
+  "stem": "A map colours regions by population density, from low to high. Which palette type fits?",
+  "options": [
+   "Sequential",
+   "Diverging",
+   "Qualitative",
+   "Rainbow with random order"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Ordered values from low to high use a sequential palette (for example viridis).",
+  "why_wrong": [
+   "",
+   "Diverging palettes need a meaningful midpoint.",
+   "Qualitative palettes are for unordered categories.",
+   "Random hue order breaks the low-to-high reading."
+  ],
+  "source": "Syllabus 5.2.1",
+  "difficulty": 1,
+  "tags": [
+   "palettes",
+   "sequential"
+  ]
+ },
+ {
+  "id": "b5-040",
+  "objective": "5.2.2",
+  "type": "single",
+  "stem": "Which summary statement is the most informative?",
+  "options": [
+   "\"Monthly churn fell from 8.1% to 6.4% in the three months after the loyalty launch (40,000 customers).\"",
+   "\"Churn improved a lot.\"",
+   "\"The loyalty program is a success.\"",
+   "\"Churn went down 1.7.\""
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Good summaries give the comparison, the size of the change with units, the period and the base.",
+  "why_wrong": [
+   "",
+   "No numbers, period or base.",
+   "A judgement without evidence.",
+   "1.7 what? Points or percent? Over what period?"
+  ],
+  "source": "Syllabus 5.2.2",
+  "difficulty": 2,
+  "tags": [
+   "summaries",
+   "evidence"
+  ]
+ },
+ {
+  "id": "b5-041",
+  "objective": "5.2.2",
+  "type": "single",
+  "stem": "Observational data show that customers who use the mobile app spend 30% more. Which statement is justified?",
+  "options": [
+   "App users spend more; the app may or may not be the cause, since heavy spenders may simply be likelier to install it",
+   "The app causes customers to spend 30% more",
+   "Removing the app would cut spending by 30%",
+   "The data prove nothing at all"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Observational data support \"associated with\"; causal claims need an experiment such as an A/B test.",
+  "why_wrong": [
+   "",
+   "Without random assignment, a causal claim isn't supported.",
+   "That also assumes causation.",
+   "The association is real information; it just isn't causal proof."
+  ],
+  "source": "Syllabus 5.2.2",
+  "difficulty": 2,
+  "tags": [
+   "causation",
+   "claims"
+  ]
+ },
+ {
+  "id": "b5-042",
+  "objective": "5.2.2",
+  "type": "single",
+  "stem": "A 12-week test of a new checkout shows gains in weeks 3 and 4 and no difference in the other 10 weeks. The draft report shows only weeks 3 and 4. What is the problem?",
+  "options": [
+   "Cherry-picking: the full period doesn't support the claim",
+   "Nothing; the best weeks show the potential",
+   "The chart type is wrong",
+   "The test was too long"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Report the whole test period (or justify any subset), otherwise the claim rests on selected evidence.",
+  "why_wrong": [
+   "",
+   "Selecting favourable periods misrepresents the result.",
+   "The issue is which data is shown, not how.",
+   "Test length isn't the problem."
+  ],
+  "source": "Syllabus 5.2.2",
+  "difficulty": 2,
+  "tags": [
+   "cherry-picking",
+   "integrity"
+  ]
+ },
+ {
+  "id": "b5-043",
+  "objective": "5.2.2",
+  "type": "single",
+  "stem": "The CFO must decide whether to renew a €2 million marketing contract. Which finding should lead the summary?",
+  "options": [
+   "The campaign's measured return: incremental revenue compared with its cost",
+   "The number of charts produced",
+   "That the data needed a lot of cleaning",
+   "The Python libraries used"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Prioritize the finding most relevant to the decision being made.",
+  "why_wrong": [
+   "",
+   "Output volume doesn't inform the decision.",
+   "Process details matter less than the result.",
+   "Tools are irrelevant to the decision."
+  ],
+  "source": "Syllabus 5.2.2",
+  "difficulty": 2,
+  "tags": [
+   "prioritization",
+   "findings"
+  ]
+ },
+ {
+  "id": "b5-044",
+  "objective": "5.2.2",
+  "type": "multi",
+  "stem": "Which two elements best support a claim that a new checkout increased conversion? Select two.",
+  "options": [
+   "A randomized A/B test result with sample sizes and a confidence interval for the difference",
+   "The data source and the exact time period analyzed",
+   "A single customer's positive comment",
+   "A bar chart whose y-axis starts at 95%",
+   "The claim repeated in bold on every slide"
+  ],
+  "answer": [
+   0,
+   1
+  ],
+  "explanation": "Strong evidence shows the method (randomized), the size and uncertainty of the effect, and where and when the data came from.",
+  "why_wrong": [
+   "",
+   "",
+   "An anecdote isn't representative evidence.",
+   "A truncated axis exaggerates the effect.",
+   "Repetition isn't evidence."
+  ],
+  "source": "Syllabus 5.2.2",
+  "difficulty": 3,
+  "tags": [
+   "evidence",
+   "a-b-testing"
+  ]
+ },
+ {
+  "id": "b5-045",
+  "objective": "5.2.2",
+  "type": "single",
+  "stem": "A slide says \"Sales of the new flavour doubled this week!\" What is missing?",
+  "options": [
+   "The base: doubling from 3 units to 6 is very different from 3,000 to 6,000",
+   "A pie chart",
+   "A darker font",
+   "A longer title"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Percentages and ratios need the absolute numbers behind them.",
+  "why_wrong": [
+   "",
+   "The chart type doesn't fix a missing base.",
+   "Typography doesn't add information.",
+   "A longer title without numbers adds nothing."
+  ],
+  "source": "Syllabus 5.2.2",
+  "difficulty": 2,
+  "tags": [
+   "context",
+   "percentages"
+  ]
+ }
+]

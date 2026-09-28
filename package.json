@@ -1,0 +1,18 @@
+{
+  "name": "pcad-prep",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Practice tests and revision guide for the Python Institute PCAD-31-02 exam",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "verify": "python scripts/verify.py"
+  },
+  "dependencies": {
+    "marked": "15.0.12",
+    "preact": "10.26.9"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.5"
+  }
+}

@@ -1,0 +1,85 @@
+[
+  {
+    "objective": "5.1.1",
+    "oneLine": "Draw the five core charts with Matplotlib and Seaborn, know which call makes which chart, and read what each one shows.",
+    "know": [
+      {"cue": "Which Seaborn function draws each core chart?", "fact": "`sns.histplot` (histogram), `sns.boxplot` (box plot), `sns.scatterplot` (scatter), `sns.lineplot` (line) and `sns.heatmap` (heatmap, often of `df.corr()`).", "why": "Items describe a chart and ask for the call."},
+      {"cue": "How do Matplotlib's two interfaces differ?", "fact": "The pyplot style (`plt.plot`, `plt.title`) acts on the current figure; the object-oriented style (`fig, ax = plt.subplots()`, `ax.plot`, `ax.set_title`) calls methods on explicit Axes.", "why": "Code items mix the two and ask which line is valid."},
+      {"cue": "What does `plt.subplots(2, 2)` return?", "fact": "A figure and a 2 × 2 array of Axes, indexed as `axes[row, col]`; pass `ax=axes[r, c]` to Seaborn functions to draw on one of them.", "why": "Dashboard-style items use subplot grids."},
+      {"cue": "How do `sns.barplot` and `sns.countplot` differ?", "fact": "`barplot` shows the mean of a numeric column per category (with an error bar); `countplot` shows how many rows fall in each category.", "why": "A frequent distractor pair."},
+      {"cue": "How do you save a figure?", "fact": "`fig.savefig(\"chart.png\", dpi=150, bbox_inches=\"tight\")`, called before `plt.show()`, which may clear the figure.", "why": "Items ask why a saved file is blank."}
+    ],
+    "traps": [
+      {"cue": "What does `hue=` do in Seaborn?", "answer": "It colours the marks by a categorical column, adding a legend for the groups."},
+      {"cue": "Does `sns.lineplot` plot every raw point?", "answer": "Not when x values repeat: it averages them and draws a confidence band by default."}
+    ],
+    "terms": ["Matplotlib", "Seaborn", "Axes"],
+    "maps": ["chart"]
+  },
+  {
+    "objective": "5.1.2",
+    "oneLine": "Choose the chart from the question: trends → line, comparisons → bar, distributions → histogram or box plot, relationships → scatter, many correlations → heatmap.",
+    "know": [
+      {"cue": "Which chart shows a trend over time?", "fact": "A line chart: time on the x-axis, the value on the y-axis.", "why": "The most common chart-choice item."},
+      {"cue": "Which chart compares values across categories?", "fact": "A bar chart, ideally sorted, horizontal for long labels, with the value axis starting at zero.", "why": "Pie charts are the usual distractor."},
+      {"cue": "Which charts show a single variable's distribution?", "fact": "A histogram (shape, skew, modality) or a box plot (median, IQR, outliers); side-by-side box plots compare groups.", "why": "\"Compare salary spread across departments\" → box plots."},
+      {"cue": "When is a pie chart acceptable?", "fact": "Only for parts of a whole with two to five slices; angles are hard to compare, so bar charts are usually clearer.", "why": "Items ask what's wrong with a 12-slice pie."},
+      {"cue": "How do truncated axes and 3D effects mislead?", "fact": "A bar chart whose axis doesn't start at zero exaggerates differences, and 3D perspective distorts sizes.", "why": "Items show a misleading chart and ask for the fix."}
+    ],
+    "traps": [
+      {"cue": "Should you draw a line chart for unordered categories such as product names?", "answer": "No. A line implies order and continuity; use a bar chart."},
+      {"cue": "What does a box plot hide?", "answer": "Multiple peaks (bimodality) and the sample size. A histogram or violin plot shows the shape."}
+    ],
+    "terms": ["Bar chart", "Line chart", "Pie chart"],
+    "maps": ["chart"]
+  },
+  {
+    "objective": "5.1.3",
+    "oneLine": "Title with the takeaway, label axes with units, annotate what matters, and control legends, colours and ranges precisely.",
+    "know": [
+      {"cue": "Which calls set the title and axis labels?", "fact": "`ax.set_title`, `ax.set_xlabel` and `ax.set_ylabel` in the object-oriented style, or `plt.title`, `plt.xlabel` and `plt.ylabel` in pyplot style.", "why": "Direct recall items."},
+      {"cue": "How do you control a legend's position, font size and background?", "fact": "Give each series a `label=`, then call `ax.legend(loc=\"upper left\", fontsize=9, facecolor=\"white\", framealpha=1)`; `bbox_to_anchor` moves it outside the axes.", "why": "The syllabus names legend position, font size and background colour."},
+      {"cue": "How do you point out a specific data point?", "fact": "`ax.annotate(\"text\", xy=(x, y), xytext=(tx, ty), arrowprops={\"arrowstyle\": \"->\"})`; `ax.text` adds plain text and `ax.axhline` adds a reference line.", "why": "Items ask which call draws an arrow to a peak."},
+      {"cue": "How do you colour scatter points?", "fact": "`color=` for one colour; `c=values` with `cmap=\"viridis\"` to colour by a numeric variable (add a colorbar); `alpha=` for overlapping points; `hue=` in Seaborn for groups.", "why": "The syllabus names scatter plot colour customization."},
+      {"cue": "How do exploratory and explanatory charts differ?", "fact": "Exploratory charts are quick and many, for spotting patterns and forming hypotheses; explanatory charts are few and polished, each carrying one message for others.", "why": "The syllabus names visual exploration for hypothesis generation."}
+    ],
+    "traps": [
+      {"cue": "Why is the legend empty after `ax.legend()`?", "answer": "The plotted series had no `label=` arguments, so there is nothing to list."}
+    ],
+    "terms": ["Annotation", "Legend", "Colormap"],
+    "maps": []
+  },
+  {
+    "objective": "5.2.1",
+    "oneLine": "Shape the story for the audience: executives get the answer and impact first, technical peers get method and caveats; visuals and text work as one.",
+    "know": [
+      {"cue": "How should a presentation to executives be structured?", "fact": "Lead with the answer and recommendation (bottom line up front), show business impact with a few key numbers and simple charts, and move methodology to an appendix.", "why": "Scenario items describe an audience and ask for the best approach."},
+      {"cue": "What do technical audiences need that executives don't?", "fact": "Methods, assumptions, data sources, limitations and diagnostics, so they can judge how far to trust the result.", "why": "The contrast between audiences is the core of this objective."},
+      {"cue": "What is the structure of a data narrative?", "fact": "Context → finding → implication → recommendation, with each slide making one point stated in its title.", "why": "Items ask which slide title or sequence tells the story best."},
+      {"cue": "How should text and visuals work together?", "fact": "Text sits next to its chart and adds what the chart can't show (cause, impact, action) instead of repeating it; colours stay consistent across charts and match highlighted words.", "why": "The syllabus names harmonizing visual and textual elements."},
+      {"cue": "Which colour palette fits which data?", "fact": "Qualitative palettes for unordered groups, sequential for low-to-high values, diverging for values around a midpoint (such as correlations); choose colour-blind-safe options such as viridis.", "why": "Accessibility and palette choice are named in the syllabus."}
+    ],
+    "traps": [
+      {"cue": "Is red vs green a good way to show good vs bad?", "answer": "Not on its own: red-green colour blindness is the most common kind. Add labels, icons or a blue-orange palette."}
+    ],
+    "terms": ["Data storytelling", "Colour-blind-safe palette"],
+    "maps": ["palette"]
+  },
+  {
+    "objective": "5.2.2",
+    "oneLine": "Pick the findings that matter to the decision, condense them with context, and back every claim with evidence and honest limits.",
+    "know": [
+      {"cue": "What makes a finding key?", "fact": "It is relevant to the decision, large enough to matter in practice, and reliable (enough data, consistent across checks); rank findings by impact.", "why": "Items ask which finding belongs in a short summary."},
+      {"cue": "What context does a number need?", "fact": "A comparison (previous period, target, control group), a time frame, units and a base: \"churn fell from 8.1% to 6.4% in Q2\", not \"churn improved\".", "why": "Items ask which summary statement is most informative."},
+      {"cue": "What makes evidence strong?", "fact": "It names the data source, time frame, sample size and method, shows the supporting chart or table, and states uncertainty and limitations.", "why": "The syllabus asks for articulating the basis of claims."},
+      {"cue": "What is the claim-evidence-reasoning structure?", "fact": "State the claim, present the data that supports it, explain why the data supports it, then give the recommendation that follows.", "why": "Items ask what is missing from a weak argument."},
+      {"cue": "When can you say \"X causes Y\"?", "fact": "When a randomized experiment (such as an A/B test) supports it; observational data only supports \"X is associated with Y\".", "why": "Over-claiming causation is the trap answer."}
+    ],
+    "traps": [
+      {"cue": "Why is \"sales doubled\" potentially misleading?", "answer": "Without the base it may be trivial (3 units to 6). Give absolute numbers alongside percentages."},
+      {"cue": "Is it acceptable to report only the time period where the effect was strongest?", "answer": "No, that is cherry-picking. Report the full period, or explain why a subset is relevant."}
+    ],
+    "terms": ["Claim-evidence-reasoning", "Cherry-picking"],
+    "maps": []
+  }
+]

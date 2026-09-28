@@ -1,0 +1,462 @@
+[
+  {
+    "id": "collection-method",
+    "title": "Which data collection method?",
+    "objectives": ["1.1.1"],
+    "intro": "The right method depends on whether you need numbers or reasons, and whether the data already exists somewhere.",
+    "start": "q1",
+    "nodes": {
+      "q1": {"text": "Does the data you need already exist somewhere?", "options": [
+        {"label": "Yes, published by an organization that offers programmatic access", "next": "l_api"},
+        {"label": "Yes, but only as web pages with no API", "next": "l_scrape"},
+        {"label": "Yes, as an existing dataset (a repository, internal records, a census)", "next": "l_secondary"},
+        {"label": "No, I have to collect it from people or events", "next": "q2"}
+      ]},
+      "q2": {"text": "What kind of answer do you need?", "options": [
+        {"label": "Numbers from many people: how many, how much, how satisfied", "next": "l_survey"},
+        {"label": "Reasons and experiences from a few people: why and how", "next": "l_interview"},
+        {"label": "Whether a change causes a difference in behaviour", "next": "l_experiment"}
+      ]}
+    },
+    "leaves": {
+      "l_api": {"title": "Use the API", "detail": "An API returns structured data (usually JSON) under documented terms and rate limits. It is more stable and more clearly permitted than scraping.", "objective": "1.4.3"},
+      "l_scrape": {"title": "Web scraping, done ethically", "detail": "Check the terms of service and robots.txt, rate-limit requests, identify your scraper, and avoid personal data without a lawful basis. Expect pages to change and break your parser.", "objective": "1.1.1"},
+      "l_secondary": {"title": "Secondary data", "detail": "Fast and cheap, but collected for someone else's purpose: check its documentation, licence, coverage and quality before relying on it.", "objective": "1.1.1"},
+      "l_survey": {"title": "Survey", "detail": "Closed questions and rating scales give quantitative data that scales cheaply. Use neutral, single-topic questions, pilot the survey, and sample so respondents represent the population (for example stratified random sampling).", "objective": "1.1.1"},
+      "l_interview": {"title": "Interviews", "detail": "Qualitative depth from a small group. Structured interviews (same questions, same order) keep answers comparable; semi-structured ones allow follow-ups.", "objective": "1.1.1"},
+      "l_experiment": {"title": "Experiment (A/B test)", "detail": "Randomly assign people to versions and compare outcomes. Random assignment is what lets you claim causation.", "objective": "5.2.2"}
+    }
+  },
+  {
+    "id": "storage",
+    "title": "Where should this data live?",
+    "objectives": ["1.1.3"],
+    "intro": "Storage choices follow from how structured the data is, how big it gets, and who uses it for what.",
+    "start": "q1",
+    "nodes": {
+      "q1": {"text": "What is the data used for?", "options": [
+        {"label": "Running the business day to day: orders, payments, account updates", "next": "l_oltp"},
+        {"label": "Analysis and reporting across the business", "next": "q2"},
+        {"label": "A one-off analysis or a small table shared with a few people", "next": "q3"}
+      ]},
+      "q2": {"text": "What does the data look like when it arrives?", "options": [
+        {"label": "Cleaned, structured tables feeding dashboards and SQL reports", "next": "l_warehouse"},
+        {"label": "Raw data of many kinds (logs, JSON, images, audio) kept for future use and ML", "next": "l_lake"}
+      ]},
+      "q3": {"text": "Does it need formulas, several sheets or formatting for people to read?", "options": [
+        {"label": "Yes", "next": "l_excel"},
+        {"label": "No, just a portable table for code and other tools", "next": "l_csv"}
+      ]}
+    },
+    "leaves": {
+      "l_oltp": {"title": "Relational (OLTP) database", "detail": "Built for many small, concurrent reads and writes with constraints that protect integrity. Don't run heavy analytical queries against it.", "objective": "1.1.3"},
+      "l_warehouse": {"title": "Data warehouse", "detail": "Cleaned, integrated, structured data with the schema defined before loading (schema-on-write), optimized for SQL analytics and BI.", "objective": "1.1.3"},
+      "l_lake": {"title": "Data lake", "detail": "Raw data in native formats with schema-on-read, on cheap cloud object storage. Needs governance and metadata or it becomes a data swamp.", "objective": "1.1.3"},
+      "l_excel": {"title": "Excel workbook", "detail": "Sheets, formulas and formatting for human readers; limited to 1,048,576 rows per sheet and awkward for concurrent editing.", "objective": "1.4.4"},
+      "l_csv": {"title": "CSV file", "detail": "Plain text that every tool reads. No types, no formulas, one table per file; state the delimiter and encoding.", "objective": "1.4.1"}
+    }
+  },
+  {
+    "id": "missing-data",
+    "title": "How should I handle these missing values?",
+    "objectives": ["1.2.2", "4.1.1"],
+    "intro": "Start with why values are missing, then with what kind of column it is.",
+    "start": "q1",
+    "nodes": {
+      "q1": {"text": "Is the missing value the target you are trying to predict?", "options": [
+        {"label": "Yes", "next": "l_drop_target"},
+        {"label": "No, it's a feature or a descriptive column", "next": "q2"}
+      ]},
+      "q2": {"text": "Why is it missing?", "options": [
+        {"label": "Pure chance: a glitch unrelated to anything (MCAR)", "next": "q3"},
+        {"label": "It depends on other recorded columns, e.g. younger people skip it (MAR)", "next": "l_mar"},
+        {"label": "It depends on the value itself, e.g. high earners hide income (MNAR)", "next": "l_mnar"}
+      ]},
+      "q3": {"text": "How much is missing, and what kind of column is it?", "options": [
+        {"label": "A few rows in a large dataset", "next": "l_drop"},
+        {"label": "A numeric column with outliers or skew", "next": "l_median"},
+        {"label": "A roughly symmetric numeric column", "next": "l_mean"},
+        {"label": "A categorical column", "next": "l_mode"},
+        {"label": "An ordered time series", "next": "l_ffill"}
+      ]}
+    },
+    "leaves": {
+      "l_drop_target": {"title": "Exclude those rows from training", "detail": "A model can't learn from rows without a label, and imputing the target invents answers.", "objective": "1.2.4", "code": "df = df.dropna(subset=[\"target\"])"},
+      "l_mar": {"title": "Impute using the related columns", "detail": "Group-wise statistics, regression or multiple imputation use the observed variables that drive the missingness.", "objective": "1.2.2", "code": "df[\"income\"] = df[\"income\"].fillna(df.groupby(\"age_band\")[\"income\"].transform(\"median\"))"},
+      "l_mnar": {"title": "Model it, flag it, or collect more", "detail": "Deletion and simple imputation are both biased. Add a missing-indicator column, use domain knowledge or a model of the missingness, and state the limitation.", "objective": "1.2.2"},
+      "l_drop": {"title": "Drop the rows", "detail": "With MCAR data and few missing rows, deletion is unbiased and simple; it only costs a little statistical power.", "objective": "4.1.1", "code": "df = df.dropna(subset=[\"col\"])"},
+      "l_median": {"title": "Impute with the median", "detail": "The median is robust to outliers and skew; the mean would be pulled toward the extremes.", "objective": "1.2.2", "code": "df[\"col\"] = df[\"col\"].fillna(df[\"col\"].median())"},
+      "l_mean": {"title": "Impute with the mean", "detail": "Fine for symmetric data, but it shrinks the variance; add a flag column if that matters.", "objective": "1.2.2", "code": "df[\"col\"] = df[\"col\"].fillna(df[\"col\"].mean())"},
+      "l_mode": {"title": "Impute with the mode, or an \"Unknown\" category", "detail": "The most frequent category keeps the column valid; \"Unknown\" keeps the fact that it was missing.", "objective": "1.2.4", "code": "df[\"segment\"] = df[\"segment\"].fillna(df[\"segment\"].mode()[0])"},
+      "l_ffill": {"title": "Forward-fill or interpolate", "detail": "In ordered data the previous value (or a line between neighbours) is the best estimate.", "objective": "4.1.1", "code": "df[\"reading\"] = df[\"reading\"].ffill()\n# or\ndf[\"reading\"] = df[\"reading\"].interpolate()"}
+    }
+  },
+  {
+    "id": "scaling-encoding",
+    "title": "Scale, encode or bin this column?",
+    "objectives": ["1.2.3", "1.2.4"],
+    "intro": "Numeric columns get scaled or binned; categorical columns get encoded. The details depend on order and outliers.",
+    "start": "q1",
+    "nodes": {
+      "q1": {"text": "What kind of column is it?", "options": [
+        {"label": "Numeric", "next": "q2"},
+        {"label": "Categorical", "next": "q3"}
+      ]},
+      "q2": {"text": "What do you need?", "options": [
+        {"label": "Values on a fixed 0-to-1 range, no big outliers", "next": "l_minmax"},
+        {"label": "Centred values for a model; outliers present or range unbounded", "next": "l_zscore"},
+        {"label": "Groups such as age bands instead of exact numbers", "next": "q4"}
+      ]},
+      "q3": {"text": "Do the categories have a natural order?", "options": [
+        {"label": "No (colour, city, product type)", "next": "l_onehot"},
+        {"label": "Yes (low < medium < high)", "next": "l_ordinal"},
+        {"label": "It's the target label of a classifier", "next": "l_label"}
+      ]},
+      "q4": {"text": "How should the bins be defined?", "options": [
+        {"label": "By meaningful edges I choose (0–18, 19–64, 65+)", "next": "l_cut"},
+        {"label": "So each bin holds about the same number of rows (quartiles)", "next": "l_qcut"}
+      ]}
+    },
+    "leaves": {
+      "l_minmax": {"title": "Min-max scaling", "detail": "(x − min) / (max − min) maps values to [0, 1]. Fit on training data only.", "objective": "1.2.3", "code": "from sklearn.preprocessing import MinMaxScaler\nX_train_s = MinMaxScaler().fit(X_train).transform(X_train)"},
+      "l_zscore": {"title": "Z-score standardization", "detail": "(x − mean) / std gives mean 0 and std 1. Less squashed by outliers than min-max; robust scaling (median and IQR) resists them further.", "objective": "1.2.3", "code": "from sklearn.preprocessing import StandardScaler\nscaler = StandardScaler().fit(X_train)\nX_test_s = scaler.transform(X_test)"},
+      "l_onehot": {"title": "One-hot encoding", "detail": "One indicator column per category, so no false order is implied. Watch out for high-cardinality columns.", "objective": "1.2.4", "code": "df = pd.get_dummies(df, columns=[\"color\"], dtype=int)"},
+      "l_ordinal": {"title": "Ordinal mapping", "detail": "Map categories to integers that follow the real order, so models can use it.", "objective": "1.2.3", "code": "df[\"size_code\"] = df[\"size\"].map({\"low\": 0, \"medium\": 1, \"high\": 2})"},
+      "l_label": {"title": "Label encoding", "detail": "Integer codes are fine for a target label; the classifier treats them as classes, not quantities.", "objective": "1.2.3", "code": "from sklearn.preprocessing import LabelEncoder\ny = LabelEncoder().fit_transform(df[\"churned\"])"},
+      "l_cut": {"title": "pd.cut", "detail": "Bins by the edges you give; intervals are right-closed by default and values outside the edges become NaN.", "objective": "1.2.4", "code": "df[\"band\"] = pd.cut(df[\"age\"], bins=[0, 18, 64, 120], labels=[\"minor\", \"adult\", \"senior\"])"},
+      "l_qcut": {"title": "pd.qcut", "detail": "Bins by quantiles, so each bin has about the same count.", "objective": "1.2.4", "code": "df[\"spend_quartile\"] = pd.qcut(df[\"spend\"], q=4, labels=[\"Q1\", \"Q2\", \"Q3\", \"Q4\"])"}
+    }
+  },
+  {
+    "id": "validation-check",
+    "title": "Which validation check catches this?",
+    "objectives": ["1.3.1"],
+    "intro": "Name the check by what the rule compares a value against.",
+    "start": "q1",
+    "nodes": {
+      "q1": {"text": "What does the rule compare the value against?", "options": [
+        {"label": "Its expected kind of value (integer, date, text)", "next": "l_type"},
+        {"label": "Allowed limits (0 to 120) or a fixed list of values", "next": "l_range"},
+        {"label": "A pattern (email, postcode, ISO date)", "next": "l_format"},
+        {"label": "Another field in the same record", "next": "l_crossfield"},
+        {"label": "Values in another table or reference list", "next": "l_crossref"},
+        {"label": "Other rows of the same column (no repeats)", "next": "l_unique"}
+      ]}
+    },
+    "leaves": {
+      "l_type": {"title": "Type check", "detail": "Confirms the data type; put it early in ingestion so bad files fail fast.", "objective": "1.3.1", "code": "if not pd.api.types.is_numeric_dtype(df[\"qty\"]):\n    raise TypeError(\"qty must be numeric\")"},
+      "l_range": {"title": "Range / allowed-values check", "detail": "Confirms a value lies within limits or belongs to a set.", "objective": "1.3.1", "code": "bad = df[~df[\"age\"].between(0, 120) | ~df[\"status\"].isin({\"new\", \"paid\"})]"},
+      "l_format": {"title": "Format check", "detail": "Confirms the value matches a pattern, usually with a regular expression.", "objective": "1.3.1", "code": "ok = df[\"email\"].str.match(r\"^[^@\\s]+@[^@\\s]+\\.[a-z]+$\")"},
+      "l_crossfield": {"title": "Cross-field check", "detail": "Compares fields within one record, such as dates in order or a total matching its parts.", "objective": "1.3.1", "code": "bad = df[df[\"end_date\"] < df[\"start_date\"]]"},
+      "l_crossref": {"title": "Cross-reference (referential) check", "detail": "Confirms the value exists elsewhere, the job a foreign key does inside a database.", "objective": "1.3.2", "code": "orphans = orders[~orders[\"customer_id\"].isin(customers[\"customer_id\"])]"},
+      "l_unique": {"title": "Uniqueness check", "detail": "Confirms keys are not repeated; the job a primary key does inside a database.", "objective": "1.3.2", "code": "assert df[\"order_id\"].is_unique"}
+    }
+  },
+  {
+    "id": "file-format",
+    "title": "Which file format and reader?",
+    "objectives": ["1.4.1"],
+    "intro": "Choose by the shape of the data, then use the matching reader.",
+    "start": "q1",
+    "nodes": {
+      "q1": {"text": "What shape is the data?", "options": [
+        {"label": "Flat rows and columns", "next": "q2"},
+        {"label": "Nested objects and lists, as an API returns", "next": "l_json"},
+        {"label": "A tree of tagged elements with attributes", "next": "l_xml"},
+        {"label": "Free text with no structure", "next": "l_txt"}
+      ]},
+      "q2": {"text": "Is it a plain table or a workbook with several sheets?", "options": [
+        {"label": "A plain table", "next": "l_csv"},
+        {"label": "A workbook", "next": "l_excel"}
+      ]}
+    },
+    "leaves": {
+      "l_csv": {"title": "CSV", "detail": "`pd.read_csv(path, sep=\",\", encoding=\"utf-8\")`; write with `df.to_csv(path, index=False)`. Everything is text until parsed.", "objective": "1.4.1"},
+      "l_excel": {"title": "Excel", "detail": "`pd.read_excel(path, sheet_name=\"Sales\")` (openpyxl); write with `df.to_excel(path, index=False)`.", "objective": "1.4.4"},
+      "l_json": {"title": "JSON", "detail": "`json.load(f)` for a file, `json.loads(s)` for a string; `pd.json_normalize` flattens nested records into columns.", "objective": "1.4.1", "code": "import json\nwith open(\"orders.json\", encoding=\"utf-8\") as f:\n    data = json.load(f)\ndf = pd.json_normalize(data[\"orders\"])"},
+      "l_xml": {"title": "XML", "detail": "`xml.etree.ElementTree`: `findall` for elements, `.text` for content, `.get()` for attributes; or `pd.read_xml` for simple row-like XML.", "objective": "1.4.1", "code": "import xml.etree.ElementTree as ET\nroot = ET.parse(\"books.xml\").getroot()\ntitles = [b.find(\"title\").text for b in root.findall(\"book\")]"},
+      "l_txt": {"title": "TXT", "detail": "`open(path, encoding=\"utf-8\")` and iterate line by line; extract structure with string methods or regular expressions.", "objective": "1.4.1", "code": "with open(\"log.txt\", encoding=\"utf-8\") as f:\n    errors = [line for line in f if \"ERROR\" in line]"}
+    }
+  },
+  {
+    "id": "data-structure",
+    "title": "Which Python data structure?",
+    "objectives": ["2.1.4"],
+    "intro": "Pick the structure by how you will look things up and whether the data changes.",
+    "start": "q1",
+    "nodes": {
+      "q1": {"text": "How will you mostly access the data?", "options": [
+        {"label": "By a key, such as a customer ID", "next": "l_dict"},
+        {"label": "By asking \"is this item in the collection?\", or removing duplicates", "next": "l_set"},
+        {"label": "In order, by position", "next": "q2"}
+      ]},
+      "q2": {"text": "Will the collection change after it is created?", "options": [
+        {"label": "Yes: items are added, removed or sorted", "next": "l_list"},
+        {"label": "No: it's a fixed record, or it must be usable as a dict key", "next": "l_tuple"}
+      ]}
+    },
+    "leaves": {
+      "l_dict": {"title": "dict", "detail": "Maps unique, hashable keys to values with fast lookup; insertion-ordered. Use `.get()` to avoid KeyError.", "objective": "2.1.4"},
+      "l_set": {"title": "set", "detail": "Unordered unique items with fast membership tests and set algebra (`|`, `&`, `-`). An empty set is `set()`.", "objective": "2.1.4"},
+      "l_list": {"title": "list", "detail": "Ordered, mutable, allows duplicates: `append`, `extend`, `insert`, `pop`, `sort`.", "objective": "2.1.4"},
+      "l_tuple": {"title": "tuple", "detail": "Ordered and immutable; hashable when its items are, so it can be a dict key. One item needs a comma: `(5,)`.", "objective": "2.1.4"}
+    }
+  },
+  {
+    "id": "exception",
+    "title": "Which exception will this raise?",
+    "objectives": ["2.2.2"],
+    "intro": "Most exam error questions come down to one of these.",
+    "start": "q1",
+    "nodes": {
+      "q1": {"text": "What went wrong?", "options": [
+        {"label": "An operation got a value of the wrong type, e.g. \"3\" + 4", "next": "l_type"},
+        {"label": "The type is right but the value is bad, e.g. int(\"12a\")", "next": "l_value"},
+        {"label": "Something being looked up doesn't exist", "next": "q2"},
+        {"label": "Division by zero", "next": "l_zero"},
+        {"label": "Importing a package that isn't installed", "next": "l_module"}
+      ]},
+      "q2": {"text": "What was being looked up?", "options": [
+        {"label": "A dict key or a DataFrame column", "next": "l_key"},
+        {"label": "A list or tuple position", "next": "l_index"},
+        {"label": "An attribute or method, e.g. None.split()", "next": "l_attr"},
+        {"label": "A variable name that was never defined", "next": "l_name"},
+        {"label": "A file path", "next": "l_file"}
+      ]}
+    },
+    "leaves": {
+      "l_type": {"title": "TypeError", "detail": "Wrong type for the operation, or a function called with the wrong arguments.", "objective": "2.2.2"},
+      "l_value": {"title": "ValueError", "detail": "Right type, inappropriate value. `pd.to_numeric(errors=\"coerce\")` avoids it by producing NaN.", "objective": "2.2.2"},
+      "l_zero": {"title": "ZeroDivisionError", "detail": "Division or modulo by zero with Python numbers. (NumPy and pandas return inf or NaN with a warning instead.)", "objective": "2.2.2"},
+      "l_module": {"title": "ModuleNotFoundError", "detail": "A subclass of ImportError; fix with `pip install` in the right environment.", "objective": "2.2.1"},
+      "l_key": {"title": "KeyError", "detail": "Missing dict key or DataFrame column; `dict.get()` or checking `in` avoids it.", "objective": "2.2.2"},
+      "l_index": {"title": "IndexError", "detail": "Position out of range; valid indexes run from 0 to len − 1 (or −len to −1).", "objective": "2.2.2"},
+      "l_attr": {"title": "AttributeError", "detail": "The object has no such attribute; often a variable is unexpectedly None (for example after an `inplace=True` call).", "objective": "2.2.2"},
+      "l_name": {"title": "NameError", "detail": "The name isn't defined in any scope: a typo, a missing import, or use before assignment.", "objective": "2.2.2"},
+      "l_file": {"title": "FileNotFoundError", "detail": "The path doesn't exist (a subclass of OSError); check the working directory and relative paths.", "objective": "2.2.2"}
+    }
+  },
+  {
+    "id": "sql-join",
+    "title": "Which SQL JOIN?",
+    "objectives": ["2.4.1"],
+    "intro": "Every join returns the matching rows. The choice is about which unmatched rows you also need.",
+    "start": "q1",
+    "nodes": {
+      "q1": {"text": "Which unmatched rows must stay in the result?", "options": [
+        {"label": "None: only rows that match in both tables", "next": "l_inner"},
+        {"label": "All rows from the first (left) table", "next": "l_left"},
+        {"label": "All rows from the second (right) table", "next": "l_right"},
+        {"label": "All rows from both tables", "next": "l_full"}
+      ]}
+    },
+    "leaves": {
+      "l_inner": {"title": "INNER JOIN", "detail": "Only matching rows. Customers without orders and orders without customers both disappear.", "objective": "2.4.1", "lang": "sql", "code": "SELECT c.name, o.total\nFROM customers AS c\nJOIN orders AS o ON o.customer_id = c.id;"},
+      "l_left": {"title": "LEFT JOIN", "detail": "Every left row; right-side columns are NULL when nothing matches. To find customers with no orders, add `WHERE o.id IS NULL`.", "objective": "2.4.1", "lang": "sql", "code": "SELECT c.name, o.total\nFROM customers AS c\nLEFT JOIN orders AS o ON o.customer_id = c.id;"},
+      "l_right": {"title": "RIGHT JOIN", "detail": "Every right row. The same as a LEFT JOIN with the tables swapped, which most people find easier to read.", "objective": "2.4.1", "lang": "sql", "code": "SELECT c.name, o.total\nFROM customers AS c\nRIGHT JOIN orders AS o ON o.customer_id = c.id;"},
+      "l_full": {"title": "FULL OUTER JOIN", "detail": "Everything from both tables, with NULLs on whichever side has no match. Useful for reconciling two sources.", "objective": "2.4.1", "lang": "sql", "code": "SELECT c.name, o.total\nFROM customers AS c\nFULL OUTER JOIN orders AS o ON o.customer_id = c.id;"}
+    }
+  },
+  {
+    "id": "sql-clause",
+    "title": "Which SQL clause does this filter or limit belong in?",
+    "objectives": ["2.4.1"],
+    "intro": "Filtering, sorting and limiting each have their own clause, decided by when in the query they apply.",
+    "start": "q1",
+    "nodes": {
+      "q1": {"text": "What are you restricting?", "options": [
+        {"label": "Individual rows, based on column values (status = 'paid')", "next": "l_where"},
+        {"label": "Groups, based on an aggregate (regions with SUM(sales) > 1000)", "next": "l_having"},
+        {"label": "The order of the output", "next": "l_order"},
+        {"label": "How many rows come back (top 5)", "next": "l_limit"},
+        {"label": "Duplicate rows in the output", "next": "l_distinct"}
+      ]}
+    },
+    "leaves": {
+      "l_where": {"title": "WHERE", "detail": "Filters rows before grouping; it cannot contain aggregate functions.", "objective": "2.4.1", "lang": "sql", "code": "SELECT * FROM orders WHERE status = 'paid' AND total BETWEEN 10 AND 100;"},
+      "l_having": {"title": "HAVING", "detail": "Filters groups after GROUP BY, so it can use aggregates.", "objective": "2.4.1", "lang": "sql", "code": "SELECT region, SUM(total) AS revenue\nFROM orders\nGROUP BY region\nHAVING SUM(total) > 1000;"},
+      "l_order": {"title": "ORDER BY", "detail": "Sorts the final result (ASC by default); it can use SELECT aliases.", "objective": "2.4.1", "lang": "sql", "code": "SELECT region, SUM(total) AS revenue FROM orders GROUP BY region ORDER BY revenue DESC;"},
+      "l_limit": {"title": "LIMIT", "detail": "Caps the number of rows returned; pair it with ORDER BY for a meaningful top N. OFFSET skips rows.", "objective": "2.4.1", "lang": "sql", "code": "SELECT name, total FROM orders ORDER BY total DESC LIMIT 5;"},
+      "l_distinct": {"title": "SELECT DISTINCT", "detail": "Removes duplicate rows from the output.", "objective": "2.4.1", "lang": "sql", "code": "SELECT DISTINCT country FROM customers;"}
+    }
+  },
+  {
+    "id": "center-measure",
+    "title": "Mean, median or mode?",
+    "objectives": ["3.1.1", "4.2.1"],
+    "intro": "The \"typical value\" depends on the data type and on outliers.",
+    "start": "q1",
+    "nodes": {
+      "q1": {"text": "What kind of data is it?", "options": [
+        {"label": "Categories (colour, city, plan)", "next": "l_mode"},
+        {"label": "Numbers", "next": "q2"}
+      ]},
+      "q2": {"text": "Is the distribution skewed or does it have outliers?", "options": [
+        {"label": "Yes: incomes, house prices, delivery times", "next": "l_median"},
+        {"label": "No, it's roughly symmetric", "next": "l_mean"}
+      ]}
+    },
+    "leaves": {
+      "l_mode": {"title": "Mode", "detail": "The most frequent category; the only average that works for nominal data. `s.mode()` returns a Series because there can be ties.", "objective": "3.1.1"},
+      "l_median": {"title": "Median", "detail": "The middle value, robust to outliers; in right-skewed data the mean lies above it.", "objective": "3.1.1"},
+      "l_mean": {"title": "Mean", "detail": "Uses every value and pairs naturally with the standard deviation; fine when data are symmetric.", "objective": "3.1.1"}
+    }
+  },
+  {
+    "id": "regression",
+    "title": "Linear or logistic regression?",
+    "objectives": ["3.2.2", "4.2.3"],
+    "intro": "It depends on what you are predicting.",
+    "start": "q1",
+    "nodes": {
+      "q1": {"text": "What is the target?", "options": [
+        {"label": "A continuous number: price, revenue, temperature, time", "next": "l_linear"},
+        {"label": "One of two outcomes: churn / stay, fraud / genuine, pass / fail", "next": "l_logistic"},
+        {"label": "One of three or more unordered categories", "next": "l_multi"}
+      ]}
+    },
+    "leaves": {
+      "l_linear": {"title": "Linear regression", "detail": "Least squares fit of y = β₀ + β₁x₁ + …; check the LINE assumptions and R².", "objective": "3.2.2", "code": "from sklearn.linear_model import LinearRegression\nmodel = LinearRegression().fit(X_train, y_train)\nprint(model.coef_, model.intercept_, model.score(X_test, y_test))"},
+      "l_logistic": {"title": "Logistic regression", "detail": "Predicts the probability of the positive class through the log-odds; a threshold (0.5 by default) gives the class.", "objective": "3.2.2", "code": "from sklearn.linear_model import LogisticRegression\nclf = LogisticRegression().fit(X_train, y_train)\nprobs = clf.predict_proba(X_test)[:, 1]"},
+      "l_multi": {"title": "Multinomial logistic regression", "detail": "Logistic regression extended to several classes; scikit-learn's LogisticRegression handles it automatically.", "objective": "3.2.2"}
+    }
+  },
+  {
+    "id": "pandas-combine",
+    "title": "merge, concat, pivot or melt?",
+    "objectives": ["4.1.2", "4.1.6", "1.4.5"],
+    "intro": "Combining puts tables together; reshaping changes a table's layout.",
+    "start": "q1",
+    "nodes": {
+      "q1": {"text": "What are you doing?", "options": [
+        {"label": "Putting two or more tables together", "next": "q2"},
+        {"label": "Changing one table's layout or summarizing it", "next": "q3"}
+      ]},
+      "q2": {"text": "How do the tables relate?", "options": [
+        {"label": "Same columns, more rows (monthly files)", "next": "l_concat"},
+        {"label": "Different columns that match on a key column", "next": "l_merge"},
+        {"label": "Different columns that match on the index", "next": "l_join"}
+      ]},
+      "q3": {"text": "Which direction?", "options": [
+        {"label": "Wide → long (month columns into rows)", "next": "l_melt"},
+        {"label": "Long → wide, each row/column pair appears once", "next": "l_pivot"},
+        {"label": "Long → wide, pairs repeat and need aggregating", "next": "l_pivot_table"},
+        {"label": "Count how often category combinations occur", "next": "l_crosstab"}
+      ]}
+    },
+    "leaves": {
+      "l_concat": {"title": "pd.concat", "detail": "Stacks rows (`axis=0`), aligning on column names; `ignore_index=True` renumbers.", "objective": "4.1.2", "code": "all_months = pd.concat([jan, feb, mar], ignore_index=True)"},
+      "l_merge": {"title": "merge", "detail": "Joins on key columns; inner by default. Check row counts and use `validate=` to catch duplicate keys.", "objective": "4.1.2", "code": "df = orders.merge(customers, on=\"customer_id\", how=\"left\", validate=\"many_to_one\")"},
+      "l_join": {"title": "join", "detail": "Joins on the index; left by default.", "objective": "4.1.2", "code": "df = sales.join(targets, how=\"left\")"},
+      "l_melt": {"title": "melt", "detail": "Identifier columns stay; the others become variable/value pairs.", "objective": "4.1.2", "code": "long = wide.melt(id_vars=\"store\", var_name=\"month\", value_name=\"sales\")"},
+      "l_pivot": {"title": "pivot", "detail": "Pure reshape; raises an error if an index/column pair is duplicated.", "objective": "4.1.2", "code": "wide = long.pivot(index=\"store\", columns=\"month\", values=\"sales\")"},
+      "l_pivot_table": {"title": "pivot_table", "detail": "Reshape plus aggregation (mean by default); `fill_value` and `margins` available.", "objective": "4.1.6", "code": "table = df.pivot_table(values=\"revenue\", index=\"region\", columns=\"quarter\", aggfunc=\"sum\", fill_value=0)"},
+      "l_crosstab": {"title": "pd.crosstab", "detail": "A frequency table of two categorical variables; `normalize=True` for proportions.", "objective": "4.1.6", "code": "pd.crosstab(df[\"region\"], df[\"channel\"], margins=True)"}
+    }
+  },
+  {
+    "id": "pandas-select",
+    "title": "[], .loc, .iloc or .at?",
+    "objectives": ["4.1.4"],
+    "intro": "Pick the selector by whether you know labels, positions or a condition.",
+    "start": "q1",
+    "nodes": {
+      "q1": {"text": "How do you identify what you want?", "options": [
+        {"label": "One or more whole columns by name", "next": "l_brackets"},
+        {"label": "Rows by index label (and maybe columns by name)", "next": "l_loc"},
+        {"label": "Rows and columns by position (first row, last 3 columns)", "next": "l_iloc"},
+        {"label": "Rows meeting a condition", "next": "l_mask"},
+        {"label": "A single cell, fast", "next": "l_at"}
+      ]}
+    },
+    "leaves": {
+      "l_brackets": {"title": "Brackets: df[\"col\"] or df[[\"a\", \"b\"]]", "detail": "One name gives a Series; a list gives a DataFrame.", "objective": "4.1.3"},
+      "l_loc": {"title": ".loc", "detail": "Label-based; slices include the end label.", "objective": "4.1.4", "code": "df.loc[\"2025-01-01\":\"2025-01-31\", [\"sales\", \"visits\"]]"},
+      "l_iloc": {"title": ".iloc", "detail": "Position-based; slices exclude the end position, like Python.", "objective": "4.1.4", "code": "df.iloc[0]          # first row\ndf.iloc[:, -3:]     # last three columns"},
+      "l_mask": {"title": "Boolean mask with .loc", "detail": "Filters rows, selects columns and assigns safely in one step.", "objective": "4.1.4", "code": "df.loc[df[\"qty\"] > 10, \"discount\"] = 0.1"},
+      "l_at": {"title": ".at / .iat", "detail": "Get or set a single value by label (`at`) or position (`iat`).", "objective": "4.1.4", "code": "df.at[\"c\", \"qty\"]\ndf.iat[2, 1]"}
+    }
+  },
+  {
+    "id": "fit-diagnosis",
+    "title": "What's wrong with this model?",
+    "objectives": ["4.2.3", "4.2.2"],
+    "intro": "Compare the training score with the test score, then look at how the test score was produced.",
+    "start": "q1",
+    "nodes": {
+      "q1": {"text": "How do the scores look?", "options": [
+        {"label": "Both training and test scores are low", "next": "l_underfit"},
+        {"label": "Training score is very high, test score much lower", "next": "l_overfit"},
+        {"label": "Both are suspiciously high, near perfect", "next": "l_leak"},
+        {"label": "Both are high and close together", "next": "q2"}
+      ]},
+      "q2": {"text": "Is the positive class rare (say under 10% of rows)?", "options": [
+        {"label": "Yes, and I'm judging by accuracy", "next": "l_imbalance"},
+        {"label": "No, or I already use precision and recall", "next": "l_good"}
+      ]}
+    },
+    "leaves": {
+      "l_underfit": {"title": "Underfitting (high bias)", "detail": "The model is too simple. Add informative features, use a more flexible model, or reduce regularization.", "objective": "4.2.3"},
+      "l_overfit": {"title": "Overfitting (high variance)", "detail": "The model memorized noise. Get more data, simplify (e.g. `max_depth`), regularize, drop weak features, and select models with cross-validation.", "objective": "4.2.3"},
+      "l_leak": {"title": "Suspect data leakage", "detail": "Check for preprocessing fitted before the split, duplicates across sets, features that encode the target, or future information.", "objective": "4.2.2"},
+      "l_imbalance": {"title": "Accuracy is misleading", "detail": "A model that always predicts the majority class can score high. Use precision, recall, F1 or ROC AUC, and stratify the split.", "objective": "4.2.3"},
+      "l_good": {"title": "A good fit", "detail": "Similar training and test scores at a useful level. Confirm on the untouched test set once, then report it.", "objective": "4.2.2"}
+    }
+  },
+  {
+    "id": "chart",
+    "title": "Which chart?",
+    "objectives": ["5.1.2", "5.1.1", "3.1.2"],
+    "intro": "Start from the question the chart must answer.",
+    "start": "q1",
+    "nodes": {
+      "q1": {"text": "What does the chart need to show?", "options": [
+        {"label": "Change over time", "next": "l_line"},
+        {"label": "A comparison across categories", "next": "l_bar"},
+        {"label": "How one numeric variable is distributed", "next": "q2"},
+        {"label": "The relationship between two numeric variables", "next": "l_scatter"},
+        {"label": "Correlations among many variables at once", "next": "l_heatmap"},
+        {"label": "Parts of a whole", "next": "q3"}
+      ]},
+      "q2": {"text": "One group, or several groups compared?", "options": [
+        {"label": "One group: I want to see the full shape", "next": "l_hist"},
+        {"label": "Several groups side by side", "next": "l_box"}
+      ]},
+      "q3": {"text": "How many parts?", "options": [
+        {"label": "Two to five", "next": "l_pie"},
+        {"label": "More than five, or several wholes to compare", "next": "l_stacked"}
+      ]}
+    },
+    "leaves": {
+      "l_line": {"title": "Line chart", "detail": "Time on the x-axis; trends and seasonality stand out.", "objective": "5.1.2", "code": "sns.lineplot(data=df, x=\"month\", y=\"sales\", hue=\"store\")"},
+      "l_bar": {"title": "Bar chart", "detail": "Sorted bars, value axis from zero, horizontal for long labels.", "objective": "5.1.2", "code": "totals = df.groupby(\"region\")[\"sales\"].sum().sort_values()\ntotals.plot(kind=\"barh\")"},
+      "l_scatter": {"title": "Scatter plot", "detail": "Shows direction, form, strength and outliers; add a trend line with `sns.regplot`.", "objective": "5.1.1", "code": "sns.scatterplot(data=df, x=\"visits\", y=\"sales\", hue=\"store\", alpha=0.7)"},
+      "l_heatmap": {"title": "Correlation heatmap", "detail": "A diverging palette centred on 0 with annotated values.", "objective": "5.1.1", "code": "sns.heatmap(df.corr(numeric_only=True), annot=True, fmt=\".2f\", cmap=\"coolwarm\", vmin=-1, vmax=1)"},
+      "l_hist": {"title": "Histogram", "detail": "Shows shape, skew and modality; try more than one bin width.", "objective": "5.1.1", "code": "sns.histplot(data=df, x=\"order_value\", bins=30, kde=True)"},
+      "l_box": {"title": "Side-by-side box plots", "detail": "Compare medians, spreads and outliers across groups at a glance.", "objective": "5.1.1", "code": "sns.boxplot(data=df, x=\"department\", y=\"salary\")"},
+      "l_pie": {"title": "Pie chart (sparingly)", "detail": "Acceptable for two to five parts of one whole; label the percentages.", "objective": "5.1.2"},
+      "l_stacked": {"title": "Stacked or 100% stacked bar", "detail": "Compares composition across several wholes; far easier to read than many pies.", "objective": "5.1.2"}
+    }
+  },
+  {
+    "id": "palette",
+    "title": "Which colour palette?",
+    "objectives": ["5.2.1", "5.1.3"],
+    "intro": "The palette type follows from the data, and every choice should survive colour blindness.",
+    "start": "q1",
+    "nodes": {
+      "q1": {"text": "What do the colours encode?", "options": [
+        {"label": "Separate, unordered groups (regions, products)", "next": "l_qual"},
+        {"label": "Ordered values from low to high (population, sales)", "next": "l_seq"},
+        {"label": "Values above and below a meaningful midpoint (correlation, change vs target)", "next": "l_div"},
+        {"label": "One series to highlight among many", "next": "l_highlight"}
+      ]}
+    },
+    "leaves": {
+      "l_qual": {"title": "Qualitative palette", "detail": "Distinct hues of similar strength, few of them; colour-blind-safe options include Seaborn's \"colorblind\".", "objective": "5.2.1", "code": "sns.set_palette(\"colorblind\")"},
+      "l_seq": {"title": "Sequential palette", "detail": "Light to dark in one hue family; viridis is perceptually uniform and colour-blind-safe.", "objective": "5.2.1", "code": "plt.scatter(x, y, c=values, cmap=\"viridis\")\nplt.colorbar()"},
+      "l_div": {"title": "Diverging palette", "detail": "Two hues meeting at a neutral midpoint; set `center=0` (or `vmin`/`vmax`) so the midpoint means something.", "objective": "5.2.1", "code": "sns.heatmap(corr, cmap=\"coolwarm\", center=0, vmin=-1, vmax=1)"},
+      "l_highlight": {"title": "Accent plus grey", "detail": "Draw the series that matters in a strong colour and the rest in grey, and name it in the title.", "objective": "5.1.3"}
+    }
+  }
+]

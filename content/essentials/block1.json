@@ -1,0 +1,237 @@
+[
+  {
+    "objective": "1.1.1",
+    "oneLine": "Pick the collection method that fits the question, sample so the data represents the population, and protect the people behind it.",
+    "know": [
+      {"cue": "When do you choose a survey over an interview?", "fact": "Surveys collect mostly quantitative answers from many people cheaply; interviews collect qualitative depth (the why) from a few people.", "why": "Scenario items describe a goal (\"measure satisfaction across 20,000 customers\" vs \"understand why users abandon checkout\") and ask for the method."},
+      {"cue": "What makes a sample representative, and which sampling method guarantees small groups are included?", "fact": "A representative sample mirrors the population on the traits that matter; **stratified sampling** draws from each subgroup in proportion, so small groups are always covered.", "why": "Expect to name the sampling method, or spot selection, non-response or convenience bias in a scenario."},
+      {"cue": "How does qualitative research differ from quantitative research?", "fact": "Quantitative research measures (how many, how much) and supports statistics; qualitative research explores meaning and reasons through words, themes and observation.", "why": "Open-ended questions and interviews are qualitative; rating scales and transaction logs are quantitative."},
+      {"cue": "What is the difference between anonymization and pseudonymization?", "fact": "Anonymization is irreversible, so no one can re-identify the person; pseudonymization replaces identifiers with tokens that a key can reverse, so the data is still personal data.", "why": "The exam tests which PII technique actually makes data anonymous."},
+      {"cue": "Which legal and ethical principles apply when collecting personal data?", "fact": "Informed consent, data minimization, purpose limitation and secure storage, under laws such as the GDPR and CCPA; scraping must also respect terms of service and copyright.", "why": "Ethics questions reward the option that collects less and asks permission."}
+    ],
+    "traps": [
+      {"cue": "Does a very large opt-in web poll give a representative sample?", "answer": "No. Size doesn't fix selection bias; a small random sample can be more representative than a huge self-selected one."},
+      {"cue": "Is hashing customer emails with a stored key anonymization?", "answer": "No, it is pseudonymization: with the key (or a lookup table) the emails can be recovered, so it is still personal data."},
+      {"cue": "Which survey question is double-barreled: \"Is the app fast and easy to use?\" or \"How fast is the app?\"", "answer": "\"Is the app fast and easy to use?\" asks about two things at once; split it into two questions."}
+    ],
+    "terms": ["Stratified sampling", "Selection bias", "PII", "Anonymization", "Pseudonymization", "Qualitative data", "Quantitative data"],
+    "maps": ["collection-method"]
+  },
+  {
+    "objective": "1.1.2",
+    "oneLine": "Extract from each source, standardize names, types, units and dates, then integrate with concat or merge and check the result.",
+    "know": [
+      {"cue": "What must you align before merging data from a CRM and a web shop?", "fact": "Column names, key data types, units and currencies, date formats and time zones, text encodings and granularity must match before integrating.", "why": "Scenario items describe a mismatch (\"IDs are strings in one file, integers in the other\") and ask for the fix."},
+      {"cue": "When do you use `pd.concat` and when `merge`?", "fact": "`pd.concat` stacks datasets that share columns (monthly files); `merge` joins datasets side by side on a key (orders with customers).", "why": "Picking the wrong combiner leaves NaNs everywhere or duplicates rows."},
+      {"cue": "How do you catch unexpected key duplicates and unmatched rows during a merge?", "fact": "`validate=\"one_to_one\"` (or one_to_many / many_to_one) raises an error on unexpected duplicates; `indicator=True` adds a `_merge` column that marks unmatched rows.", "why": "Integration questions reward options that check consistency after combining."},
+      {"cue": "How does ETL differ from ELT?", "fact": "ETL transforms data before loading it into the target; ELT loads raw data first and transforms it inside the target system.", "why": "Warehouses traditionally use ETL; lakes and cloud warehouses often use ELT."}
+    ],
+    "traps": [
+      {"cue": "What happens if you merge on a key that has duplicates on both sides?", "answer": "Every combination per key is produced (many-to-many), so the row count can explode without any error."},
+      {"cue": "Two sources both have a `date` column, one as `03/04/2025` and one as `2025-04-03`. Can you merge on them as they are?", "answer": "No. Parse both with `pd.to_datetime` (with explicit formats) so they become real dates in one format first."}
+    ],
+    "terms": ["ETL", "Data integration", "Granularity"],
+    "maps": []
+  },
+  {
+    "objective": "1.1.3",
+    "oneLine": "Warehouses hold cleaned, structured data for reporting; lakes hold raw data of every kind; files suit small, portable datasets; the cloud scales them all.",
+    "know": [
+      {"cue": "What defines a data warehouse?", "fact": "A data warehouse stores cleaned, integrated, structured data with a schema defined before loading (schema-on-write), optimized for SQL analytics and BI.", "why": "\"Consistent dashboards across departments\" points to a warehouse."},
+      {"cue": "What defines a data lake?", "fact": "A data lake stores raw data in its native format (tables, JSON, logs, images) and applies a schema only when reading it (schema-on-read).", "why": "\"Keep everything raw, including images and clickstreams, for future ML\" points to a lake."},
+      {"cue": "What are the limits of CSV and Excel as storage?", "fact": "CSV is plain text with no types, one table and no formulas; Excel holds sheets, formulas and formatting but caps a sheet at 1,048,576 rows and handles concurrent editing poorly.", "why": "Items ask which storage fits a small ad-hoc dataset vs a growing, shared one."},
+      {"cue": "Why do modern data teams use cloud storage?", "fact": "Cloud object storage gives elastic capacity, pay-as-you-go cost, high durability, access control and easy sharing, and lets storage and compute scale separately.", "why": "The syllabus asks for cloud storage's role in modern data management."},
+      {"cue": "How do OLTP and OLAP systems differ?", "fact": "OLTP databases handle many small transactional writes (orders, payments); OLAP systems such as warehouses handle large analytical reads and aggregations.", "why": "Running heavy reports on the production OLTP database is the classic wrong answer."}
+    ],
+    "traps": [
+      {"cue": "What is a data swamp?", "answer": "A data lake without governance, metadata or quality control, where data can no longer be found or trusted."},
+      {"cue": "What survives when you save an Excel workbook as CSV?", "answer": "Only the values of the active sheet. Formulas, formatting and the other sheets are lost."}
+    ],
+    "terms": ["Data warehouse", "Data lake", "Schema-on-write", "Schema-on-read", "OLAP", "OLTP"],
+    "maps": ["storage"]
+  },
+  {
+    "objective": "1.2.1",
+    "oneLine": "Structured data fits rows and typed columns; semi-structured data carries keys or tags; unstructured data has no model and needs feature extraction first.",
+    "know": [
+      {"cue": "What are the defining features of structured data?", "fact": "Structured data follows a fixed schema of rows and typed columns, as in SQL tables and spreadsheets, so it can be queried directly with SQL or pandas.", "why": "Items ask which data can be analyzed without preprocessing."},
+      {"cue": "Give examples of unstructured data and how it is analyzed.", "fact": "Free text, PDFs, images, audio and video have no predefined model; they need NLP, computer vision or audio processing to extract features before analysis.", "why": "Scenario items ask what extra step unstructured data requires."},
+      {"cue": "Where do JSON, XML and log files belong?", "fact": "They are semi-structured: self-describing keys or tags with a flexible schema; flatten them (for example `pd.json_normalize`) to analyze as tables.", "why": "A frequent distractor labels JSON as unstructured."},
+      {"cue": "How does data structure affect storage and retrieval?", "fact": "Structured data lives in relational databases and warehouses and is retrieved with SQL; unstructured data lives in object storage or lakes and is retrieved through metadata and search indexes.", "why": "The syllabus asks for the impact on storage, retrieval and analytical methods."}
+    ],
+    "traps": [
+      {"cue": "A CSV holds customer review text in one column. Is that data structured?", "answer": "The file is structured, but the review text is unstructured content; analyzing it still needs text processing."}
+    ],
+    "terms": ["Structured data", "Semi-structured data", "Unstructured data"],
+    "maps": []
+  },
+  {
+    "objective": "1.2.2",
+    "oneLine": "Diagnose missing, wrong, inconsistent and duplicate values, name the missingness mechanism, then impute, correct or remove with the consequences in mind.",
+    "know": [
+      {"cue": "What does MCAR mean, and what can you do with it?", "fact": "MCAR (missing completely at random): missingness depends on nothing in the data, so dropping rows is unbiased (it only loses power).", "why": "Example: a sensor fails at random or a lab sample is dropped."},
+      {"cue": "What does MAR mean?", "fact": "MAR (missing at random): missingness depends on other observed variables, such as younger respondents skipping the income question, so impute using those variables.", "why": "The distinction the exam tests is observed variables (MAR) vs the missing value itself (MNAR)."},
+      {"cue": "What does MNAR mean, and why is it hardest?", "fact": "MNAR (missing not at random): missingness depends on the missing value itself, such as high earners hiding their income, so deletion and simple imputation are both biased.", "why": "Look for \"because\" in the scenario: people skip a question because of their answer."},
+      {"cue": "When is the median better than the mean for imputation?", "fact": "Use the median for skewed numeric data or data with outliers, the mean for roughly symmetric data, and the mode (or an \"Unknown\" category) for categorical data.", "why": "Outlier-heavy columns such as income make mean imputation a trap answer."},
+      {"cue": "How do the IQR and z-score rules flag outliers?", "fact": "The IQR rule flags values below Q1 − 1.5·IQR or above Q3 + 1.5·IQR; the z-score rule flags |z| > 3.", "why": "Outlier items ask for the rule, then whether the value is an error or a genuine extreme."},
+      {"cue": "How do detection strategies differ for numeric and categorical columns?", "fact": "Numeric columns: ranges, `describe()`, IQR and z-scores. Categorical columns: `value_counts()`, allowed-value lists, and case, whitespace and spelling variants.", "why": "The syllabus names numeric vs categorical data as changing the detection strategy."}
+    ],
+    "traps": [
+      {"cue": "Does `df.isna()` detect `-999` or the text \"N/A\"?", "answer": "No. Sentinel values are ordinary values to pandas; convert them to NaN first (for example `na_values=` in `read_csv` or `replace`)."},
+      {"cue": "What does mean imputation do to a column's spread and correlations?", "answer": "It keeps the mean but shrinks the variance and weakens correlations, because many values are set to the same number."},
+      {"cue": "Should you delete outliers because they distort the average?", "answer": "Only if they are errors. Genuine extreme values are real information: keep, cap, transform or analyze them separately, and document the decision."}
+    ],
+    "terms": ["MCAR", "MAR", "MNAR", "Imputation", "Outlier", "IQR"],
+    "maps": ["missing-data"]
+  },
+  {
+    "objective": "1.2.3",
+    "oneLine": "Scale numbers with min-max or z-scores, encode categories with one-hot or label encoding, and weigh what data reduction costs in explainability.",
+    "know": [
+      {"cue": "What does min-max scaling do, and what is its weakness?", "fact": "Min-max scaling maps values to [0, 1] with (x − min) / (max − min); one extreme value compresses all the others.", "why": "Expect to compute a scaled value or pick the method robust to outliers."},
+      {"cue": "What does z-score standardization produce?", "fact": "Z-score standardization, (x − mean) / std, gives mean 0 and standard deviation 1; values are unbounded, so a point 3 std above the mean scores 3.", "why": "Distractors claim z-scores fall in [0, 1] or [−1, 1]."},
+      {"cue": "When do you use one-hot encoding vs label encoding?", "fact": "One-hot encoding (one 0/1 column per category) suits nominal categories; label encoding (integers) suits target labels, tree models, or ordinal categories whose codes follow the real order.", "why": "Label-encoding colours for a linear model invents an order: the classic wrong answer."},
+      {"cue": "Why must a scaler be fitted on training data only?", "fact": "Fitting a scaler or encoder on all data leaks test-set information into training; fit on the training set, then transform both sets with those parameters.", "why": "Leakage questions appear here and in 4.2.2."},
+      {"cue": "What is the trade-off in data reduction?", "fact": "Reducing features, aggregating or applying PCA makes data smaller and faster but loses information, and PCA components are hard to explain to stakeholders.", "why": "The syllabus names explainability vs simplification explicitly."}
+    ],
+    "traps": [
+      {"cue": "Does a decision tree need feature scaling?", "answer": "No. Trees split on thresholds, so scaling doesn't change them; distance- and gradient-based models (k-NN, k-means, regularized regression) do need it."},
+      {"cue": "What is the problem with one-hot encoding a ZIP-code column?", "answer": "High cardinality: thousands of categories become thousands of mostly-zero columns."}
+    ],
+    "terms": ["Min-max scaling", "Z-score", "One-hot encoding", "Label encoding", "PCA", "ISO 8601"],
+    "maps": ["scaling-encoding"]
+  },
+  {
+    "objective": "1.2.4",
+    "oneLine": "Clean text, booleans and numbers into consistent types, decide between imputing and excluding, and turn categories and continuous values into model-ready columns.",
+    "know": [
+      {"cue": "Which string methods standardize messy text categories?", "fact": "Chain `.str.strip()`, `.str.lower()` (or `.title()`) and `.str.replace()` so variants such as \" Oslo\" and \"OSLO\" become one category.", "why": "Code items show messy categories and ask how many groups remain after cleaning."},
+      {"cue": "How do `pd.to_numeric(errors=\"coerce\")` and `astype(float)` differ on bad values?", "fact": "`pd.to_numeric(s, errors=\"coerce\")` turns unparseable values into NaN, while `s.astype(float)` raises a ValueError on the first bad value.", "why": "Expect to predict the output or error of a conversion snippet."},
+      {"cue": "How do `pd.cut` and `pd.qcut` differ?", "fact": "`pd.cut` bins by edges you choose (right-closed by default, so 30 falls in (0, 30]); `pd.qcut` bins by quantiles so each bin has about the same count.", "why": "Bucketization items ask which bin a boundary value lands in."},
+      {"cue": "What does `pd.get_dummies` return?", "fact": "`pd.get_dummies(df, columns=[\"color\"])` replaces the column with one indicator column per category (`color_red`…), boolean by default in pandas 2+; `drop_first=True` drops one.", "why": "Items ask for the resulting column names or count."},
+      {"cue": "When should you exclude rather than impute?", "fact": "Exclude when the value can't be estimated sensibly, the column is mostly empty, or the target itself is missing; impute when rows are valuable and missingness is limited and explainable.", "why": "The syllabus asks for the implications of imputation vs exclusion."}
+    ],
+    "traps": [
+      {"cue": "Why does `df[\"qty\"].astype(int)` fail on a column with NaN?", "answer": "NaN is a float and has no integer equivalent; fill or drop the missing values first, or use the nullable \"Int64\" dtype."},
+      {"cue": "What happens to a value outside the edges in `pd.cut(x, bins=[0, 10, 20])`?", "answer": "It becomes NaN, and so does 0 itself, because the first interval is (0, 10]."}
+    ],
+    "terms": ["Bucketization", "One-hot encoding", "Imputation"],
+    "maps": ["scaling-encoding"]
+  },
+  {
+    "objective": "1.3.1",
+    "oneLine": "Check type, range, format, presence, uniqueness, cross-field rules and cross-references, as early in the pipeline as possible.",
+    "know": [
+      {"cue": "What do type and range checks catch?", "fact": "A type check confirms the kind of value (integer, date); a range check confirms it lies within limits (age 0 to 120). A value can pass one and fail the other.", "why": "Items describe a bad value and ask which check catches it."},
+      {"cue": "What is a cross-field check?", "fact": "A cross-field check compares fields in the same record, such as `end_date >= start_date` or `total == price * qty`.", "why": "Distractors confuse it with cross-reference checks."},
+      {"cue": "What is a cross-reference check?", "fact": "A cross-reference (referential) check confirms a value exists in another dataset, such as every order's `customer_id` appearing in the customers table.", "why": "Look for \"exists in\" or \"matches the master list\" in the scenario."},
+      {"cue": "Why add type checks at the start of an ingestion script?", "fact": "Early checks fail fast: they stop a bad file before its errors spread into joins, aggregates and reports, where they are much harder to trace.", "why": "The syllabus names the benefit of early type checks explicitly."},
+      {"cue": "How can you validate data in Python?", "fact": "Plain logic (`isinstance`, comparisons, `between`, `is_unique`, regex, `raise ValueError`) or schema tools (pandera, pydantic, Great Expectations) that declare rules once.", "why": "Code items show a validation mask and ask which rows it flags."}
+    ],
+    "traps": [
+      {"cue": "An age of 250 is stored as an integer. Which check fails?", "answer": "The range check. The type check passes because 250 is a valid integer."},
+      {"cue": "Is \"ship_date must be after order_date\" a cross-reference check?", "answer": "No, it is a cross-field check (two fields in one record). Cross-reference checks look values up in another table."}
+    ],
+    "terms": ["Type check", "Range check", "Cross-field validation", "Cross-reference check"],
+    "maps": ["validation-check"]
+  },
+  {
+    "objective": "1.3.2",
+    "oneLine": "Integrity means data stays accurate, complete and consistent over its life; database constraints, transactions and clear rules keep it that way.",
+    "know": [
+      {"cue": "What is data integrity?", "fact": "Data integrity is the accuracy, completeness, consistency and reliability of data across its whole life cycle, so that data changes only through valid, authorized operations.", "why": "Validation checks data at a moment; integrity is the property maintained over time."},
+      {"cue": "Which constraint enforces entity integrity, and which enforces referential integrity?", "fact": "A PRIMARY KEY (unique and not null) enforces entity integrity; a FOREIGN KEY enforces referential integrity by requiring references to existing rows.", "why": "Items name a rule and ask for the constraint type."},
+      {"cue": "How is domain integrity enforced?", "fact": "Column types, NOT NULL, CHECK constraints (`CHECK (qty > 0)`) and DEFAULT values keep values in their allowed domain.", "why": "Expect to pick the constraint that blocks a negative quantity."},
+      {"cue": "How do transactions protect integrity?", "fact": "Transactions make multi-step changes all-or-nothing (ACID: atomicity, consistency, isolation, durability); in sqlite3, `commit()` makes them permanent and `rollback()` undoes them.", "why": "A half-finished transfer between accounts is the textbook integrity failure."},
+      {"cue": "What makes a validation rule clear?", "fact": "A clear rule is specific (\"qty is an integer from 1 to 1,000\"), documented, enforced at entry, and tested.", "why": "The syllabus asks for clear validation rules for correctness and consistency."}
+    ],
+    "traps": [
+      {"cue": "Does SQLite enforce FOREIGN KEY constraints by default?", "answer": "No. Run `PRAGMA foreign_keys = ON` on each connection to enforce them."},
+      {"cue": "Is data integrity the same as data security?", "answer": "No. Security controls who can access or change data; integrity is about the data staying correct and consistent."}
+    ],
+    "terms": ["Data integrity", "Primary key", "Foreign key", "ACID"],
+    "maps": []
+  },
+  {
+    "objective": "1.4.1",
+    "oneLine": "CSV for tables, JSON for nested structures, XML for tagged hierarchies, TXT for free text: know each format's shape and the Python calls that read and write it.",
+    "know": [
+      {"cue": "How do `json.load`, `json.loads`, `json.dump` and `json.dumps` differ?", "fact": "`json.load(f)` and `json.dump(obj, f)` work with file objects; `json.loads(s)` and `json.dumps(obj)` work with strings.", "why": "Code items swap these to test whether you know which takes a file."},
+      {"cue": "How do JSON types map to Python?", "fact": "JSON object → dict, array → list, true/false → True/False, null → None; a Python tuple is written as a JSON array.", "why": "Expect to predict the Python value after `json.loads`."},
+      {"cue": "How do you read XML with the standard library?", "fact": "`xml.etree.ElementTree`: `ET.parse(path).getroot()` or `ET.fromstring(text)`, then `findall(\"tag\")`, `find(\"tag\").text` and `elem.get(\"attr\")` for attributes.", "why": "Hierarchical data with attributes points to XML and ElementTree."},
+      {"cue": "What are the key facts about CSV?", "fact": "CSV has a header row and one delimiter; a field containing the delimiter is quoted; every value is text until converted; use `sep=` for other delimiters and `index=False` when writing with pandas.", "why": "Items test delimiter handling and the stray index column."},
+      {"cue": "How do you read a plain text file line by line?", "fact": "`with open(path, encoding=\"utf-8\") as f:` then `for line in f:` (or `f.read()`, `f.readlines()`); the `with` block closes the file.", "why": "TXT is the syllabus's example of unstructured text data."}
+    ],
+    "traps": [
+      {"cue": "Why does a CSV written with `df.to_csv(\"out.csv\")` gain an extra column when read back?", "answer": "`to_csv` writes the index by default; pass `index=False`, or read it back with `index_col=0`."},
+      {"cue": "Does `json.dumps` keep a tuple as a tuple?", "answer": "No. JSON has no tuple type, so it becomes an array and comes back as a list."}
+    ],
+    "terms": ["CSV", "JSON", "XML"],
+    "maps": ["file-format"]
+  },
+  {
+    "objective": "1.4.2",
+    "oneLine": "Load data from files, URLs and databases, take a first look, keep it tidy, and sort and filter it with pandas.",
+    "know": [
+      {"cue": "Name three places pandas can load a dataset from.", "fact": "`pd.read_csv` reads local paths and URLs (online repositories), and `pd.read_sql_query(sql, con)` reads query results from a database connection.", "why": "Items ask which call loads data from a given source."},
+      {"cue": "What does tidy data mean?", "fact": "Each variable is a column, each observation a row, and each kind of observation its own table.", "why": "Tidy structure makes grouping, filtering and plotting straightforward."},
+      {"cue": "How do you combine several filter conditions in pandas?", "fact": "Use `&`, `|` and `~`, with each condition in parentheses: `df[(df[\"a\"] > 1) & (df[\"b\"] == \"x\")]`; or write `df.query(\"a > 1 and b == 'x'\")`.", "why": "Using `and`/`or` with Series raises a ValueError: a classic distractor."},
+      {"cue": "How do you sort by several columns in different directions?", "fact": "`df.sort_values([\"region\", \"total\"], ascending=[True, False])` sorts region A→Z and, within each region, the largest total first.", "why": "Expect to predict the first row after a multi-key sort."}
+    ],
+    "traps": [
+      {"cue": "Does `df.sort_values(\"total\")` change `df`?", "answer": "No. It returns a sorted copy; assign it back or pass `inplace=True` (which returns None)."},
+      {"cue": "What does `df[df[\"a\"] > 1 and df[\"b\"] < 5]` do?", "answer": "It raises a ValueError: the truth value of a Series is ambiguous. Use `&` with parentheses."}
+    ],
+    "terms": ["Tidy data"],
+    "maps": []
+  },
+  {
+    "objective": "1.4.3",
+    "oneLine": "Pull data from APIs with requests, parse HTML with BeautifulSoup, and scrape only what you may, as gently as you can.",
+    "know": [
+      {"cue": "What are the key requests calls for an API?", "fact": "`requests.get(url, params=..., headers=..., timeout=...)`, then `resp.status_code`, `resp.raise_for_status()` and `resp.json()` (or `resp.text` for raw text).", "why": "Items ask which line turns a response into Python objects or which status means what."},
+      {"cue": "What do the status codes 200, 401, 404 and 429 mean?", "fact": "200 = OK, 401 = unauthorized (missing or bad credentials), 404 = not found, 429 = too many requests (you hit a rate limit).", "why": "A 429 scenario expects you to slow down, not retry faster."},
+      {"cue": "How do `find` and `find_all` differ in BeautifulSoup?", "fact": "`find` returns the first matching tag (or None); `find_all` returns a list of all matches; use `class_=` for classes and `.get_text()` or `tag[\"href\"]` to read content.", "why": "Code items ask what a parsing snippet returns."},
+      {"cue": "What does ethical scraping involve?", "fact": "Prefer an official API, follow the terms of service, respect robots.txt (at the site root), rate-limit requests, identify yourself with a User-Agent, and avoid personal data without a lawful basis.", "why": "The syllabus names robots.txt and rate-limiting explicitly."},
+      {"cue": "What does `pd.read_html` return?", "fact": "A list of DataFrames, one per `<table>` element found on the page.", "why": "Distractors claim it returns a single DataFrame."}
+    ],
+    "traps": [
+      {"cue": "Does `requests.get` raise an exception for a 404 response?", "answer": "No. It returns the response; call `raise_for_status()` or check `status_code` yourself."},
+      {"cue": "Does respecting robots.txt make scraping legal?", "answer": "Not by itself. robots.txt is a convention; terms of service, copyright and privacy law still apply."}
+    ],
+    "terms": ["API", "Web scraping", "robots.txt", "Rate limiting"],
+    "maps": []
+  },
+  {
+    "objective": "1.4.4",
+    "oneLine": "Keep one clean table per sheet with a single header row, format for readability without hiding meaning, and write formulas that reference instead of hard-code.",
+    "know": [
+      {"cue": "What does a well-laid-out data sheet look like?", "fact": "One table starting at A1, a single header row, one variable per column, one record per row, no merged cells or blank rows inside the data, and units in the headers.", "why": "Items ask which layout makes a sheet easy to sort, filter and import."},
+      {"cue": "How do relative and absolute cell references differ?", "fact": "A relative reference (`B2`) shifts when the formula is copied; an absolute reference (`$B$2`) stays fixed, which suits constants such as a tax rate kept in one labeled cell.", "why": "Expect to pick the reference that stays fixed when a formula is filled down."},
+      {"cue": "What do COUNT, COUNTA, COUNTIF and SUMIF do?", "fact": "COUNT counts numeric cells, COUNTA counts non-empty cells, COUNTIF counts cells meeting a condition, and SUMIF sums values whose paired cells meet a condition.", "why": "Basic formula items test which function answers a question."},
+      {"cue": "Does cell formatting change the stored value?", "fact": "No. Formatting changes how a value looks (3.14159 shown as 3.1); the full value is still used in formulas.", "why": "Rounding displayed values versus stored values is a common trap."}
+    ],
+    "traps": [
+      {"cue": "Why avoid colour-coding as the only way to mark data?", "answer": "Colour is lost on CSV export, invisible to formulas and filters, and unreadable for colour-blind users. Add a status column instead."}
+    ],
+    "terms": ["Absolute reference"],
+    "maps": []
+  },
+  {
+    "objective": "1.4.5",
+    "oneLine": "Let the analysis goal shape preparation: align dates and structures, reshape between wide and long, deal with outliers, and split train and test data before fitting anything.",
+    "know": [
+      {"cue": "What should guide how a dataset is prepared?", "fact": "The objective, the decision it supports and the stakeholders' needs decide which columns, filters, granularity and time frame to keep.", "why": "Scenario items reward preparation that matches the stated business question."},
+      {"cue": "How do wide and long formats differ, and which methods convert them?", "fact": "Wide has one row per subject with repeated measurements in separate columns; long has one row per subject-measurement pair. `melt` goes wide → long; `pivot` goes long → wide.", "why": "Code items show a reshaped table and ask which call produced it."},
+      {"cue": "What do `test_size`, `random_state` and `stratify` do in `train_test_split`?", "fact": "`test_size=0.2` holds out 20%; `random_state` makes the split reproducible; `stratify=y` keeps class proportions the same in both parts.", "why": "Imbalanced-class scenarios expect `stratify=y`."},
+      {"cue": "In what order should splitting and preprocessing happen?", "fact": "Split first, then fit scalers, imputers and encoders on the training part only and apply them to the test part; time series split by time, not at random.", "why": "Leakage is a favourite trap across Blocks 1 and 4."},
+      {"cue": "How do outliers affect preprocessing?", "fact": "Outliers pull the mean and standard deviation, compress min-max scaling and can dominate a regression fit, so decide how to treat them before scaling and modeling.", "why": "The syllabus names outlier management's impact on preprocessing quality."}
+    ],
+    "traps": [
+      {"cue": "When does `pivot` fail where `pivot_table` works?", "answer": "When an index/column pair appears more than once. `pivot_table` aggregates the duplicates (mean by default)."},
+      {"cue": "Is it fine to standardize the whole dataset, then split it?", "answer": "No. The scaler then learns from test rows (data leakage), which inflates evaluation scores."}
+    ],
+    "terms": ["Wide format", "Long format", "Train/test split", "Data leakage"],
+    "maps": ["pandas-combine"]
+  }
+]

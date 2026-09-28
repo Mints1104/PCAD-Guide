@@ -1,0 +1,264 @@
+[
+  {
+    "objective": "2.1.1",
+    "oneLine": "Know Python's basic types and operators, how names are looked up (LEGB), and exactly how many times a loop body runs.",
+    "know": [
+      {"cue": "What do `/`, `//` and `%` return for 7 and 2?", "fact": "`7 / 2` is 3.5 (always a float), `7 // 2` is 3 (floor division) and `7 % 2` is 1 (remainder); `-7 // 2` is −4 because it floors.", "why": "Output-prediction items lean on these operators."},
+      {"cue": "In what order does Python look up a name?", "fact": "LEGB: Local, then Enclosing function, then Global (module), then Built-in. Assigning to a name inside a function makes it local unless declared `global` or `nonlocal`.", "why": "Scope items show a function that shadows or modifies a global."},
+      {"cue": "Which values are falsy?", "fact": "`0`, `0.0`, `\"\"`, `[]`, `{}`, `set()`, `None` and `False`; everything else is truthy.", "why": "`if items:` style conditions depend on truthiness."},
+      {"cue": "Which values does `range(1, 10, 3)` produce?", "fact": "1, 4 and 7: `range` includes the start and excludes the stop.", "why": "Loop-count items are the most common Python trap."},
+      {"cue": "What do `break`, `continue` and a loop's `else` do?", "fact": "`break` exits the loop, `continue` skips to the next iteration, and a loop's `else` block runs only when the loop finishes without `break`.", "why": "Expect to trace a loop that uses one of these."}
+    ],
+    "traps": [
+      {"cue": "What does `0.1 + 0.2 == 0.3` return?", "answer": "False, because floats are binary approximations (the sum is 0.30000000000000004). Compare with `math.isclose`."},
+      {"cue": "What happens if a function prints a global variable and then assigns to it, without `global`?", "answer": "UnboundLocalError: the assignment makes the name local for the whole function, so the earlier read has no value yet."}
+    ],
+    "terms": ["Scope"],
+    "maps": []
+  },
+  {
+    "objective": "2.1.2",
+    "oneLine": "Positional arguments match by order, keyword arguments by name; parameters without defaults are required; defaults are evaluated once.",
+    "know": [
+      {"cue": "How are positional and keyword arguments matched?", "fact": "Positional arguments match parameters by order; keyword arguments match by name and can come in any order, but must follow all positional arguments in the call.", "why": "`f(a=1, 2)` is a SyntaxError: a frequent distractor."},
+      {"cue": "What makes a parameter required or optional?", "fact": "A parameter without a default is required; one with a default is optional; in the definition, parameters with defaults must come after those without.", "why": "`def f(a=1, b):` is a SyntaxError."},
+      {"cue": "What do `*args`, `**kwargs` and a bare `*` do?", "fact": "`*args` collects extra positional arguments into a tuple; `**kwargs` collects extra keyword arguments into a dict; parameters after a bare `*` are keyword-only.", "why": "Items ask what type `args` or `kwargs` has inside the function."},
+      {"cue": "What does a function return if it has no return statement?", "fact": "`None`.", "why": "Code items assign the result of a printing function and then print it."},
+      {"cue": "Why is `def f(x, items=[])` dangerous?", "fact": "Default values are evaluated once, at definition time, so the same list is shared across calls; use `None` and create the list inside.", "why": "Output items show the list growing across calls."}
+    ],
+    "traps": [
+      {"cue": "What error do you get when a required argument is missing?", "answer": "TypeError: f() missing 1 required positional argument."},
+      {"cue": "Can a keyword-only parameter be passed positionally?", "answer": "No. Parameters after `*` must be passed by name, otherwise Python raises a TypeError."}
+    ],
+    "terms": [],
+    "maps": []
+  },
+  {
+    "objective": "2.1.3",
+    "oneLine": "Match the tool to the job: NumPy for arrays, pandas for tables, Matplotlib and Seaborn for charts, SciPy and statsmodels for statistics, scikit-learn for ML.",
+    "know": [
+      {"cue": "Which library handles labeled tabular data?", "fact": "pandas, with its Series and DataFrame types, reads files and SQL, cleans, joins, groups and handles time series.", "why": "Tool-choice items describe a task and list libraries as options."},
+      {"cue": "When do you use statsmodels instead of scikit-learn?", "fact": "statsmodels is for statistical inference (coefficients with p-values and confidence intervals); scikit-learn is for predictive modeling, preprocessing and evaluation.", "why": "\"Report which predictors are significant\" points to statsmodels."},
+      {"cue": "How are Seaborn and Matplotlib related?", "fact": "Seaborn is built on Matplotlib: it draws statistical charts from DataFrames with less code, and Matplotlib calls still fine-tune and save them.", "why": "Distractors present Seaborn as a replacement for Matplotlib."},
+      {"cue": "Which tools fetch web data and parse it?", "fact": "`requests` makes HTTP calls to APIs and pages; BeautifulSoup parses the HTML that comes back.", "why": "Pairs with objective 1.4.3."},
+      {"cue": "How do you judge whether a library suits a project?", "fact": "Check fit to the task and data size, maintenance and documentation, community support, licence, and compatibility with the rest of your stack.", "why": "The syllabus asks you to assess resource suitability for scenarios."}
+    ],
+    "traps": [
+      {"cue": "Is sqlite3 a third-party package you install with pip?", "answer": "No. sqlite3 is part of Python's standard library; PyMySQL, by contrast, must be installed."}
+    ],
+    "terms": ["NumPy", "pandas", "scikit-learn", "statsmodels"],
+    "maps": []
+  },
+  {
+    "objective": "2.1.4",
+    "oneLine": "Lists change, tuples don't, sets hold unique items with fast membership tests, dicts map keys to values, and strings are immutable text.",
+    "know": [
+      {"cue": "Which built-in structures are mutable?", "fact": "Lists, dicts and sets are mutable; tuples and strings are immutable (a tuple can still contain a mutable list).", "why": "Items ask which structure can be a dict key or which call raises a TypeError."},
+      {"cue": "Which structure is best for fast membership tests and removing duplicates?", "fact": "A set: `x in s` is fast on average, and `set(items)` drops duplicates (but loses order).", "why": "\"Check thousands of IDs against a blocklist\" points to a set."},
+      {"cue": "How do `d[key]` and `d.get(key, default)` differ?", "fact": "`d[key]` raises KeyError for a missing key; `d.get(key, default)` returns the default (None if omitted).", "why": "Output items test missing-key behaviour."},
+      {"cue": "How do `list.sort()` and `sorted()` differ?", "fact": "`lst.sort()` sorts in place and returns None; `sorted(iterable)` returns a new list and leaves the original unchanged.", "why": "`x = lst.sort()` leaving `x` as None is a classic trap."},
+      {"cue": "How do `append` and `extend` differ?", "fact": "`append(x)` adds one item (even if x is a list); `extend(iterable)` adds each item of the iterable.", "why": "Expect to predict a list's length after one of them."}
+    ],
+    "traps": [
+      {"cue": "What is `type({})`?", "answer": "dict. An empty set is written `set()`."},
+      {"cue": "Is `(5)` a tuple?", "answer": "No, it is the integer 5. A one-item tuple needs a comma: `(5,)`."}
+    ],
+    "terms": ["Mutable", "Immutable", "Hashable"],
+    "maps": ["data-structure"]
+  },
+  {
+    "objective": "2.1.5",
+    "oneLine": "PEP 8 sets how Python code looks; PEP 257 sets how docstrings are written.",
+    "know": [
+      {"cue": "What naming styles does PEP 8 prescribe?", "fact": "`snake_case` for functions, variables and modules; `CapWords` for classes; `UPPER_SNAKE_CASE` for constants; a leading underscore for internal names.", "why": "Items show several names and ask which follows PEP 8."},
+      {"cue": "What are PEP 8's indentation and line-length rules?", "fact": "4 spaces per indentation level and at most 79 characters per line (72 for comments and docstrings).", "why": "Numbers like 79 and 4 are direct recall items."},
+      {"cue": "How should imports be organized?", "fact": "At the top of the file, one module per line, grouped as standard library, third-party, then local, with a blank line between groups; avoid wildcard imports.", "why": "Expect to spot the badly ordered import block."},
+      {"cue": "What does PEP 257 say about one-line docstrings?", "fact": "Use triple double quotes on one line, phrased as a command ending in a period: `\"\"\"Return the mean of values.\"\"\"`.", "why": "\"Returns the mean\" (descriptive mood) is the PEP 257 violation."},
+      {"cue": "How is a multi-line docstring structured?", "fact": "A summary line, a blank line, then the details, with the closing triple quotes on a line of their own.", "why": "Items show docstrings and ask which follows the convention."}
+    ],
+    "traps": [
+      {"cue": "How does PEP 8 say you should compare with None?", "answer": "With `is` or `is not`: `if value is None:`, never `== None`."},
+      {"cue": "Does code that breaks PEP 8 raise an error?", "answer": "No. PEP 8 is a style guide; linters report violations but the interpreter runs the code."}
+    ],
+    "terms": ["PEP 8", "PEP 257", "Docstring"],
+    "maps": []
+  },
+  {
+    "objective": "2.2.1",
+    "oneLine": "Import whole modules, selected names or aliases; know what ships with Python, what comes from pip, and how local modules are found.",
+    "know": [
+      {"cue": "What names are available after `import math`, `from math import sqrt` and `import numpy as np`?", "fact": "`import math` binds `math` (use `math.sqrt`); `from math import sqrt` binds only `sqrt`; `import numpy as np` binds only the alias `np`.", "why": "Items ask which call works after a given import line."},
+      {"cue": "Why is `from module import *` discouraged?", "fact": "It pulls every public name into your namespace, hides where names come from and can silently overwrite your own names.", "why": "PEP 8 and readability questions use it as the wrong answer."},
+      {"cue": "What are the pip commands to install, pin, upgrade and remove a package?", "fact": "`pip install pkg`, `pip install pkg==1.2.3`, `pip install --upgrade pkg` and `pip uninstall pkg`; `pip freeze > requirements.txt` records versions.", "why": "Direct recall; `pip update` is a common fake option."},
+      {"cue": "How does Python find a local module?", "fact": "`import cleaning` looks for `cleaning.py` in the script's directory and the other folders on `sys.path`; a folder of modules forms a package (`from utils.cleaning import fix`).", "why": "Items describe a project layout and ask for the right import."},
+      {"cue": "What does `if __name__ == \"__main__\":` do?", "fact": "It runs the guarded block only when the file is executed directly, not when it is imported as a module.", "why": "Also: a module's top-level code runs once, on first import."}
+    ],
+    "traps": [
+      {"cue": "Which error means a third-party package isn't installed?", "answer": "ModuleNotFoundError (a subclass of ImportError)."},
+      {"cue": "Do `math`, `json` and `csv` need `pip install`?", "answer": "No. They are part of the standard library."}
+    ],
+    "terms": ["Standard library", "pip", "Virtual environment"],
+    "maps": []
+  },
+  {
+    "objective": "2.2.2",
+    "oneLine": "Catch the specific exceptions you expect, know what else and finally do, and read tracebacks from the bottom up.",
+    "know": [
+      {"cue": "When do `else` and `finally` run in a try statement?", "fact": "`else` runs only if the `try` block raised no exception; `finally` always runs, even after a return or an unhandled exception.", "why": "Output items trace which prints appear and in what order."},
+      {"cue": "Which `except` clause handles an exception?", "fact": "Clauses are checked top to bottom and the first matching one wins, so specific exceptions must come before general ones such as `Exception`.", "why": "Items put `except Exception` first and ask which clause runs."},
+      {"cue": "What is the difference between ValueError and TypeError?", "fact": "ValueError: right type, bad value (`int(\"12a\")`); TypeError: wrong type for the operation (`\"3\" + 4`) or wrong arguments to a call.", "why": "The most common \"which exception?\" pair."},
+      {"cue": "Which errors do missing keys, bad indexes and missing names raise?", "fact": "A missing dict key (or DataFrame column) raises KeyError, an out-of-range index raises IndexError, and an undefined name raises NameError.", "why": "Expect to name the exception a snippet raises."},
+      {"cue": "How do you read a traceback?", "fact": "From the bottom: the last line gives the exception type and message; the frames above show the call chain, most recent call last.", "why": "The syllabus asks you to interpret error messages."}
+    ],
+    "traps": [
+      {"cue": "Does `finally` run when the `try` block returns a value?", "answer": "Yes. `finally` runs before the function actually returns."},
+      {"cue": "Why avoid a bare `except:`?", "answer": "It catches everything, including typos and KeyboardInterrupt, hiding bugs. Catch the specific exceptions you expect."}
+    ],
+    "terms": ["Exception", "Traceback"],
+    "maps": ["exception"]
+  },
+  {
+    "objective": "2.3.1",
+    "oneLine": "A class bundles a record's data and behaviour: `__init__` sets instance variables, underscores signal privacy, and getters, setters or properties guard the state.",
+    "know": [
+      {"cue": "What does `__init__` do?", "fact": "`__init__` is the constructor: it runs when you call `ClassName(...)` and sets instance variables on `self`.", "why": "Items ask what an object holds after construction."},
+      {"cue": "How do instance variables differ from class variables?", "fact": "Instance variables (`self.x`) belong to one object; class variables (defined in the class body) are shared by all instances.", "why": "Modifying a class variable through the class affects every instance that hasn't shadowed it."},
+      {"cue": "What do `_name` and `__name` mean?", "fact": "A single underscore marks an attribute as internal by convention (not enforced); a double underscore triggers name mangling to `_ClassName__name`, so `obj.__name` from outside raises AttributeError.", "why": "Expect to predict which attribute access works."},
+      {"cue": "Why use getters and setters (or properties)?", "fact": "They control access to state and validate new values; `@property` with `@x.setter` gives the same control with plain attribute syntax.", "why": "Items ask how to reject a negative price when the attribute is set."}
+    ],
+    "traps": [
+      {"cue": "Can you read a double-underscore attribute from outside the class?", "answer": "Yes, through its mangled name `obj._ClassName__attr`. Name mangling prevents accidents; it is not security."},
+      {"cue": "What happens when you assign `obj.count = 5` and `count` is a class variable?", "answer": "It creates an instance attribute on that one object that shadows the class variable; other instances still see the class value."}
+    ],
+    "terms": ["Class", "Constructor", "Encapsulation", "Name mangling"],
+    "maps": []
+  },
+  {
+    "objective": "2.3.2",
+    "oneLine": "Inheritance reuses and overrides behaviour (is-a), composition assembles objects from parts (has-a), and polymorphism lets one call work across types.",
+    "know": [
+      {"cue": "What does method overriding mean?", "fact": "A subclass defines a method with the same name as its parent's, replacing it for instances of the subclass; `super().method()` still reaches the parent's version.", "why": "Output items ask which version of a method runs."},
+      {"cue": "When should a subclass call `super().__init__()`?", "fact": "Whenever it defines its own `__init__` and needs the parent's attributes set; otherwise those attributes never exist and later method calls fail with AttributeError.", "why": "The missing `super()` call is a favourite bug to spot."},
+      {"cue": "What is polymorphism?", "fact": "Different classes provide the same method name (`.export()`, `.process()`), so code can call it without knowing the concrete class and each object runs its own version.", "why": "The syllabus's example is `.process()` or `.export()` across subclasses."},
+      {"cue": "When is composition better than inheritance?", "fact": "When the relationship is \"has-a\": an Order has a Customer and LineItems, so it stores them as attributes instead of inheriting from them.", "why": "Scenario items describe a relationship and ask for the pattern."}
+    ],
+    "traps": [
+      {"cue": "Is `isinstance(child_obj, Parent)` True?", "answer": "Yes. An instance of a subclass is also an instance of every parent class."}
+    ],
+    "terms": ["Inheritance", "Composition", "Polymorphism", "Method overriding"],
+    "maps": []
+  },
+  {
+    "objective": "2.3.3",
+    "oneLine": "Variables are references: `==` compares values, `is` compares identity, and custom classes need `__eq__` to compare by content.",
+    "know": [
+      {"cue": "What does `b = a` do when `a` is a list?", "fact": "It binds a second name to the same list; changes made through either name are visible through both.", "why": "Output items mutate `b` and print `a`."},
+      {"cue": "How do `==` and `is` differ?", "fact": "`==` compares values (it calls `__eq__`); `is` checks whether two names refer to the very same object.", "why": "Expect to evaluate both for copies and aliases."},
+      {"cue": "How do you make an independent copy?", "fact": "`a.copy()`, `list(a)`, `a[:]` or `copy.copy(a)` make shallow copies (nested objects still shared); `copy.deepcopy(a)` copies nested objects too; in pandas use `df.copy()`.", "why": "Shallow vs deep copy is a common follow-up."},
+      {"cue": "How do two instances of a custom class compare with `==` by default?", "fact": "By identity: without `__eq__`, two separate objects with identical data are not equal; define `__eq__` (or use `@dataclass`) to compare by content.", "why": "The syllabus names custom `__eq__()` explicitly."}
+    ],
+    "traps": [
+      {"cue": "When is `is` the right comparison?", "answer": "For singletons such as None (`x is None`). For numbers and strings use `==`; results of `is` there depend on caching."},
+      {"cue": "What does defining `__eq__` without `__hash__` do?", "answer": "It makes instances unhashable, so they can't be put in sets or used as dict keys."}
+    ],
+    "terms": ["Identity", "Shallow copy", "Deep copy"],
+    "maps": []
+  },
+  {
+    "objective": "2.4.1",
+    "oneLine": "Write clauses in S-F-J-W-G-H-O-L order, remember that WHERE filters rows before grouping and HAVING filters groups after, and choose the join by which unmatched rows you need.",
+    "know": [
+      {"cue": "In what order are SQL clauses written?", "fact": "SELECT, FROM, JOIN, WHERE, GROUP BY, HAVING, ORDER BY, LIMIT (\"SFJWGHOL\").", "why": "Items give scrambled clauses and ask for the valid query."},
+      {"cue": "In what logical order does the database evaluate them?", "fact": "FROM/JOIN → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT, which is why WHERE can't use aggregates and ORDER BY can use SELECT aliases.", "why": "Explains why `WHERE COUNT(*) > 5` fails."},
+      {"cue": "How do WHERE and HAVING differ?", "fact": "WHERE filters individual rows before grouping; HAVING filters groups after aggregation and can use aggregate functions.", "why": "The single most tested SQL distinction."},
+      {"cue": "Which rows do INNER, LEFT, RIGHT and FULL joins return?", "fact": "INNER: only matches; LEFT: all left rows plus matches; RIGHT: all right rows plus matches; FULL OUTER: all rows from both, with NULLs where there is no match.", "why": "Expect to count the rows a join returns."},
+      {"cue": "How do `COUNT(*)` and `COUNT(col)` differ?", "fact": "`COUNT(*)` counts rows; `COUNT(col)` counts non-NULL values in that column; SUM, AVG, MIN and MAX also ignore NULLs.", "why": "Result-count items hinge on NULLs."}
+    ],
+    "traps": [
+      {"cue": "Why does `WHERE discount = NULL` return no rows?", "answer": "Any comparison with NULL is unknown, not true. Use `WHERE discount IS NULL`."},
+      {"cue": "What happens to a LEFT JOIN when you filter the right table in WHERE?", "answer": "Unmatched rows have NULL there and are filtered out, so it behaves like an INNER JOIN. Move the condition into the ON clause."},
+      {"cue": "Is `BETWEEN 10 AND 20` inclusive?", "answer": "Yes, both 10 and 20 are included."}
+    ],
+    "terms": ["SFJWGHOL", "INNER JOIN", "LEFT JOIN", "HAVING"],
+    "maps": ["sql-join", "sql-clause"]
+  },
+  {
+    "objective": "2.4.2",
+    "oneLine": "INSERT creates rows, SELECT reads them, UPDATE changes them and DELETE removes them; the WHERE clause decides which rows.",
+    "know": [
+      {"cue": "Which SQL statement matches each CRUD operation?", "fact": "Create = INSERT, Read = SELECT, Update = UPDATE, Delete = DELETE.", "why": "Direct recall, often inside a scenario."},
+      {"cue": "What happens if UPDATE or DELETE has no WHERE clause?", "fact": "Every row in the table is updated or deleted.", "why": "Scenario items describe an accidental full-table change."},
+      {"cue": "How do DELETE and DROP differ?", "fact": "`DELETE FROM t` removes rows and keeps the table; `DROP TABLE t` removes the table itself, structure and data.", "why": "\"Empty the table but keep it\" means DELETE."},
+      {"cue": "What must you do after INSERT, UPDATE or DELETE in Python's sqlite3?", "fact": "Call `con.commit()`; otherwise the changes are discarded when the connection closes.", "why": "\"The inserted rows disappeared\" points to a missing commit."}
+    ],
+    "traps": [
+      {"cue": "Is CREATE TABLE the \"C\" in CRUD?", "answer": "No. CREATE TABLE is data definition (DDL); CRUD's Create is INSERT of rows."}
+    ],
+    "terms": ["CRUD"],
+    "maps": []
+  },
+  {
+    "objective": "2.4.3",
+    "oneLine": "Connect, get a cursor, execute, fetch, commit, close; and know what the common connection errors mean.",
+    "know": [
+      {"cue": "What is the sqlite3 workflow?", "fact": "`con = sqlite3.connect(path)` → `cur = con.cursor()` → `cur.execute(sql, params)` → `fetchone()` / `fetchall()` → `con.commit()` → `con.close()`.", "why": "Items remove one step and ask what goes wrong."},
+      {"cue": "What do `fetchone()` and `fetchall()` return?", "fact": "`fetchone()` returns one row as a tuple (or None when no rows are left); `fetchall()` returns a list of tuples.", "why": "Output items print the fetched result."},
+      {"cue": "What does `with sqlite3.connect(path) as con:` do at the end of the block?", "fact": "It commits if the block succeeded or rolls back on an exception, but it does not close the connection.", "why": "A subtle, frequently tested detail."},
+      {"cue": "How do you connect to MySQL with pymysql?", "fact": "`pymysql.connect(host=, port=3306, user=, password=, database=)`, then a cursor with `%s` placeholders, `commit()` for changes and `close()`.", "why": "The syllabus names sqlite3 and pymysql."},
+      {"cue": "What does \"no such table\" usually mean in SQLite?", "fact": "The path was wrong: `sqlite3.connect` silently created a new, empty database file instead of opening the real one.", "why": "The syllabus asks for resolving common connection issues."}
+    ],
+    "traps": [
+      {"cue": "Does `sqlite3.connect(\"missing.db\")` raise an error if the file doesn't exist?", "answer": "No. It creates a new empty database file."},
+      {"cue": "What does \"Access denied for user\" point to in pymysql?", "answer": "Wrong user name or password, or no privileges on that database, not a network problem."}
+    ],
+    "terms": ["Cursor"],
+    "maps": []
+  },
+  {
+    "objective": "2.4.4",
+    "oneLine": "Pass values separately from the SQL text with placeholders, so user input can never change the query.",
+    "know": [
+      {"cue": "What placeholder styles do sqlite3 and pymysql use?", "fact": "sqlite3 uses `?` with a tuple or `:name` with a dict; pymysql uses `%s` or `%(name)s`, which are driver placeholders, not Python string formatting.", "why": "Items ask which call is correctly parameterized."},
+      {"cue": "Why do parameterized queries prevent SQL injection?", "fact": "The driver sends the values separately from the SQL text, so a value is always treated as data and can never change the query's structure.", "why": "The core idea behind 2.4.4 and 2.4.6."},
+      {"cue": "How do you pass a single parameter?", "fact": "As a one-item tuple with a trailing comma, `(name,)`, or a list `[name]`; `(name)` is just the value itself.", "why": "A common bug in code items."},
+      {"cue": "What does `executemany` do?", "fact": "It runs one parameterized statement once for each row in a sequence of parameter tuples, the efficient way to bulk-insert.", "why": "Expect to count the rows inserted."}
+    ],
+    "traps": [
+      {"cue": "Can a placeholder stand in for a table or column name?", "answer": "No. Placeholders work for values only; check identifiers against an allow-list instead."},
+      {"cue": "Is an f-string with the value in quotes safe?", "answer": "No. Input such as `x' OR '1'='1` breaks out of the quotes; only real placeholders are safe."}
+    ],
+    "terms": ["Parameterized query", "SQL injection"],
+    "maps": []
+  },
+  {
+    "objective": "2.4.5",
+    "oneLine": "Map SQL types to Python types (INTEGER → int, REAL → float, TEXT → str, NULL → None) and convert dates, booleans and money explicitly.",
+    "know": [
+      {"cue": "How do SQLite storage classes map to Python?", "fact": "NULL → None, INTEGER → int, REAL → float, TEXT → str, BLOB → bytes.", "why": "Direct recall and output items."},
+      {"cue": "How should dates be stored in SQLite?", "fact": "As ISO 8601 TEXT (`'2025-07-15'`), which sorts correctly; read them back as str and convert with `date.fromisoformat` or `pd.to_datetime` (or `parse_dates=`).", "why": "Items ask why date arithmetic fails on a fetched value."},
+      {"cue": "What Python type does pymysql return for DECIMAL columns?", "fact": "`decimal.Decimal`, which keeps exact decimal values; that suits money better than float.", "why": "The syllabus asks for type conversion during data transfer."},
+      {"cue": "What happens to an INTEGER column with NULLs in `pd.read_sql`?", "fact": "It becomes float64, because NaN is a float; use the nullable \"Int64\" dtype to keep integers.", "why": "Expect to name the resulting dtype."}
+    ],
+    "traps": [
+      {"cue": "Does SQLite enforce a column's declared type?", "answer": "Not strictly. Type affinity lets an INTEGER column hold text, so validate types in Python before inserting."},
+      {"cue": "How are Python booleans stored in SQLite?", "answer": "As the integers 1 and 0; SQLite has no separate boolean type."}
+    ],
+    "terms": ["Type affinity"],
+    "maps": []
+  },
+  {
+    "objective": "2.4.6",
+    "oneLine": "Parameterize every external value, allow-list identifiers, give accounts least privilege, and keep credentials out of code.",
+    "know": [
+      {"cue": "What is SQL injection?", "fact": "An attack where input pasted into SQL text changes the query itself, for example `x' OR '1'='1` returning every row or `'; DROP TABLE users; --` running a second statement.", "why": "Items show vulnerable code and ask what the input does."},
+      {"cue": "What is the primary defence against SQL injection?", "fact": "Parameterized queries for every value from outside the program; input validation and escaping are extra layers, not replacements.", "why": "Distractors offer validation or escaping as the main fix."},
+      {"cue": "What is least privilege for database accounts?", "fact": "Each account gets only the permissions it needs, such as read-only access to specific tables for a reporting script.", "why": "It limits the damage if an injection or leak does happen."},
+      {"cue": "Where should database credentials live?", "fact": "In environment variables, configuration kept out of version control, or a secrets manager; never hard-coded in scripts or notebooks.", "why": "Scenario items show a password in a shared notebook."}
+    ],
+    "traps": [
+      {"cue": "Is `cursor.execute(\"... WHERE id = %s\" % user_id)` parameterized?", "answer": "No. The `%` operator formats the string in Python before the driver sees it, so it is injectable. Pass `(user_id,)` as the second argument instead."}
+    ],
+    "terms": ["SQL injection", "Least privilege"],
+    "maps": []
+  }
+]
