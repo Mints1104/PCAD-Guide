@@ -1,7 +1,7 @@
 import { Fragment } from 'preact';
-import { useEffect, useMemo, useState } from 'preact/hooks';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { AREAS, BLOCK_NAMES, OBJECTIVE_IDS, STORAGE_PREFIX, areaOf, blockOf } from '../constants.js';
-import { ESSENTIALS, GUIDE_DOCS, MAP_BY_ID, QUESTIONS } from '../data.js';
+import { ESSENTIALS, GLOSSARY, GUIDE_DOCS, MAP_BY_ID, QUESTIONS } from '../data.js';
 import { toggleRevised } from '../score.js';
 import { BlockBadge, Rich, barStyle, renderMarkdown, slugify } from '../ui.jsx';
 import { readLocal, writeLocal } from '../store.js';
@@ -189,6 +189,99 @@ function GuideDoc({ store, index, objective }) {
   );
 }
 
+// Term chips open their glossary definition in a popover under the chip, so reading one
+// doesn't leave the page. The popover follows its chip in the DOM to keep tab order.
+function TermChips({ terms, objective }) {
+  const [open, setOpen] = useState(null);
+  const wrapRef = useRef(null);
+  const popRef = useRef(null);
+  const chipRefs = useRef({});
+  const popId = `term-pop-${objective.replaceAll('.', '-')}`;
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    const place = () => {
+      const wrap = wrapRef.current;
+      const chip = chipRefs.current[open];
+      const pop = popRef.current;
+      if (!wrap || !chip || !pop) return;
+      const center = chip.offsetLeft + chip.offsetWidth / 2;
+      const left = Math.max(0, Math.min(center - pop.offsetWidth / 2, wrap.clientWidth - pop.offsetWidth));
+      pop.style.top = `${chip.offsetTop + chip.offsetHeight + 8}px`;
+      pop.style.left = `${left}px`;
+      pop.style.setProperty('--caret', `${center - left}px`);
+    };
+    place();
+    popRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    window.addEventListener('resize', place);
+    return () => window.removeEventListener('resize', place);
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (ev) => {
+      if (!wrapRef.current?.contains(ev.target)) setOpen(null);
+    };
+    const onKey = (ev) => {
+      if (ev.key !== 'Escape') return;
+      chipRefs.current[open]?.focus();
+      setOpen(null);
+    };
+    document.addEventListener('pointerdown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('pointerdown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  return (
+    <div class="chip-group term-chips" ref={wrapRef}>
+      {terms.map((t) => {
+        const entry = GLOSSARY.get(t.toLowerCase());
+        const href = `#/guide/glossary/${slugify(t)}`;
+        if (!entry) {
+          return (
+            <a key={t} class="chip chip-small" href={href}>
+              {t}
+            </a>
+          );
+        }
+        const isOpen = open === t;
+        return (
+          <Fragment key={t}>
+            <button
+              type="button"
+              class={`chip chip-small${isOpen ? ' chip-selected' : ''}`}
+              ref={(el) => (chipRefs.current[t] = el)}
+              aria-expanded={isOpen}
+              aria-controls={isOpen ? popId : undefined}
+              onClick={() => setOpen(isOpen ? null : t)}
+            >
+              {t}
+            </button>
+            {isOpen && (
+              <div class="term-pop" id={popId} role="dialog" aria-label={entry.term} ref={popRef}>
+                <button type="button" class="term-pop-close" aria-label="Close" onClick={() => setOpen(null)}>
+                  ×
+                </button>
+                <p class="term-pop-title">
+                  {entry.term}
+                  {entry.note && <span class="gl-note"> {entry.note}</span>}
+                </p>
+                <Rich as="p" class="term-pop-def" text={entry.def.replace(/^[a-z]/, (c) => c.toUpperCase())} />
+                <a class="term-pop-link" href={href}>
+                  Open in glossary →
+                </a>
+              </div>
+            )}
+          </Fragment>
+        );
+      })}
+    </div>
+  );
+}
+
 function ObjectiveBlock({ chunk, block, revised, notesOpen, onNotes, onRevised, onTry }) {
   const e = ESSENTIALS.get(chunk.objective);
   const html = useMemo(() => renderMarkdown(chunk.md), [chunk.md]);
@@ -216,15 +309,7 @@ function ObjectiveBlock({ chunk, block, revised, notesOpen, onNotes, onRevised, 
               </li>
             ))}
           </ul>
-          {e.terms?.length > 0 && (
-            <div class="chip-group">
-              {e.terms.map((t) => (
-                <a key={t} class="chip chip-small" href={`#/guide/glossary/${slugify(t)}`}>
-                  {t}
-                </a>
-              ))}
-            </div>
-          )}
+          {e.terms?.length > 0 && <TermChips terms={e.terms} objective={chunk.objective} />}
           {e.maps?.length > 0 && (
             <div class="map-links">
               {e.maps.map((m) => (

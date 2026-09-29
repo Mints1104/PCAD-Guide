@@ -23,6 +23,14 @@ export const MAP_BY_ID = new Map(MAPS.map((m) => [m.id, m]));
 
 export const SYNTAX_CARDS = content.syntaxCards;
 
+// Glossary lines "**Term** (note) — definition", keyed by lower-case term as essentials cite them.
+export const GLOSSARY = new Map(
+  [...content.guide.glossary.matchAll(/^\*\*(.+?)\*\*\s*(\([^)]*\))?\s*[—–:-]\s+(.+)$/gm)].map((m) => [
+    m[1].trim().toLowerCase(),
+    { term: m[1].trim(), note: m[2], def: m[3].trim() },
+  ]),
+);
+
 export const GUIDE_DOCS = [
   { slug: 'overview', markdown: content.guide.overview },
   { slug: 'b1', markdown: content.guide.b1, block: 1 },
