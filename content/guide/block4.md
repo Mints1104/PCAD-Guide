@@ -49,6 +49,31 @@ print(df.sort_values("sales", ascending=False, na_position="last")["sales"].toli
 - `drop_duplicates()` compares whole rows; pass `subset=` to compare only some columns.
 - To change values that match a condition, use `df.loc[mask, "col"] = value`. Chained assignment such as `df[df["a"] > 0]["b"] = 1` modifies a temporary copy; under pandas 3's copy-on-write it never changes `df`.
 
+Assigning back, `inplace=True`, `subset=` and a `.loc` update:
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"name": ["Ana", "Ana", "Ben"], "city": ["Oslo", "Rome", "Oslo"],
+                   "sales": [10, 20, -5]})
+
+df.drop_duplicates(subset=["name"])         # result not assigned: df is unchanged
+print(len(df))
+result = df.drop_duplicates(subset=["name"], inplace=True)
+print(result, len(df))                      # inplace=True changed df and returned None
+
+df.loc[df["sales"] < 0, "sales"] = 0        # conditional update with .loc
+print(df["sales"].tolist())
+```
+
+```text
+3
+None 2
+[10, 0]
+```
+
+The first `drop_duplicates` returned a new DataFrame that was thrown away, so `df` still had 3 rows. With `inplace=True` the method changed `df` and returned `None`.
+
 ### Exam traps
 
 > **Trap.** `df = df.dropna(inplace=True)` sets `df` to `None`.
@@ -152,6 +177,29 @@ Series DataFrame (2, 2) (2,)
 - `axis=0` means "along the rows" (an aggregation per column); `axis=1` means "along the columns" (one result per row).
 - `.to_numpy()` returns the underlying values as a NumPy array, without the labels.
 
+An index, a row as a Series, the two axes, and the raw values:
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"id": [101, 102], "q1": [5, 3], "q2": [7, 1]})
+df = df.set_index("id")
+print(df.loc[102].to_dict())                # one row comes back as a Series
+print(df.sum(axis=0).to_dict())             # down the rows: one total per column
+print(df.sum(axis=1).to_dict())             # across the columns: one total per row
+print(df.reset_index().columns.tolist())    # id is a column again
+print(df.to_numpy())
+```
+
+```text
+{'q1': 3, 'q2': 1}
+{'q1': 8, 'q2': 8}
+{101: 12, 102: 4}
+['id', 'q1', 'q2']
+[[5 7]
+ [3 1]]
+```
+
 ### Exam traps
 
 > **Trap.** `df["x"]` is a Series and `df[["x"]]` is a DataFrame. Methods such as `.to_frame()` or `.squeeze()` convert between them.
@@ -195,6 +243,32 @@ print(df["qty"].tolist())
 - `df.at[label, col]` and `df.iat[i, j]` get or set a single value quickly.
 - Plain brackets: `df["col"]` selects a column; `df[1:3]` slices **rows by position**; `df[mask]` filters rows.
 - With a default integer index (0, 1, 2…), `.loc[0:2]` returns **three** rows (labels 0, 1, 2) while `.iloc[0:2]` returns two.
+
+Inclusive `.loc`, exclusive `.iloc`, plain-bracket row slices, and a non-default index:
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"v": [10, 20, 30, 40]})          # default index 0, 1, 2, 3
+print(df.loc[0:2, "v"].tolist())                    # labels 0 to 2: end included
+print(df.iloc[0:2, 0].tolist())                     # positions 0 and 1: end excluded
+print(df[1:3]["v"].tolist())                        # plain brackets with a slice: rows by position
+print(df.iat[3, 0], df.iloc[:, 0].tolist())
+
+s = pd.Series(["w", "x", "y", "z"], index=[3, 2, 1, 0])
+print(s.loc[1], s.iloc[1])                          # label 1 vs second position
+```
+
+```text
+[10, 20, 30]
+[10, 20]
+[20, 30]
+40 [10, 20, 30, 40]
+y x
+```
+
+On the last line, `s.loc[1]` finds the label 1 (`"y"`), while `s.iloc[1]` takes the second item (`"x"`).
+
 - Efficient indexing: set a meaningful index (for example an ID or a date) for fast label lookups and time slicing, keep it sorted, and use vectorized masks instead of loops.
 
 ### Exam traps
@@ -286,9 +360,93 @@ US          1    2
 - Named aggregation: `agg(total=("amount", "sum"))` names the output columns.
 - Grouping by several keys gives a MultiIndex; `as_index=False` or `.reset_index()` flattens it.
 - `size()` counts rows per group (including NaN); `count()` counts non-null values per column.
+
+`size` versus `count`, `filter`, and grouping by two keys:
+
+```python
+import numpy as np
+import pandas as pd
+
+df = pd.DataFrame({"region": ["EU", "EU", "US", "US", "US"],
+                   "channel": ["web", "shop", "web", "web", "shop"],
+                   "amount": [100, np.nan, 70, 30, 60]})
+
+print(df.groupby("region").size().to_dict())                 # rows per group
+print(df.groupby("region")["amount"].count().to_dict())      # non-null values per group
+print(df.groupby("region").filter(lambda g: len(g) > 2)["region"].tolist())   # keep whole groups
+print(df.groupby(["region", "channel"], as_index=False)["amount"].sum())   # EU/shop is all NaN: sum 0
+```
+
+```text
+{'EU': 2, 'US': 3}
+{'EU': 1, 'US': 3}
+['US', 'US', 'US']
+  region channel  amount
+0     EU    shop     0.0
+1     EU     web   100.0
+2     US    shop    60.0
+3     US     web   100.0
+```
+
+EU has 2 rows but only 1 non-null amount. `filter` keeps the US rows because only that group has more than 2. `as_index=False` returns the keys as ordinary columns.
+
 - `pd.crosstab(a, b)` counts combinations (a frequency table); `normalize=True` gives proportions; `margins=True` adds totals. `pivot_table` summarizes a value column with any aggregation.
 - `value_counts(normalize=True)` gives the share of each category.
+
+Totals, row shares, a pivot table and category shares:
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"region": ["EU", "EU", "US", "US", "US"],
+                   "channel": ["web", "shop", "web", "web", "shop"],
+                   "amount": [100, 40, 70, 30, 60]})
+
+print(pd.crosstab(df["region"], df["channel"], margins=True))
+print(pd.crosstab(df["region"], df["channel"], normalize="index").round(2))   # shares within each row
+print(pd.pivot_table(df, index="region", columns="channel", values="amount"))  # mean by default
+print(df["channel"].value_counts(normalize=True).to_dict())
+```
+
+```text
+channel  shop  web  All
+region
+EU          1    1    2
+US          1    2    3
+All         2    3    5
+channel  shop   web
+region
+EU       0.50  0.50
+US       0.33  0.67
+channel  shop    web
+region
+EU       40.0  100.0
+US       60.0   50.0
+{'web': 0.6, 'shop': 0.4}
+```
+
+`normalize="index"` makes each row add up to 1. The pivot table shows the US web cell as 50.0, the **mean** of 70 and 30, not their sum.
+
 - Trends over time: group by a date part (`df.groupby(df["date"].dt.to_period("M"))`) or `resample("ME")` on a datetime index, then compare periods with `pct_change()`.
+
+Monthly totals and the change from one month to the next:
+
+```python
+import pandas as pd
+
+sales = pd.DataFrame({"date": pd.to_datetime(["2025-01-05", "2025-01-20", "2025-02-11", "2025-03-02"]),
+                      "amount": [100, 50, 180, 135]})
+monthly = sales.groupby(sales["date"].dt.to_period("M"))["amount"].sum()
+print(monthly.tolist())                          # Jan, Feb, Mar
+print(monthly.pct_change().round(2).tolist())     # change vs the previous month
+```
+
+```text
+[150, 180, 135]
+[nan, 0.2, -0.25]
+```
+
+February is 20% up on January (180 vs 150) and March 25% down on February. The first month has nothing to compare with, so it is `NaN`.
 
 ### Exam traps
 
@@ -325,6 +483,36 @@ nan nan present
 - `mode()` returns a **Series**, because there can be several modes; take `[0]` for the first.
 - `describe()` gives count, mean, std, min, the quartiles (25%, 50% = median, 75%) and max for numeric columns; for text columns it gives count, unique, top and freq.
 - `quantile(0.9)`, `skew()`, `idxmax()`, `cumsum()`, `rolling(7).mean()` and `corr()` round out the toolkit.
+
+Sample versus population spread, several modes, text columns and the rest of the toolkit:
+
+```python
+import numpy as np
+import pandas as pd
+
+x = [2, 4, 4, 4, 5, 5, 7, 9]
+print(round(pd.Series(x).std(), 3), round(np.std(x), 3), round(np.std(x, ddof=1), 3))
+
+print(pd.Series([1, 1, 2, 2, 3]).mode().tolist())    # two modes
+
+names = pd.Series(["tea", "jam", "tea", "milk"])
+print(names.describe().to_dict())                    # text: count, unique, top, freq
+
+s = pd.Series([3, 8, 1, 9, 4], index=list("abcde"))
+print(s.quantile(0.5), s.idxmax(), s.cumsum().tolist())
+print(s.rolling(3).mean().round(2).tolist())                   # mean of each 3-value window
+```
+
+```text
+2.138 2.0 2.138
+[1, 2]
+{'count': 4, 'unique': 3, 'top': 'tea', 'freq': 2}
+4.0 d [3, 11, 12, 21, 25]
+[nan, nan, 4.0, 6.0, 4.67]
+```
+
+The rolling mean needs three values, so the first two are `NaN`; the third is (3 + 8 + 1) / 3 = 4.
+
 - Interpret in context: a mean far above the median signals right skew; a large standard deviation relative to the mean signals high variability.
 
 ### Exam traps
@@ -349,6 +537,28 @@ A model is only useful if it **generalizes** to new data. Scoring it on the data
 - **Representative**: `stratify=y` keeps class proportions (vital with imbalanced classes); random shuffling for independent rows; a time-based split for time series (train on the past, test on the future).
 - **k-fold cross-validation** (`cross_val_score(model, X, y, cv=5)`) rotates which part is held out, giving a more stable estimate when data are limited. It is used for model selection; keep a final test set apart if you can.
 - **Data leakage** makes test scores look better than reality: fitting scalers or imputers on all the data before splitting, duplicate records landing in both sets, features that contain the answer (a "cancellation date" when predicting churn), or future information in time series. Put preprocessing inside a scikit-learn `Pipeline` so it is fitted on training folds only.
+
+Five-fold cross-validation with the scaler inside a pipeline, so each fold's scaler sees only that fold's training data:
+
+```python
+from sklearn.datasets import load_iris
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import cross_val_score
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+
+X, y = load_iris(return_X_y=True)
+model = make_pipeline(StandardScaler(), LogisticRegression())   # scaler is refit inside each fold
+scores = cross_val_score(model, X, y, cv=5)
+print(scores.round(2), round(scores.mean(), 2))
+```
+
+```text
+[0.97 1.   0.93 0.9  1.  ] 0.96
+```
+
+Each number is the accuracy on one held-out fold; their mean is the estimate.
+
 - If you tune repeatedly against the test set, it quietly becomes a validation set and its score is no longer unbiased.
 
 ### Exam traps

@@ -53,7 +53,52 @@ print(st.pstdev(data), round(st.stdev(data), 4))           # population vs sampl
 - **Bivariate**: two variables together (height and weight); described by both means, both spreads and their correlation; a bivariate normal looks like an elliptical cloud in a scatter plot.
 - **Multivariate**: three or more variables; a multivariate normal is described by a mean vector and a covariance matrix.
 
+Simulated samples show the rules of thumb in the table:
+
+```python
+import numpy as np
+
+rng = np.random.default_rng(0)
+normal = rng.normal(loc=50, scale=10, size=100_000)
+uniform = rng.uniform(low=0, high=12, size=100_000)
+
+print(round(normal.mean(), 1), round(np.median(normal), 1), round(normal.std(), 1))
+print(round(np.mean(np.abs(normal - 50) < 10), 2), round(np.mean(np.abs(normal - 50) < 20), 2))  # ~68%, ~95%
+print(round(uniform.mean(), 1), round(uniform.var(), 1))   # (0 + 12) / 2 = 6 and 12**2 / 12 = 12
+```
+
+```text
+50.0 50.0 10.0
+0.68 0.95
+6.0 11.9
+```
+
+About 68% of the normal values are within one standard deviation (10) of the mean and 95% within two. The uniform sample's mean and variance are close to the formulas: (0 + 12) / 2 = 6 and 12² / 12 = 12.
+
 **Confidence.** The **standard error** of the mean is s / √n: it shrinks as the sample grows. A 95% **confidence interval** for the mean is roughly mean ± 1.96 × SE for large samples (use the t-distribution for small ones). It means: if we repeated the sampling many times, about 95% of intervals built this way would contain the true mean. It does not mean there is a 95% chance this particular interval contains it. Intervals get wider with more variability, smaller samples, or a higher confidence level.
+
+A standard error and a 95% interval from a sample of 10:
+
+```python
+import numpy as np
+
+sample = np.array([12, 15, 11, 14, 13, 16, 12, 15, 14, 13])
+mean = sample.mean()
+se = sample.std(ddof=1) / np.sqrt(len(sample))           # standard error = s / sqrt(n)
+print(round(mean, 2), round(se, 3))
+print(round(mean - 1.96 * se, 2), round(mean + 1.96 * se, 2))   # approximate 95% interval
+
+bigger = np.tile(sample, 4)                               # same values, 4 times the n
+print(round(bigger.std(ddof=1) / np.sqrt(len(bigger)), 3))     # smaller SE, narrower interval
+```
+
+```text
+13.5 0.5
+12.52 14.48
+0.24
+```
+
+With four times the data (and the same spread), the standard error roughly halves, because it divides by √n.
 
 ### Exam traps
 
@@ -99,6 +144,39 @@ returns -0.99  -0.99     1.00
 ```
 
 `df.corr()` uses Pearson by default (`method="spearman"` ranks first, for monotonic but non-linear relationships). `s1.corr(s2)`, `np.corrcoef(x, y)` and `scipy.stats.pearsonr(x, y)` (which also returns a p-value) do the same.
+
+Rescaling, an outlier, a curve, and Pearson versus Spearman:
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"height_m": [1.60, 1.65, 1.70, 1.75, 1.80],
+                   "weight": [55, 60, 62, 70, 72]})
+print(round(df["height_m"].corr(df["weight"]), 3))
+print(round((df["height_m"] * 100).corr(df["weight"]), 3))      # in cm: r is unchanged
+
+x = pd.Series([1, 2, 3, 4, 5, 6])
+y = pd.Series([2, 1, 3, 2, 1, 2])
+print(round(x.corr(y), 2))
+y_out = pd.Series([2, 1, 3, 2, 1, 20])                           # one extreme point
+print(round(x.corr(y_out), 2))
+
+x = pd.Series([-2, -1, 0, 1, 2])
+print(round(x.corr(x ** 2), 2))                                   # perfect curve, r = 0
+s = pd.Series([1, 2, 3, 4, 5])
+print(round(s.corr(s ** 3), 3), round(s.corr(s ** 3, method="spearman"), 3)) # monotonic: Spearman = 1
+```
+
+```text
+0.982
+0.982
+-0.07
+0.64
+0.0
+0.943 1.0
+```
+
+Converting metres to centimetres leaves r at 0.982. One extreme point lifts a near-zero r to 0.64. y = x² is a perfect curve but r = 0. For y = x³, Pearson is below 1 because the points are not on a straight line, while Spearman, which only checks that the ranks rise together, gives exactly 1.
 
 **Outliers.** Box plots show them as points beyond the whiskers (1.5 × IQR past the box). The z-score rule flags |z| > 3. Always ask whether an outlier is an error or a real, important case.
 
@@ -204,6 +282,24 @@ print(log.predict([[2], [5]]), log.predict_proba([[3.5]]).round(2))
 - `.coef_` holds the slopes, `.intercept_` the intercept; `LinearRegression.score()` returns R², while `LogisticRegression.score()` returns accuracy.
 - `predict_proba` returns one column per class (here P(fail), P(pass)); `predict` applies the 0.5 threshold.
 - `np.polyfit(x, y, 1)` returns `[slope, intercept]` for a straight line; `scipy.stats.linregress` and statsmodels' `OLS` / `Logit` add p-values and confidence intervals.
+
+The same straight line as the `LinearRegression` example, from `polyfit`:
+
+```python
+import numpy as np
+
+x = np.array([1, 2, 3, 4, 5])
+y = np.array([3.1, 4.9, 7.2, 8.8, 11.0])
+slope, intercept = np.polyfit(x, y, 1)
+print(round(slope, 2), round(intercept, 2))
+print(round(slope * 6 + intercept, 2))      # prediction for x = 6
+```
+
+```text
+1.97 1.09
+12.91
+```
+
 - R² is the share of variance in y the model explains (0 to 1 on training data for OLS). A high R² does not prove the model is right: check residuals.
 
 **Choosing.** Ask what the outcome is. A quantity → linear. A yes/no → logistic (despite its name, it is a classification method). More than two categories → multinomial logistic regression.

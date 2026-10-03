@@ -102,6 +102,42 @@ print(combined)
 - `validate="one_to_one"` (or `"one_to_many"`, `"many_to_one"`) raises an error if the keys are not what you expect. `indicator=True` adds a `_merge` column that shows unmatched rows.
 - After integrating, check row counts, key uniqueness and new nulls. A merge on a key with duplicates silently multiplies rows.
 
+Stacking, joining, and what `validate` and duplicate keys do:
+
+```python
+import pandas as pd
+
+jan = pd.DataFrame({"order": [1, 2], "amount": [50, 20]})
+feb = pd.DataFrame({"order": [3], "amount": [35]})
+print(pd.concat([jan, feb], ignore_index=True))       # stack: same columns, more rows
+
+customers = pd.DataFrame({"cust": ["a", "b"], "city": ["Oslo", "Rome"]})
+orders = pd.DataFrame({"cust": ["a", "a", "b"], "amount": [10, 20, 30]})
+print(orders.merge(customers, on="cust", validate="many_to_one"))   # join: match on a key
+
+dupes = pd.DataFrame({"cust": ["a", "a"], "city": ["Oslo", "Bergen"]})
+try:
+    orders.merge(dupes, on="cust", validate="many_to_one")
+except pd.errors.MergeError as e:
+    print("MergeError:", e)
+print(len(orders), "->", len(orders.merge(dupes, on="cust")))   # 2 orders x 2 rows for "a", plus 0 for "b"
+```
+
+```text
+   order  amount
+0      1      50
+1      2      20
+2      3      35
+  cust  amount  city
+0    a      10  Oslo
+1    a      20  Oslo
+2    b      30  Rome
+MergeError: Merge keys are not unique in right dataset; not a many-to-one merge
+3 -> 4
+```
+
+The second merge fails fast because customer `a` appears twice on the right. Without `validate`, the merge runs and quietly turns 3 orders into 4 rows: each of `a`'s two orders matches both of `a`'s rows, and `b` has no match at all.
+
 **ETL vs ELT.** ETL transforms data before loading it into the target (typical for warehouses); ELT loads raw data first and transforms inside the target (typical for lakes and modern cloud warehouses).
 
 ### Exam traps
@@ -235,6 +271,27 @@ print(((s - s.mean()) / s.std(ddof=0)).round(2).tolist())
 - Fit the scaler on the **training** data only, then apply the same parameters to the test data. Fitting on all data leaks information from the test set.
 - scikit-learn's `MinMaxScaler` and `StandardScaler` do this; `StandardScaler` uses the population standard deviation (`ddof=0`).
 
+Fit on the training data, then reuse the same parameters on the test data:
+
+```python
+import numpy as np
+from sklearn.preprocessing import MinMaxScaler
+
+train = np.array([[10], [20], [30]])
+test = np.array([[25], [40]])
+
+scaler = MinMaxScaler().fit(train)        # learns min = 10, max = 30 from training data only
+print(scaler.transform(train).ravel())
+print(scaler.transform(test).ravel())     # same parameters; 40 is past the training max
+```
+
+```text
+[0.  0.5 1. ]
+[0.75 1.5 ]
+```
+
+The test value 40 scales to 1.5 because the scaler only knows the training range (10 to 30). That is expected: the test set must not influence the parameters.
+
 **Encoding categories.**
 
 | Encoding | What it produces | Use for |
@@ -289,9 +346,66 @@ print(df)
 - **String cleanup**: `.str.strip()`, `.str.lower()` / `.str.upper()` / `.str.title()`, `.str.replace()`; normalize case *before* comparing or grouping.
 - **Boolean normalization**: map every spelling (`"Y"`, `"yes"`, `"1"`, `"True"`) to real `True`/`False`.
 - **String to number**: `pd.to_numeric(s, errors="coerce")` turns unparseable values into `NaN`; `s.astype(float)` raises a `ValueError` instead. Remove currency symbols and thousands separators first.
+
+`to_numeric` versus `astype` on the same messy column:
+
+```python
+import pandas as pd
+
+prices = pd.Series(["12.5", "7", "n/a"])
+print(pd.to_numeric(prices, errors="coerce").tolist())
+try:
+    prices.astype(float)
+except ValueError as e:
+    print("ValueError:", e)
+```
+
+```text
+[12.5, 7.0, nan]
+ValueError: could not convert string to float: 'n/a'
+```
+
 - **Imputation vs exclusion**: impute when rows are valuable and missingness is limited and explainable; exclude when a value cannot be estimated sensibly, the column is mostly empty, or the target itself is missing.
 - **One-hot encoding**: `pd.get_dummies(df, columns=["color"])` replaces the column with `color_blue`, `color_red`… (boolean in pandas 2 and later; pass `dtype=int` for 0/1). `drop_first=True` drops one column to avoid perfectly redundant columns in linear models.
+
+One column per category, and what `drop_first` removes:
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"color": ["red", "blue", "red"], "qty": [1, 2, 3]})
+print(pd.get_dummies(df, columns=["color"], dtype=int))
+print(pd.get_dummies(df, columns=["color"], dtype=int, drop_first=True).columns.tolist())
+```
+
+```text
+   qty  color_blue  color_red
+0    1           0          1
+1    2           1          0
+2    3           0          1
+['qty', 'color_red']
+```
+
+With `drop_first=True` only `color_red` is left: a 0 there already means blue.
+
 - **Bucketization** turns a continuous variable into categories. `pd.cut` uses bin **edges** you choose (intervals are right-closed by default, so `(30, 60]` includes 60); `pd.qcut` uses **quantiles**, giving roughly equal counts per bin.
+
+`cut` with your own edges versus `qcut` with equal-sized groups:
+
+```python
+import pandas as pd
+
+ages = pd.Series([5, 18, 30, 31, 45, 70])
+print(pd.cut(ages, bins=[0, 30, 60, 120]).astype(str).tolist())     # your edges
+print(pd.qcut(ages, q=3, labels=["low", "mid", "high"]).tolist())   # equal-sized groups
+```
+
+```text
+['(0, 30]', '(0, 30]', '(0, 30]', '(30, 60]', '(30, 60]', '(60, 120]']
+['low', 'low', 'mid', 'mid', 'high', 'high']
+```
+
+30 lands in `(0, 30]` because intervals include their right edge. `qcut` puts two of the six values in each group, whatever their spacing.
 
 ### Exam traps
 
@@ -512,7 +626,52 @@ print([(r.find("td", class_="item").get_text(), float(r.find("td", class_="price
 - `soup.select("table#prices td.price")` uses CSS selectors.
 - `pd.read_html(url_or_html)` returns a **list** of DataFrames, one per `<table>`.
 
+Text, attributes and CSS selectors on a small page:
+
+```python
+from bs4 import BeautifulSoup
+
+html = """<ul id="links">
+  <li><a class="doc" href="/guide.pdf">  Guide  </a></li>
+  <li><a class="doc" href="/faq.html">FAQ</a></li>
+</ul>"""
+soup = BeautifulSoup(html, "html.parser")
+
+first = soup.find("a", class_="doc")
+print(repr(first.get_text()), repr(first.get_text(strip=True)))
+print(first["href"], first.get("title"))                 # .get returns None if missing
+print([a["href"] for a in soup.find_all("a")])
+print([a.get_text(strip=True) for a in soup.select("ul#links a.doc")])
+print(soup.find("table"))                                # no match -> None
+```
+
+```text
+'  Guide  ' 'Guide'
+/guide.pdf None
+['/guide.pdf', '/faq.html']
+['Guide', 'FAQ']
+None
+```
+
+`get_text()` keeps the surrounding spaces; `strip=True` removes them. `tag.get("title")` returns `None` for a missing attribute, where `tag["title"]` would raise `KeyError`.
+
 **Ethical scraping.** Prefer an official API. Read the site's terms of service. Check `robots.txt` at the site root (`https://site.com/robots.txt`), which lists paths crawlers should not visit (`Disallow:`); `urllib.robotparser` can check it. Rate-limit your requests (for example `time.sleep()` between them), identify yourself with a User-Agent, cache what you have fetched, and don't collect personal data without a lawful basis.
+
+Checking paths against `robots.txt` rules with the standard library. Normally you call `set_url("https://site.com/robots.txt")` and `read()`; here the rules are passed in directly:
+
+```python
+from urllib.robotparser import RobotFileParser
+
+rules = RobotFileParser()
+rules.parse(["User-agent: *", "Disallow: /private/"])
+print(rules.can_fetch("my-bot", "https://site.com/products"))
+print(rules.can_fetch("my-bot", "https://site.com/private/data"))
+```
+
+```text
+True
+False
+```
 
 After extraction, check compatibility and integrity: consistent encodings and types, expected row counts, and no duplicated pages.
 

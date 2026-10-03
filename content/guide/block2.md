@@ -190,6 +190,42 @@ avg: 2.0
 - A function without `return` (or with a bare `return`) returns `None`.
 - Missing a required argument, or passing one twice, raises `TypeError`.
 
+`*args` and `**kwargs`, the `/` and `*` markers, and the errors a bad call raises:
+
+```python
+def describe(*args, **kwargs):
+    print(args, kwargs)
+
+describe(1, 2, unit="kg", note="raw")
+
+def scale(values, /, factor=2, *, label="x"):
+    return f"{label}: {[v * factor for v in values]}"
+
+print(scale([1, 2], 3, label="y"))
+for bad_call in (lambda: scale([1, 2], 3, "y"), lambda: scale(values=[1, 2]), lambda: scale()):
+    try:
+        bad_call()
+    except TypeError as e:
+        print("TypeError:", e)
+
+def log(msg):
+    print(msg)            # no return statement
+
+print(log("saved"))
+```
+
+```text
+(1, 2) {'unit': 'kg', 'note': 'raw'}
+y: [3, 6]
+TypeError: scale() takes from 1 to 2 positional arguments but 3 were given
+TypeError: scale() got some positional-only arguments passed as keyword arguments: 'values'
+TypeError: scale() missing 1 required positional argument: 'values'
+saved
+None
+```
+
+In `scale`, `values` is positional-only (before `/`), `factor` can be passed either way, and `label` is keyword-only (after `*`). `log` has no `return`, so calling it gives `None`.
+
 **Default values are evaluated once**, when the function is defined. A mutable default is shared between calls:
 
 ```python
@@ -292,10 +328,98 @@ print(t)
 ```
 
 - Lists: `append` (one item), `extend` (items of an iterable), `insert`, `pop` (by index, returns it), `remove` (first matching value), `sort()` (in place, returns `None`) vs `sorted()` (new list).
+
+The list methods side by side:
+
+```python
+a = [1, 2]
+a.append([3, 4])            # adds ONE item: the list itself
+b = [1, 2]
+b.extend([3, 4])            # adds each item
+print(a, b)
+
+c = [5, 3, 5, 1]
+c.insert(0, 9)
+print(c.pop(), c.pop(0), c)  # pop(): last item; pop(0): first item
+c.remove(5)                  # first 5 only
+print(c)
+
+nums = [3, 1, 2]
+print(sorted(nums), nums)    # sorted() returns a new list; nums is unchanged
+print(nums.sort(), nums)     # sort() changes nums in place and returns None
+```
+
+```text
+[1, 2, [3, 4]] [1, 2, 3, 4]
+1 9 [5, 3, 5]
+[3, 5]
+[1, 2, 3] [3, 1, 2]
+None [1, 2, 3]
+```
+
 - Dicts: `d[k]` raises `KeyError` if missing; `d.get(k, default)` doesn't. Iterate with `.items()`. Keys must be hashable (str, int, tuple of immutables; not lists).
 - Strings are immutable: methods such as `.replace()` and `.upper()` return new strings.
 - `(5)` is just `5`; a one-item tuple needs a comma: `(5,)`.
+
+Dict lookups, hashable keys, immutable strings and one-item tuples:
+
+```python
+stock = {"tea": 4, "jam": 0}
+print(stock.get("milk"), stock.get("milk", 0))
+try:
+    stock["milk"]
+except KeyError as e:
+    print("KeyError:", e)
+
+for item, qty in stock.items():
+    print(item, qty)
+
+try:
+    {["a", "b"]: 1}
+except TypeError as e:
+    print("TypeError:", e)
+print({("a", "b"): 1})       # a tuple of strings is hashable, so it can be a key
+
+s = "data"
+print(s.upper(), s)          # upper() returns a new string; s is unchanged
+
+print(type((5)).__name__, type((5,)).__name__)
+```
+
+```text
+None 0
+KeyError: 'milk'
+tea 4
+jam 0
+TypeError: unhashable type: 'list'
+{('a', 'b'): 1}
+DATA data
+int tuple
+```
+
 - `collections.Counter` counts items; `collections.defaultdict(list)` groups without checking for missing keys.
+
+Counting and grouping without checking for missing keys:
+
+```python
+from collections import Counter, defaultdict
+
+colors = ["red", "blue", "red", "green", "red"]
+counts = Counter(colors)
+print(counts["red"], counts["pink"], counts.most_common(2))
+
+by_region = defaultdict(list)
+for region, amount in [("EU", 10), ("US", 5), ("EU", 7)]:
+    by_region[region].append(amount)    # no "if region not in by_region" needed
+print(dict(by_region))
+```
+
+```text
+3 0 [('red', 3), ('blue', 1)]
+{'EU': [10, 7], 'US': [5]}
+```
+
+A `Counter` returns 0 for an item it has never seen, and a `defaultdict(list)` creates an empty list the first time a key is used.
 
 ### Exam traps
 
@@ -423,10 +547,66 @@ None
 ```
 
 - Clauses are tried top to bottom; the **first** matching `except` wins, so put specific exceptions before general ones.
+
+The same error, with the clauses in the wrong order and then the right one:
+
+```python
+try:
+    int("12a")
+except Exception:
+    print("Exception clause caught it")
+except ValueError:
+    print("never reached")
+
+try:
+    int("12a")
+except ValueError:
+    print("ValueError clause caught it")
+except Exception:
+    print("only for anything else")
+```
+
+```text
+Exception clause caught it
+ValueError clause caught it
+```
+
 - `except (ValueError, TypeError) as e:` catches either; `e` holds the exception object.
 - A bare `except:` (or `except Exception:` everywhere) hides bugs. Catch what you expect.
 - `raise ValueError("price must be positive")` signals a problem; `raise` alone re-raises inside an `except` block.
 - Custom exceptions subclass `Exception`: `class DataQualityError(Exception): pass`.
+
+Raising, re-raising and a custom exception together:
+
+```python
+class DataQualityError(Exception):
+    pass
+
+def parse_price(text):
+    try:
+        value = float(text)
+    except ValueError:
+        print("not a number:", repr(text))
+        raise                              # re-raise the same ValueError
+    if value < 0:
+        raise DataQualityError(f"negative price {value}")
+    return value
+
+for text in ["4.5", "-2", "abc"]:
+    try:
+        print(parse_price(text))
+    except (ValueError, DataQualityError) as e:
+        print(type(e).__name__, "->", e)
+```
+
+```text
+4.5
+DataQualityError -> negative price -2.0
+not a number: 'abc'
+ValueError -> could not convert string to float: 'abc'
+```
+
+`-2` parses fine but breaks the business rule, so the function raises `DataQualityError`. `abc` fails inside the `try`; the bare `raise` passes the original `ValueError` on to the caller after printing a note.
 
 | Exception | Typical cause |
 |---|---|
@@ -506,6 +686,57 @@ class Product:
 
 `__repr__` returns an unambiguous developer string (shown in the console); `__str__` returns the friendly one used by `print()`. `@dataclass` generates `__init__`, `__repr__` and `__eq__` from annotated fields.
 
+Using the property, `__repr__` and `__str__`, and a dataclass:
+
+```python
+from dataclasses import dataclass
+
+class Product:
+    def __init__(self, price):
+        self.price = price
+
+    @property
+    def price(self):
+        return self._price
+
+    @price.setter
+    def price(self, value):
+        if value < 0:
+            raise ValueError("price cannot be negative")
+        self._price = value
+
+    def __repr__(self):
+        return f"Product(price={self.price})"
+
+    def __str__(self):
+        return f"{self.price:.2f} EUR"
+
+p = Product(4)
+p.price = 5                    # looks like a plain attribute, but runs the setter
+print(p.price, repr(p), str(p))
+print(p)                       # print() uses __str__
+try:
+    p.price = -1
+except ValueError as e:
+    print("ValueError:", e)
+
+@dataclass
+class Point:
+    x: int
+    y: int
+
+print(Point(1, 2), Point(1, 2) == Point(1, 2))
+```
+
+```text
+5 Product(price=5) 5.00 EUR
+5.00 EUR
+ValueError: price cannot be negative
+Point(x=1, y=2) True
+```
+
+`p.price = 5` looks like a plain assignment but runs the setter, which is how `-1` gets rejected. The dataclass wrote `__init__`, `__repr__` and `__eq__` from the two fields, so two equal points compare equal.
+
 ### Exam traps
 
 > **Trap.** Double-underscore names are mangled, not hidden: `obj._ClassName__attr` still reaches them.
@@ -562,14 +793,52 @@ class LineItem:
 
 class Order:
     def __init__(self, customer, items):
-        self.customer = customer          # composition: an Order has a customer
-        self.items = items                # and has line items
+        self.customer = customer
+        self.items = items
 
     def total(self):
         return sum(i.qty * i.price for i in self.items)
+
+order = Order("Ana", [LineItem("tea", 2, 3.0), LineItem("jam", 1, 4.5)])
+print(order.customer, len(order.items), order.total())
+```
+
+```text
+Ana 2 10.5
 ```
 
 `isinstance(obj, Parent)` is `True` for instances of subclasses too; `issubclass(Child, Parent)` checks classes.
+
+`isinstance`, `issubclass`, and what happens when a subclass skips `super().__init__()`:
+
+```python
+class Exporter:
+    def __init__(self, rows):
+        self.rows = rows
+
+class CsvExporter(Exporter):
+    pass
+
+class BrokenExporter(Exporter):
+    def __init__(self, rows, sep):
+        self.sep = sep                     # forgot super().__init__(rows)
+
+e = CsvExporter([[1, 2]])
+print(isinstance(e, CsvExporter), isinstance(e, Exporter), isinstance(e, str))
+print(issubclass(CsvExporter, Exporter), issubclass(Exporter, CsvExporter))
+
+b = BrokenExporter([[1, 2]], ";")
+try:
+    b.rows
+except AttributeError as err:
+    print("AttributeError:", err)
+```
+
+```text
+True True False
+True False
+AttributeError: 'BrokenExporter' object has no attribute 'rows'
+```
 
 ### Exam traps
 
@@ -600,6 +869,29 @@ print(a, c, a == c, a is b, a is c)
 - `==` compares **values** (it calls `__eq__`); `is` compares **identity** (the same object in memory, same `id()`).
 - Use `is` only for singletons: `x is None`, `x is True`. Never compare numbers or strings with `is`; small-integer caching makes such code behave inconsistently.
 - Copies: `list(a)`, `a[:]`, `a.copy()` and `copy.copy(a)` are **shallow** (nested objects are still shared); `copy.deepcopy(a)` copies nested objects too. In pandas, `df2 = df` shares the object; `df.copy()` makes an independent one.
+
+A shallow copy shares the inner lists; a deep copy doesn't:
+
+```python
+import copy
+
+a = [[1, 2], [3]]
+shallow = a.copy()
+deep = copy.deepcopy(a)
+a[0].append(99)            # change a nested list
+a.append([4])              # change the outer list
+print(a)
+print(shallow)             # shares the nested lists, not the outer one
+print(deep)                # fully independent
+```
+
+```text
+[[1, 2, 99], [3], [4]]
+[[1, 2, 99], [3]]
+[[1, 2], [3]]
+```
+
+Appending to `a` itself doesn't affect `shallow` (it has its own outer list), but changing `a[0]` does, because both point at the same inner list.
 
 **Custom equality.** A class without `__eq__` compares by identity, so two separate objects with identical data are not equal.
 
@@ -664,12 +956,107 @@ LIMIT    5;
 <div class="dg-col"><h4>FULL</h4><ul><li>All rows from both</li><li>NULLs on whichever side is missing</li></ul></div>
 </div></div>
 
+The same two tables with an inner join and a left join:
+
+```python
+import sqlite3
+
+con = sqlite3.connect(":memory:")
+con.executescript("""
+CREATE TABLE customers (id INTEGER, name TEXT);
+CREATE TABLE orders (customer_id INTEGER, total REAL);
+INSERT INTO customers VALUES (1, 'Ana'), (2, 'Ben'), (3, 'Cy');
+INSERT INTO orders VALUES (1, 50), (1, 70), (2, 20), (9, 15);
+""")
+
+def show(sql):
+    print(con.execute(sql).fetchall())
+
+show("""SELECT c.name, o.total FROM customers c
+        INNER JOIN orders o ON o.customer_id = c.id""")   # Cy and order 9 drop out
+show("""SELECT c.name, o.total FROM customers c
+        LEFT JOIN orders o ON o.customer_id = c.id""")    # Cy kept, total is NULL (None)
+```
+
+```text
+[('Ana', 50.0), ('Ana', 70.0), ('Ben', 20.0)]
+[('Ana', 50.0), ('Ana', 70.0), ('Ben', 20.0), ('Cy', None)]
+```
+
+Cy has no orders, so the inner join drops him and the left join keeps him with `NULL` (`None` in Python). Order 9 has no customer, so neither join returns it.
+
 - **Aggregates**: `COUNT(*)` counts rows; `COUNT(col)` counts non-NULL values; `SUM`, `AVG`, `MIN`, `MAX` ignore NULLs.
 - **WHERE** filters rows before grouping; **HAVING** filters groups after aggregation.
 - Every column in SELECT that isn't aggregated must appear in GROUP BY (SQLite is lenient here; most databases are not).
+
+Aggregates, `WHERE` and `HAVING` on one table:
+
+```python
+import sqlite3
+
+con = sqlite3.connect(":memory:")
+con.executescript("""
+CREATE TABLE sales (region TEXT, rep TEXT, amount REAL);
+INSERT INTO sales VALUES ('EU', 'Ana', 100), ('EU', 'Ben', NULL), ('EU', 'Ana', 40),
+                         ('US', 'Cy', 30), ('US', 'Dee', 20), ('ASIA', 'Eli', 500);
+""")
+
+def show(sql):
+    print(con.execute(sql).fetchall())
+
+show("SELECT COUNT(*), COUNT(amount), SUM(amount), AVG(amount) FROM sales WHERE region = 'EU'")
+show("SELECT region, SUM(amount) FROM sales WHERE amount > 25 GROUP BY region ORDER BY region")
+show("SELECT region, SUM(amount) FROM sales GROUP BY region HAVING SUM(amount) > 100 ORDER BY region")
+```
+
+```text
+[(3, 2, 140.0, 70.0)]
+[('ASIA', 500.0), ('EU', 140.0), ('US', 30.0)]
+[('ASIA', 500.0), ('EU', 140.0)]
+```
+
+`COUNT(*)` counts all 3 EU rows; `COUNT(amount)`, `SUM` and `AVG` skip Ben's `NULL`, so the average is 140 / 2 = 70. `WHERE amount > 25` removes Dee's 20 before grouping, so the US total is 30. In the last query, `HAVING` runs after grouping and drops the US group, whose total of 50 is not over 100.
+
 - Filters: `=`, `<>`/`!=`, `BETWEEN a AND b` (inclusive), `IN (...)`, `LIKE 'A%'` (`%` any run of characters, `_` one character), `IS NULL` / `IS NOT NULL` (never `= NULL`).
 - `SELECT DISTINCT` removes duplicate rows; `ORDER BY col DESC`; `LIMIT 10 OFFSET 20` skips 20 rows then returns 10.
 - `CASE WHEN total > 100 THEN 'high' ELSE 'low' END` builds conditional columns.
+
+The filters, `NULL` checks, paging and `CASE` in action:
+
+```python
+import sqlite3
+
+con = sqlite3.connect(":memory:")
+con.executescript("""
+CREATE TABLE products (name TEXT, price REAL);
+INSERT INTO products VALUES ('Apple', 1.2), ('Avocado', 2.5), ('Bread', 3.0),
+                            ('Cake', 12.0), ('Milk', NULL);
+""")
+
+def show(sql):
+    print(con.execute(sql).fetchall())
+
+show("SELECT name FROM products WHERE price BETWEEN 1.2 AND 3")     # both ends included
+show("SELECT name FROM products WHERE name LIKE 'A%'")
+show("SELECT name FROM products WHERE name IN ('Cake', 'Milk')")
+show("SELECT name FROM products WHERE price = NULL")                # matches nothing
+show("SELECT name FROM products WHERE price IS NULL")
+show("SELECT name FROM products ORDER BY price DESC LIMIT 2 OFFSET 1")
+show("""SELECT name, CASE WHEN price > 10 THEN 'high' ELSE 'low' END
+        FROM products WHERE price IS NOT NULL""")
+```
+
+```text
+[('Apple',), ('Avocado',), ('Bread',)]
+[('Apple',), ('Avocado',)]
+[('Cake',), ('Milk',)]
+[]
+[('Milk',)]
+[('Bread',), ('Avocado',)]
+[('Apple', 'low'), ('Avocado', 'low'), ('Bread', 'low'), ('Cake', 'high')]
+```
+
+`ORDER BY price DESC` puts Cake first and Milk (`NULL`) last; `OFFSET 1` skips Cake and `LIMIT 2` keeps the next two.
 
 ### Exam traps
 
@@ -697,6 +1084,46 @@ LIMIT    5;
 - `CREATE TABLE`, `ALTER TABLE` and `DROP TABLE` are data *definition* statements (DDL); CRUD's "Create" is about rows (`INSERT`).
 - Inserting several rows: `INSERT INTO t (a, b) VALUES (1, 'x'), (2, 'y');` or, from Python, `executemany`.
 - In Python's `sqlite3`, `INSERT`, `UPDATE` and `DELETE` run inside a transaction that you must `commit()`; closing without committing discards them.
+
+All four operations, an `UPDATE` without `WHERE`, and `DELETE` versus `DROP`:
+
+```python
+import sqlite3
+
+con = sqlite3.connect(":memory:")
+con.execute("CREATE TABLE products (name TEXT, price REAL)")
+con.execute("INSERT INTO products (name, price) VALUES ('Tea', 2.5), ('Jam', 4.0)")   # Create
+con.commit()
+print(con.execute("SELECT * FROM products").fetchall())                               # Read
+
+con.execute("UPDATE products SET price = 2.75 WHERE name = 'Tea'")                    # Update one row
+print(con.execute("SELECT * FROM products").fetchall())
+
+con.execute("UPDATE products SET price = 0")                                          # no WHERE: every row
+print(con.execute("SELECT * FROM products").fetchall())
+con.rollback()                                                                        # undo since last commit
+print(con.execute("SELECT * FROM products").fetchall())
+
+con.execute("DELETE FROM products WHERE name = 'Jam'")                                # Delete
+con.execute("DELETE FROM products")                                                   # all rows; table stays
+print(con.execute("SELECT COUNT(*) FROM products").fetchone())
+con.execute("DROP TABLE products")                                                    # table gone
+try:
+    con.execute("SELECT * FROM products")
+except sqlite3.OperationalError as e:
+    print("OperationalError:", e)
+```
+
+```text
+[('Tea', 2.5), ('Jam', 4.0)]
+[('Tea', 2.75), ('Jam', 4.0)]
+[('Tea', 0.0), ('Jam', 0.0)]
+[('Tea', 2.5), ('Jam', 4.0)]
+(0,)
+OperationalError: no such table: products
+```
+
+The unfiltered `UPDATE` set every price to 0; `rollback()` undid it because nothing had been committed since the insert.
 
 ### Exam traps
 
@@ -733,6 +1160,44 @@ con.close()
 - `with sqlite3.connect(path) as con:` commits on success and rolls back on an exception, but it does **not** close the connection.
 - `con.row_factory = sqlite3.Row` lets you read columns by name (`row["region"]`).
 - pandas: `pd.read_sql_query("SELECT ...", con)` returns a DataFrame; `df.to_sql("table", con, if_exists="append", index=False)` writes one.
+
+Fetching rows one at a time, reading columns by name, and pandas:
+
+```python
+import sqlite3
+import pandas as pd
+
+con = sqlite3.connect(":memory:")
+con.execute("CREATE TABLE sales (region TEXT, amount REAL)")
+con.executemany("INSERT INTO sales VALUES (?, ?)", [("EU", 120.0), ("US", 80.0)])
+
+cur = con.execute("SELECT region, amount FROM sales ORDER BY region")
+print(cur.fetchone())         # first row
+print(cur.fetchone())         # next row
+print(cur.fetchone())         # no rows left -> None
+
+con.row_factory = sqlite3.Row
+row = con.execute("SELECT region, amount FROM sales").fetchone()
+print(row["region"], row["amount"])
+
+print(pd.read_sql_query("SELECT region, amount FROM sales", con))
+
+with con:                     # commits this block (or rolls back on error)...
+    con.execute("INSERT INTO sales VALUES ('ASIA', 50.0)")
+print(con.execute("SELECT COUNT(*) FROM sales").fetchone()[0])   # ...but the connection is still open
+con.close()
+```
+
+```text
+('EU', 120.0)
+('US', 80.0)
+None
+EU 120.0
+  region  amount
+0     EU   120.0
+1     US    80.0
+3
+```
 
 ```python
 import pymysql
@@ -831,6 +1296,42 @@ print(con.execute(f"SELECT role FROM users WHERE name = '{attack}'").fetchall())
 - SQLite uses *type affinity*: a column declared `INTEGER` can still hold text. Validate types in Python before inserting.
 - A DataFrame integer column with a missing value becomes `float64`; use the nullable `"Int64"` dtype to keep integers.
 - Use `Decimal` (or integer cents) for money to avoid float rounding (`0.1 + 0.2`).
+
+What comes back from SQLite, and how to convert it:
+
+```python
+import sqlite3
+import datetime
+import pandas as pd
+
+con = sqlite3.connect(":memory:")
+con.execute("CREATE TABLE t (qty INTEGER, price REAL, day TEXT, paid INTEGER, note TEXT)")
+con.execute("INSERT INTO t VALUES (?, ?, ?, ?, ?)", (3, 2.5, "2025-07-15", True, None))
+con.execute("INSERT INTO t VALUES (?, ?, ?, ?, ?)", (None, 4.0, "2025-07-16", False, "late"))
+
+row = con.execute("SELECT * FROM t").fetchone()
+print(row)
+print([type(v).__name__ for v in row])          # the date comes back as str, True as 1
+print(datetime.date.fromisoformat(row[2]) + datetime.timedelta(days=1))
+
+df = pd.read_sql_query("SELECT qty, day FROM t", con, parse_dates=["day"])
+print(df["qty"].dtype, df["day"].dt.day_name().tolist())   # NULL turns qty into float64; day is a real date
+print(df["qty"].astype("Int64").tolist())       # nullable integers keep whole numbers
+
+con.execute("INSERT INTO t (qty) VALUES ('three')")   # INTEGER column happily stores text
+print(con.execute("SELECT qty, typeof(qty) FROM t").fetchall())
+```
+
+```text
+(3, 2.5, '2025-07-15', 1, None)
+['int', 'float', 'str', 'int', 'NoneType']
+2025-07-16
+float64 ['Tuesday', 'Wednesday']
+[3, <NA>]
+[(3, 'integer'), (None, 'null'), ('three', 'text')]
+```
+
+The date comes back as text and `True` as `1`, so convert before doing arithmetic. The last query shows type affinity: the `INTEGER` column accepted the text `'three'`.
 
 ### Exam traps
 
