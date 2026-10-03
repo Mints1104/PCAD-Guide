@@ -209,7 +209,7 @@
       {"cue": "What does a well-laid-out data sheet look like?", "fact": "One table starting at A1, a single header row, one variable per column, one record per row, no merged cells or blank rows inside the data, and units in the headers.", "why": "Items ask which layout makes a sheet easy to sort, filter and import."},
       {"cue": "How do relative and absolute cell references differ?", "fact": "A relative reference (`B2`) shifts when the formula is copied; an absolute reference (`$B$2`) stays fixed, which suits constants such as a tax rate kept in one labeled cell.", "why": "Expect to pick the reference that stays fixed when a formula is filled down."},
       {"cue": "What do COUNT, COUNTA, COUNTIF and SUMIF do?", "fact": "COUNT counts numeric cells, COUNTA counts non-empty cells, COUNTIF counts cells meeting a condition, and SUMIF sums values whose paired cells meet a condition.", "why": "Basic formula items test which function answers a question."},
-      {"cue": "Does cell formatting change the stored value?", "fact": "No. Formatting changes how a value looks (3.14159 shown as 3.1); the full value is still used in formulas.", "why": "Rounding displayed values versus stored values is a common trap."}
+      {"cue": "Does cell formatting change the stored value?", "fact": "Formatting changes only how a value looks (3.14159 shown as 3.1); the full stored value is still used in formulas.", "why": "Rounding displayed values versus stored values is a common trap."}
     ],
     "traps": [
       {"cue": "Why avoid colour-coding as the only way to mark data?", "answer": "Colour is lost on CSV export, invisible to formulas and filters, and unreadable for colour-blind users. Add a status column instead."}
