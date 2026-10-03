@@ -1337,10 +1337,14 @@ pre {
 .know-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
   margin: 0 0 12px;
   padding: 0;
   list-style: none;
+}
+.know-cue {
+  margin: 0 0 2px;
+  font-weight: 600;
 }
 .know-fact {
   margin: 0;

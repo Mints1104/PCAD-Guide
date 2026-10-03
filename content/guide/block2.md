@@ -59,11 +59,99 @@ else:
 loop ended without break, n = 6
 ```
 
-- `range(stop)`, `range(start, stop)`, `range(start, stop, step)`; `stop` is never included.
-- `break` leaves the loop; `continue` jumps to the next iteration; a loop's `else` runs only if the loop ended without `break`.
-- `enumerate(items, start=1)` yields `(index, item)`; `zip(a, b)` pairs items and stops at the shorter one.
-- Conditional expression: `label = "high" if x > 100 else "low"`; comparisons chain: `0 < x < 10`.
-- Comprehensions: `[x * 2 for x in data if x > 0]`, `{k: v for k, v in pairs}`.
+**`range`.** `range(stop)`, `range(start, stop)` and `range(start, stop, step)`. It starts at `start` (0 if omitted) and `stop` is never included. A negative step counts down.
+
+```python
+print(list(range(4)))
+print(list(range(2, 6)))
+print(list(range(1, 10, 3)))
+print(list(range(10, 0, -3)))
+```
+
+```text
+[0, 1, 2, 3]
+[2, 3, 4, 5]
+[1, 4, 7]
+[10, 7, 4, 1]
+```
+
+**`break`, `continue` and a loop's `else`.** `break` leaves the loop at once; `continue` skips the rest of this iteration and moves to the next one (see the first example above). A loop's `else` block runs only if the loop finished without hitting `break`, which makes it a natural "not found" branch.
+
+```python
+for n in [3, 8, 5]:
+    if n > 6:
+        print("found", n)
+        break
+else:
+    print("nothing over 6")
+
+for n in [3, 5]:
+    if n > 6:
+        print("found", n)
+        break
+else:
+    print("nothing over 6")
+```
+
+```text
+found 8
+nothing over 6
+```
+
+The first loop breaks at 8, so its `else` is skipped (and 5 is never checked). The second loop runs to the end, so its `else` runs.
+
+**`enumerate` and `zip`.** `enumerate(items)` gives `(index, item)` pairs, counting from 0 unless you pass `start`. `zip(a, b)` pairs the items of two sequences position by position and stops at the shorter one, silently dropping the extras.
+
+```python
+items = ["tea", "jam", "bread"]
+for i, item in enumerate(items, start=1):
+    print(i, item)
+
+names = ["Ann", "Bob", "Cy"]
+scores = [90, 75]
+print(list(zip(names, scores)))
+```
+
+```text
+1 tea
+2 jam
+3 bread
+[('Ann', 90), ('Bob', 75)]
+```
+
+**Conditional expressions and chained comparisons.** `a if condition else b` picks one of two values in a single expression. Comparisons chain, so `0 < x < 10` means `0 < x and x < 10`.
+
+```python
+for x in [50, 150]:
+    label = "high" if x > 100 else "low"
+    print(x, label)
+
+x = 5
+print(0 < x < 10, 0 < x < 3)
+```
+
+```text
+50 low
+150 high
+True False
+```
+
+**Comprehensions.** `[expression for item in iterable if condition]` builds a list in one line: the `if` filters, and the expression transforms what passes. Curly braces with `key: value` build a dict the same way.
+
+```python
+data = [3, -1, 4, 0]
+print([x * 2 for x in data if x > 0])
+
+pairs = [("a", 1), ("b", 2)]
+print({k: v for k, v in pairs})
+print({k: v * 10 for k, v in pairs})
+```
+
+```text
+[6, 8]
+{'a': 1, 'b': 2}
+{'a': 10, 'b': 20}
+```
 
 ### Exam traps
 

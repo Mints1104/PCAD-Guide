@@ -302,6 +302,7 @@ function ObjectiveBlock({ chunk, block, revised, notesOpen, onNotes, onRevised, 
           <ul class="know-list">
             {e.know.map((k, i) => (
               <li key={i}>
+                <Rich as="p" class="know-cue" text={k.cue} />
                 <Rich as="p" class="know-fact" text={k.fact} />
                 <p class="know-why">
                   <span class="know-why-label">Exam angle:</span> <Rich text={k.why} />
