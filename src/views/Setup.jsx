@@ -82,7 +82,6 @@ export function Mock({ store }) {
 const COUNTS = [10, 20, 40, 'all'];
 
 export function Practice({ store }) {
-  const [blocks, setBlocks] = useState(() => new Set(BLOCKS));
   const [objectives, setObjectives] = useState(() => new Set(OBJECTIVE_IDS));
   const [kinds, setKinds] = useState(() => new Set(['code', 'concept']));
   const [count, setCount] = useState(20);
@@ -90,14 +89,13 @@ export function Practice({ store }) {
   const [random, setRandom] = useState(false);
   const [empty, setEmpty] = useState(false);
 
+  // A block's checkbox reflects its objectives: ticked when all are selected, half-ticked when some are.
+  const selectedIn = (b) => OBJECTIVE_IDS.filter((o) => blockOf(o) === b && objectives.has(o)).length;
+  const blockSize = (b) => OBJECTIVE_IDS.filter((o) => blockOf(o) === b).length;
+
   function toggleBlock(b) {
     const inBlock = OBJECTIVE_IDS.filter((o) => blockOf(o) === b);
-    const on = !blocks.has(b);
-    setBlocks((prev) => {
-      const s = new Set(prev);
-      on ? s.add(b) : s.delete(b);
-      return s;
-    });
+    const on = selectedIn(b) < inBlock.length;
     setObjectives((prev) => {
       const s = new Set(prev);
       for (const o of inBlock) on ? s.add(o) : s.delete(o);
@@ -115,7 +113,6 @@ export function Practice({ store }) {
   function start() {
     const ok = startPractice(store, {
       count: count === 'all' ? QUESTIONS.length : count,
-      blocks: [...blocks],
       objectives: [...objectives],
       kinds: [...kinds],
       weakOnly,
@@ -134,7 +131,13 @@ export function Practice({ store }) {
         <h2>Blocks</h2>
         {BLOCKS.map((b) => (
           <label class="checkbox-row" key={b}>
-            <input type="checkbox" id={`block-${b}`} checked={blocks.has(b)} onChange={() => toggleBlock(b)} />
+            <input
+              type="checkbox"
+              id={`block-${b}`}
+              checked={selectedIn(b) === blockSize(b)}
+              ref={(el) => el && (el.indeterminate = selectedIn(b) > 0 && selectedIn(b) < blockSize(b))}
+              onChange={() => toggleBlock(b)}
+            />
             <span>
               <b style={`color:var(--b${b})`}>B{b}</b> {BLOCK_NAMES[b]}
             </span>
@@ -190,7 +193,7 @@ export function Practice({ store }) {
           Random order
         </label>
       </section>
-      {empty && <p class="empty-note">No questions match these filters. Turn on more blocks, objectives or kinds.</p>}
+      {empty && <p class="empty-note">No questions match these filters. Turn on more objectives or question kinds, or untick "Weak areas only".</p>}
       <button class="btn btn-primary btn-large" onClick={start}>
         Start practice
       </button>
