@@ -165,14 +165,174 @@ print({k: v * 10 for k, v in pairs})
 
 ### Core facts
 
+**Parameters and arguments.** When you *define* a function, the names in its brackets are its **parameters**. When you *call* it, the values you pass in are the **arguments**. Each argument is stored in one parameter, and the function uses that name to refer to it.
+
+```python
+def greet(name, greeting):     # name and greeting are parameters
+    print(greeting, name)
+
+greet("Ana", "Hello")          # "Ana" and "Hello" are arguments
+```
+
+```text
+Hello Ana
+```
+
+**Positional and keyword arguments.** Python can match arguments to parameters in two ways:
+
+- **Positional**: by order. The first value goes to the first parameter, the second to the second, and so on.
+- **Keyword**: by name. You write `name=value`, so the order no longer matters.
+
+```python
+def greet(name, greeting):
+    print(greeting, name)
+
+greet("Ana", "Hello")               # positional: "Ana" is first, so it goes to name
+greet(greeting="Hi", name="Ben")    # keyword: matched by name, order doesn't matter
+greet("Cy", greeting="Hey")         # mixed: positional first, then keyword
+```
+
+```text
+Hello Ana
+Hi Ben
+Hey Cy
+```
+
+When you mix the two, the positional arguments must come first. `greet(name="Cy", "Hey")` is a `SyntaxError`, so Python refuses to run the file at all.
+
+**Required and optional parameters.** Give a parameter a default value in the definition and the caller is allowed to leave it out. A parameter without a default is required: every call must provide it.
+
+```python
+def greet(name, greeting="Hello"):  # greeting has a default, so it is optional
+    print(greeting, name)
+
+greet("Ana")             # no greeting given: the default "Hello" is used
+greet("Ben", "Hi")       # greeting given: it replaces the default
+```
+
+```text
+Hello Ana
+Hi Ben
+```
+
+In the definition, parameters with defaults must come after the ones without. `def greet(greeting="Hello", name):` is a `SyntaxError`.
+
+**Calls that go wrong.** Leaving out a required argument, or giving the same parameter a value twice, raises a `TypeError`. The error message says what went wrong. (Below, `try` / `except` catches each error so its message can be printed instead of stopping the program; section 2.2.2 covers it.)
+
+```python
+def greet(name, greeting="Hello"):
+    print(greeting, name)
+
+try:
+    greet()                     # name is required, but nothing was passed
+except TypeError as e:
+    print(e)
+
+try:
+    greet("Ana", name="Ben")    # "Ana" already went to name by position
+except TypeError as e:
+    print(e)
+```
+
+```text
+greet() missing 1 required positional argument: 'name'
+greet() got multiple values for argument 'name'
+```
+
+**`return` versus `print`.** `print` shows a value on the screen. `return` hands a value back to the code that called the function, so it can be stored or used. A function without a `return` hands back `None`.
+
+```python
+def add_and_print(a, b):
+    print(a + b)            # shows 5 on the screen, hands nothing back
+
+def add_and_return(a, b):
+    return a + b            # hands 5 back to the caller
+
+x = add_and_print(2, 3)     # prints 5 while it runs
+y = add_and_return(2, 3)    # prints nothing
+print(x, y)
+```
+
+```text
+5
+None 5
+```
+
+`x` is `None` because `add_and_print` never returned anything. This is why functions should usually return their result instead of printing it.
+
+**Any number of arguments: `*args` and `**kwargs`.** Put `*` before a parameter name and the function accepts any number of positional arguments. They arrive together as one tuple. Put `**` before a name and it accepts any number of keyword arguments, which arrive as a dict. The names `args` and `kwargs` are only a convention; the stars do the work.
+
+```python
+def total(*args):
+    print(args)             # every value passed in, as a tuple
+    return sum(args)
+
+print(total(1, 2, 3))
+print(total(10))
+
+def show_settings(**kwargs):
+    print(kwargs)           # every name=value pair, as a dict
+
+show_settings(color="red", size=3)
+```
+
+```text
+(1, 2, 3)
+6
+(10,)
+10
+{'color': 'red', 'size': 3}
+```
+
+**Forcing one style: the `*` and `/` markers.** These are less common, but the exam can show them.
+
+- A bare `*` in the parameter list means every parameter **after** it must be passed by name (**keyword-only**).
+- A `/` means every parameter **before** it must be passed by position (**positional-only**).
+
+```python
+def scale(value, *, factor):    # factor is after *, so it must be named
+    return value * factor
+
+print(scale(5, factor=2))       # works
+
+try:
+    scale(5, 2)                 # factor passed by position: not allowed
+except TypeError as e:
+    print(e)
+```
+
+```text
+10
+scale() takes 1 positional argument but 2 were given
+```
+
+```python
+def square(x, /):               # x is before /, so it can't be passed by name
+    return x * x
+
+print(square(4))                # works
+
+try:
+    square(x=4)                 # passed by name: not allowed
+except TypeError as e:
+    print(e)
+```
+
+```text
+16
+square() got some positional-only arguments passed as keyword arguments: 'x'
+```
+
+**Putting it together.** This function uses a required parameter, an optional one, and a keyword-only one:
+
 ```python
 def summarize(values, precision=2, *, label="mean"):
     """Return a labeled mean of values, rounded to precision places."""
     avg = sum(values) / len(values)
     return f"{label}: {round(avg, precision)}"
 
-print(summarize([1, 2, 4]))                       # defaults used
-print(summarize([1, 2, 4], 1))                    # positional
+print(summarize([1, 2, 4]))                       # both defaults used
+print(summarize([1, 2, 4], 1))                    # precision=1, by position
 print(summarize([1, 2, 4], precision=0, label="avg"))
 ```
 
@@ -182,49 +342,7 @@ mean: 2.3
 avg: 2.0
 ```
 
-- **Parameters** are the names in the definition; **arguments** are the values in the call.
-- **Positional** arguments match parameters by order; **keyword** arguments match by name and can come in any order. In a call, positional arguments must come before keyword arguments (`f(a=1, 2)` is a `SyntaxError`).
-- A parameter **without** a default is required; one **with** a default is optional. Parameters with defaults must come after those without in the definition.
-- Parameters after a bare `*` are **keyword-only** (`label` above); parameters before a `/` are positional-only.
-- `*args` collects extra positional arguments into a tuple; `**kwargs` collects extra keyword arguments into a dict.
-- A function without `return` (or with a bare `return`) returns `None`.
-- Missing a required argument, or passing one twice, raises `TypeError`.
-
-`*args` and `**kwargs`, the `/` and `*` markers, and the errors a bad call raises:
-
-```python
-def describe(*args, **kwargs):
-    print(args, kwargs)
-
-describe(1, 2, unit="kg", note="raw")
-
-def scale(values, /, factor=2, *, label="x"):
-    return f"{label}: {[v * factor for v in values]}"
-
-print(scale([1, 2], 3, label="y"))
-for bad_call in (lambda: scale([1, 2], 3, "y"), lambda: scale(values=[1, 2]), lambda: scale()):
-    try:
-        bad_call()
-    except TypeError as e:
-        print("TypeError:", e)
-
-def log(msg):
-    print(msg)            # no return statement
-
-print(log("saved"))
-```
-
-```text
-(1, 2) {'unit': 'kg', 'note': 'raw'}
-y: [3, 6]
-TypeError: scale() takes from 1 to 2 positional arguments but 3 were given
-TypeError: scale() got some positional-only arguments passed as keyword arguments: 'values'
-TypeError: scale() missing 1 required positional argument: 'values'
-saved
-None
-```
-
-In `scale`, `values` is positional-only (before `/`), `factor` can be passed either way, and `label` is keyword-only (after `*`). `log` has no `return`, so calling it gives `None`.
+`values` is required. `precision` is optional and can be passed either way. `label` is optional too, but because it comes after `*`, it can only be passed by name.
 
 **Default values are evaluated once**, when the function is defined. A mutable default is shared between calls:
 
