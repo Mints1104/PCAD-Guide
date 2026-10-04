@@ -97,30 +97,16 @@ print(combined)
 2        3       42.0     NaN  left_only
 ```
 
-- `pd.concat([a, b])` **stacks** datasets with the same columns (rows from several monthly files).
-- `merge()` **joins** datasets side by side on a key (orders + customers).
-- `validate="one_to_one"` (or `"one_to_many"`, `"many_to_one"`) raises an error if the keys are not what you expect. `indicator=True` adds a `_merge` column that shows unmatched rows.
-- After integrating, check row counts, key uniqueness and new nulls. A merge on a key with duplicates silently multiplies rows.
-
-Stacking, joining, and what `validate` and duplicate keys do:
+**Stacking with `concat`.** Use `pd.concat` when several tables have the **same columns** and you want one longer table, for example one file per month. The rows of the second table go underneath the first.
 
 ```python
 import pandas as pd
 
 jan = pd.DataFrame({"order": [1, 2], "amount": [50, 20]})
 feb = pd.DataFrame({"order": [3], "amount": [35]})
-print(pd.concat([jan, feb], ignore_index=True))       # stack: same columns, more rows
 
-customers = pd.DataFrame({"cust": ["a", "b"], "city": ["Oslo", "Rome"]})
-orders = pd.DataFrame({"cust": ["a", "a", "b"], "amount": [10, 20, 30]})
-print(orders.merge(customers, on="cust", validate="many_to_one"))   # join: match on a key
-
-dupes = pd.DataFrame({"cust": ["a", "a"], "city": ["Oslo", "Bergen"]})
-try:
-    orders.merge(dupes, on="cust", validate="many_to_one")
-except pd.errors.MergeError as e:
-    print("MergeError:", e)
-print(len(orders), "->", len(orders.merge(dupes, on="cust")))   # 2 orders x 2 rows for "a", plus 0 for "b"
+both = pd.concat([jan, feb], ignore_index=True)   # ignore_index numbers the rows 0, 1, 2
+print(both)
 ```
 
 ```text
@@ -128,15 +114,73 @@ print(len(orders), "->", len(orders.merge(dupes, on="cust")))   # 2 orders x 2 r
 0      1      50
 1      2      20
 2      3      35
+```
+
+**Joining with `merge`.** Use `merge` when two tables hold **different information about the same things**, and a shared column (the **key**) says which rows belong together. Here each order has a customer code, and a second table gives each customer's city:
+
+```python
+import pandas as pd
+
+orders = pd.DataFrame({"cust": ["a", "a", "b"], "amount": [10, 20, 30]})
+customers = pd.DataFrame({"cust": ["a", "b"], "city": ["Oslo", "Rome"]})
+
+print(orders.merge(customers, on="cust"))
+```
+
+```text
   cust  amount  city
 0    a      10  Oslo
 1    a      20  Oslo
 2    b      30  Rome
-MergeError: Merge keys are not unique in right dataset; not a many-to-one merge
-3 -> 4
 ```
 
-The second merge fails fast because customer `a` appears twice on the right. Without `validate`, the merge runs and quietly turns 3 orders into 4 rows: each of `a`'s two orders matches both of `a`'s rows, and `b` has no match at all.
+Each order picks up its customer's city. Customer `a` has two orders, so `Oslo` appears twice.
+
+**Duplicate keys multiply rows.** If a key appears more than once on **both** sides, every matching pair becomes a row. Here customer `a` has 2 orders and, by mistake, 2 rows in the customer table:
+
+```python
+import pandas as pd
+
+orders = pd.DataFrame({"cust": ["a", "a", "b"], "amount": [10, 20, 30]})
+customers = pd.DataFrame({"cust": ["a", "a"], "city": ["Oslo", "Bergen"]})
+
+merged = orders.merge(customers, on="cust")
+print(merged)
+print(len(orders), "orders became", len(merged), "rows")
+```
+
+```text
+  cust  amount    city
+0    a      10    Oslo
+1    a      10  Bergen
+2    a      20    Oslo
+3    a      20  Bergen
+3 orders became 4 rows
+```
+
+Each of `a`'s 2 orders matched both of `a`'s customer rows: 2 × 2 = 4 rows. `b` isn't in the customer table, so it dropped out: by default a merge keeps only rows that match (`how=` changes that). Nothing warned you that any of this happened.
+
+**Catching it with `validate`.** Tell `merge` what shape you expect and it raises an error when the data disagrees. `"many_to_one"` means "many orders can share a customer, but each customer appears only once on the right":
+
+```python
+import pandas as pd
+
+orders = pd.DataFrame({"cust": ["a", "a", "b"], "amount": [10, 20, 30]})
+customers = pd.DataFrame({"cust": ["a", "a"], "city": ["Oslo", "Bergen"]})
+
+try:
+    orders.merge(customers, on="cust", validate="many_to_one")
+except pd.errors.MergeError as e:
+    print("MergeError:", e)
+```
+
+```text
+MergeError: Merge keys are not unique in right dataset; not a many-to-one merge
+```
+
+The other options are `"one_to_one"` and `"one_to_many"`. `indicator=True`, used in the first example of this section, adds a `_merge` column saying whether each row matched (`both`) or came from one side only (`left_only`, `right_only`).
+
+**Check after merging.** Compare the row count before and after, check that the key is unique where it should be, and look for new missing values.
 
 **ETL vs ELT.** ETL transforms data before loading it into the target (typical for warehouses); ELT loads raw data first and transforms inside the target (typical for lakes and modern cloud warehouses).
 
@@ -267,11 +311,11 @@ print(((s - s.mean()) / s.std(ddof=0)).round(2).tolist())
 [-1.41, -0.71, 0.0, 0.71, 1.41]
 ```
 
-- Scaling matters for distance- and gradient-based methods (k-nearest neighbours, k-means, regularized regression). Tree-based models do not need it.
-- Fit the scaler on the **training** data only, then apply the same parameters to the test data. Fitting on all data leaks information from the test set.
-- scikit-learn's `MinMaxScaler` and `StandardScaler` do this; `StandardScaler` uses the population standard deviation (`ddof=0`).
+**When scaling matters.** Some methods compare rows by measuring the distance between them (k-nearest neighbours, k-means), or learn in small steps (regularized regression). If one column is in thousands and another in single digits, the big column swamps the small one. Scaling puts the columns on a similar range. Tree-based models (decision trees, random forests) look at one column at a time, so they don't need it.
 
-Fit on the training data, then reuse the same parameters on the test data:
+**Fit on the training data only.** A scaler *learns* numbers from the data; min-max scaling learns the minimum and maximum. It must learn them from the **training** data only, then use those same numbers on the test data. If it learned from all the data, facts about the test set would leak into training and the test score would look better than it really is.
+
+In scikit-learn, `fit` learns the numbers and `transform` applies them. scikit-learn expects a table with one row per value, which is why each number below sits in its own `[ ]`:
 
 ```python
 import numpy as np
@@ -280,9 +324,10 @@ from sklearn.preprocessing import MinMaxScaler
 train = np.array([[10], [20], [30]])
 test = np.array([[25], [40]])
 
-scaler = MinMaxScaler().fit(train)        # learns min = 10, max = 30 from training data only
-print(scaler.transform(train).ravel())
-print(scaler.transform(test).ravel())     # same parameters; 40 is past the training max
+scaler = MinMaxScaler()
+scaler.fit(train)                          # learns min = 10 and max = 30
+print(scaler.transform(train).ravel())     # .ravel() flattens the result for printing
+print(scaler.transform(test).ravel())
 ```
 
 ```text
@@ -290,7 +335,9 @@ print(scaler.transform(test).ravel())     # same parameters; 40 is past the trai
 [0.75 1.5 ]
 ```
 
-The test value 40 scales to 1.5 because the scaler only knows the training range (10 to 30). That is expected: the test set must not influence the parameters.
+25 is three-quarters of the way from 10 to 30, so it becomes 0.75. 40 is past the training maximum, so it becomes 1.5. That is correct: the scaler is supposed to use the training range, not squeeze the test data into 0–1.
+
+`StandardScaler` works the same way for z-scores. It uses the population standard deviation (`ddof=0`).
 
 **Encoding categories.**
 
@@ -343,19 +390,52 @@ print(df)
 2  Cara    True     NaN   67   senior
 ```
 
-- **String cleanup**: `.str.strip()`, `.str.lower()` / `.str.upper()` / `.str.title()`, `.str.replace()`; normalize case *before* comparing or grouping.
-- **Boolean normalization**: map every spelling (`"Y"`, `"yes"`, `"1"`, `"True"`) to real `True`/`False`.
-- **String to number**: `pd.to_numeric(s, errors="coerce")` turns unparseable values into `NaN`; `s.astype(float)` raises a `ValueError` instead. Remove currency symbols and thousands separators first.
+**Cleaning text.** Adding `.str` to a column lets you call a string method on every value at once.
 
-`to_numeric` versus `astype` on the same messy column:
+```python
+import pandas as pd
+
+names = pd.Series(["  Ana ", "BEN", "cara"])
+print(names.str.strip().tolist())                 # remove spaces at both ends
+print(names.str.strip().str.lower().tolist())     # all lowercase
+print(names.str.strip().str.title().tolist())     # capital first letter
+```
+
+```text
+['Ana', 'BEN', 'cara']
+['ana', 'ben', 'cara']
+['Ana', 'Ben', 'Cara']
+```
+
+Make the case consistent before you compare or group. `"BEN"` and `"Ben"` are different strings, so they would be counted as two people.
+
+**Yes/no written many ways.** People type yes/no as `"Y"`, `"yes"`, `"1"`, `"True"` and more. Turn every spelling into a real `True` or `False`:
+
+```python
+import pandas as pd
+
+answers = pd.Series(["Yes", "n", "TRUE", "no"])
+lookup = {"yes": True, "y": True, "true": True, "no": False, "n": False, "false": False}
+print(answers.str.lower().map(lookup).tolist())
+```
+
+```text
+[True, False, True, False]
+```
+
+Lowercasing first means the lookup only needs lowercase spellings. A spelling missing from the lookup becomes `NaN`, which shows you what you forgot.
+
+**Text to numbers.** Numbers stored as text can't be added up. There are two ways to convert them, and they behave differently when a value isn't a number:
 
 ```python
 import pandas as pd
 
 prices = pd.Series(["12.5", "7", "n/a"])
-print(pd.to_numeric(prices, errors="coerce").tolist())
+
+print(pd.to_numeric(prices, errors="coerce").tolist())   # bad values become NaN
+
 try:
-    prices.astype(float)
+    prices.astype(float)                                  # a bad value stops everything
 except ValueError as e:
     print("ValueError:", e)
 ```
@@ -365,17 +445,17 @@ except ValueError as e:
 ValueError: could not convert string to float: 'n/a'
 ```
 
-- **Imputation vs exclusion**: impute when rows are valuable and missingness is limited and explainable; exclude when a value cannot be estimated sensibly, the column is mostly empty, or the target itself is missing.
-- **One-hot encoding**: `pd.get_dummies(df, columns=["color"])` replaces the column with `color_blue`, `color_red`… (boolean in pandas 2 and later; pass `dtype=int` for 0/1). `drop_first=True` drops one column to avoid perfectly redundant columns in linear models.
+Symbols such as `$` and `,` also count as "not a number", so remove them first: `prices.str.replace(r"[$,]", "", regex=True)`.
 
-One column per category, and what `drop_first` removes:
+**Fill in or drop?** **Imputing** means filling a missing value with an estimate, such as the column's median or most common value. Impute when the row is worth keeping, only a few values are missing, and you can explain the estimate. **Exclude** (drop) the row or column when a value can't be estimated sensibly, the column is mostly empty, or the missing value is the very thing you want to predict.
+
+**One-hot encoding.** Most models need numbers, not words. One-hot encoding replaces a text column with one 0/1 column per category:
 
 ```python
 import pandas as pd
 
 df = pd.DataFrame({"color": ["red", "blue", "red"], "qty": [1, 2, 3]})
 print(pd.get_dummies(df, columns=["color"], dtype=int))
-print(pd.get_dummies(df, columns=["color"], dtype=int, drop_first=True).columns.tolist())
 ```
 
 ```text
@@ -383,29 +463,56 @@ print(pd.get_dummies(df, columns=["color"], dtype=int, drop_first=True).columns.
 0    1           0          1
 1    2           1          0
 2    3           0          1
-['qty', 'color_red']
 ```
 
-With `drop_first=True` only `color_red` is left: a 0 there already means blue.
+Row 0 is red, so it has a 1 under `color_red` and a 0 under `color_blue`. (`dtype=int` asks for 0 and 1; without it, recent pandas shows `True` and `False`.)
 
-- **Bucketization** turns a continuous variable into categories. `pd.cut` uses bin **edges** you choose (intervals are right-closed by default, so `(30, 60]` includes 60); `pd.qcut` uses **quantiles**, giving roughly equal counts per bin.
+With two colours, one column is enough: if `color_red` is 0, the row must be blue. `drop_first=True` drops the first column for you. This matters for linear models, which get confused by columns that can be worked out from each other.
 
-`cut` with your own edges versus `qcut` with equal-sized groups:
+```python
+import pandas as pd
+
+df = pd.DataFrame({"color": ["red", "blue", "red"], "qty": [1, 2, 3]})
+print(pd.get_dummies(df, columns=["color"], dtype=int, drop_first=True))
+```
+
+```text
+   qty  color_red
+0    1          1
+1    2          0
+2    3          1
+```
+
+**Putting numbers into groups.** `pd.cut` sorts numbers into ranges whose **edges you choose**:
 
 ```python
 import pandas as pd
 
 ages = pd.Series([5, 18, 30, 31, 45, 70])
-print(pd.cut(ages, bins=[0, 30, 60, 120]).astype(str).tolist())     # your edges
-print(pd.qcut(ages, q=3, labels=["low", "mid", "high"]).tolist())   # equal-sized groups
+bands = pd.cut(ages, bins=[0, 30, 60, 120], labels=["young", "middle", "senior"])
+print(bands.tolist())
 ```
 
 ```text
-['(0, 30]', '(0, 30]', '(0, 30]', '(30, 60]', '(30, 60]', '(60, 120]']
+['young', 'young', 'young', 'middle', 'middle', 'senior']
+```
+
+The edges 0, 30, 60 and 120 make three ranges. Each range includes its right edge but not its left (pandas writes the first one as `(0, 30]`). So 30 is "young" and 31 is "middle". A value outside all the ranges, such as 0 or 130, becomes `NaN`.
+
+`pd.qcut` instead splits the values into groups of **equal size**, wherever the edges end up:
+
+```python
+import pandas as pd
+
+ages = pd.Series([5, 18, 30, 31, 45, 70])
+print(pd.qcut(ages, q=3, labels=["low", "mid", "high"]).tolist())
+```
+
+```text
 ['low', 'low', 'mid', 'mid', 'high', 'high']
 ```
 
-30 lands in `(0, 30]` because intervals include their right edge. `qcut` puts two of the six values in each group, whatever their spacing.
+Six values in three groups: two in each.
 
 ### Exam traps
 
@@ -620,50 +727,84 @@ print([(r.find("td", class_="item").get_text(), float(r.find("td", class_="price
 [('Tea', 2.5), ('Coffee', 3.1)]
 ```
 
-- `find()` returns the first match (or `None`); `find_all()` returns a list.
-- Use `class_=` (with the underscore) because `class` is a Python keyword.
-- `.get_text(strip=True)` returns the text; `tag["href"]` or `tag.get("href")` returns an attribute.
-- `soup.select("table#prices td.price")` uses CSS selectors.
-- `pd.read_html(url_or_html)` returns a **list** of DataFrames, one per `<table>`.
+**Finding tags.** `find` returns the **first** matching tag, or `None` if there isn't one. `find_all` returns a **list** of every match.
 
-Text, attributes and CSS selectors on a small page:
+```python
+from bs4 import BeautifulSoup
+
+html = """<ul>
+  <li><a href="/guide.pdf">Guide</a></li>
+  <li><a href="/faq.html">FAQ</a></li>
+</ul>"""
+soup = BeautifulSoup(html, "html.parser")
+
+print(soup.find("a"))              # the first <a> tag
+print(len(soup.find_all("a")))     # how many <a> tags there are
+print(soup.find("table"))          # there is no <table>, so None
+```
+
+```text
+<a href="/guide.pdf">Guide</a>
+2
+None
+```
+
+To match a CSS class, write `class_=` with an underscore, because `class` on its own is a reserved word in Python: `soup.find("a", class_="doc")`.
+
+**Getting text and attributes.** `.get_text()` returns the text between the tags, and `strip=True` removes the spaces around it. Square brackets read an attribute, such as a link's address in `href`.
+
+```python
+from bs4 import BeautifulSoup
+
+soup = BeautifulSoup('<a href="/guide.pdf">  Guide  </a>', "html.parser")
+link = soup.find("a")
+
+print(repr(link.get_text()))             # repr() makes the spaces visible
+print(repr(link.get_text(strip=True)))
+print(link["href"])
+print(link.get("title"))                 # no title attribute, so None
+```
+
+```text
+'  Guide  '
+'Guide'
+/guide.pdf
+None
+```
+
+`link["title"]` would raise a `KeyError` instead, because this tag has no `title`. Use `.get()` when an attribute might be missing.
+
+**CSS selectors.** `soup.select()` finds tags with the same patterns CSS uses. `ul#links a.doc` means "`<a>` tags with class `doc`, inside the `<ul>` whose id is `links`". It always returns a list.
 
 ```python
 from bs4 import BeautifulSoup
 
 html = """<ul id="links">
-  <li><a class="doc" href="/guide.pdf">  Guide  </a></li>
-  <li><a class="doc" href="/faq.html">FAQ</a></li>
+  <li><a class="doc" href="/guide.pdf">Guide</a></li>
+  <li><a class="ad" href="/buy">Buy now</a></li>
 </ul>"""
 soup = BeautifulSoup(html, "html.parser")
-
-first = soup.find("a", class_="doc")
-print(repr(first.get_text()), repr(first.get_text(strip=True)))
-print(first["href"], first.get("title"))                 # .get returns None if missing
-print([a["href"] for a in soup.find_all("a")])
-print([a.get_text(strip=True) for a in soup.select("ul#links a.doc")])
-print(soup.find("table"))                                # no match -> None
+print([a.get_text() for a in soup.select("ul#links a.doc")])
 ```
 
 ```text
-'  Guide  ' 'Guide'
-/guide.pdf None
-['/guide.pdf', '/faq.html']
-['Guide', 'FAQ']
-None
+['Guide']
 ```
 
-`get_text()` keeps the surrounding spaces; `strip=True` removes them. `tag.get("title")` returns `None` for a missing attribute, where `tag["title"]` would raise `KeyError`.
+The "Buy now" link has class `ad`, not `doc`, so it is left out.
+
+**Tables straight into pandas.** `pd.read_html(url_or_html)` reads every `<table>` on a page and returns a **list** of DataFrames, one per table. Take `[0]` for the first.
 
 **Ethical scraping.** Prefer an official API. Read the site's terms of service. Check `robots.txt` at the site root (`https://site.com/robots.txt`), which lists paths crawlers should not visit (`Disallow:`); `urllib.robotparser` can check it. Rate-limit your requests (for example `time.sleep()` between them), identify yourself with a User-Agent, cache what you have fetched, and don't collect personal data without a lawful basis.
 
-Checking paths against `robots.txt` rules with the standard library. Normally you call `set_url("https://site.com/robots.txt")` and `read()`; here the rules are passed in directly:
+Python's standard library can read `robots.txt` rules and tell you whether a page is allowed. Normally you point it at the site with `set_url("https://site.com/robots.txt")` and call `read()`. Here the rules are passed in directly, so the example works offline:
 
 ```python
 from urllib.robotparser import RobotFileParser
 
 rules = RobotFileParser()
-rules.parse(["User-agent: *", "Disallow: /private/"])
+rules.parse(["User-agent: *", "Disallow: /private/"])   # every bot: stay out of /private/
+
 print(rules.can_fetch("my-bot", "https://site.com/products"))
 print(rules.can_fetch("my-bot", "https://site.com/private/data"))
 ```

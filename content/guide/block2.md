@@ -59,98 +59,190 @@ else:
 loop ended without break, n = 6
 ```
 
-**`range`.** `range(stop)`, `range(start, stop)` and `range(start, stop, step)`. It starts at `start` (0 if omitted) and `stop` is never included. A negative step counts down.
+**`range`: a sequence of numbers.** `range` produces numbers for a loop to count through. The number you stop at is **never included**. (`list()` below just turns the range into a list so it can be printed.)
 
 ```python
-print(list(range(4)))
-print(list(range(2, 6)))
-print(list(range(1, 10, 3)))
-print(list(range(10, 0, -3)))
+print(list(range(4)))         # range(stop): starts at 0
+print(list(range(2, 6)))      # range(start, stop)
 ```
 
 ```text
 [0, 1, 2, 3]
 [2, 3, 4, 5]
+```
+
+A third number sets the **step**, the gap between values. A negative step counts down.
+
+```python
+print(list(range(1, 10, 3)))     # 1, then +3 each time, stopping before 10
+print(list(range(10, 0, -3)))    # count down by 3, stopping before 0
+```
+
+```text
 [1, 4, 7]
 [10, 7, 4, 1]
 ```
 
-**`break`, `continue` and a loop's `else`.** `break` leaves the loop at once; `continue` skips the rest of this iteration and moves to the next one (see the first example above). A loop's `else` block runs only if the loop finished without hitting `break`, which makes it a natural "not found" branch.
+**`break`: leave the loop early.** `break` stops the loop immediately, even if there are items left.
 
 ```python
 for n in [3, 8, 5]:
+    print("checking", n)
     if n > 6:
         print("found", n)
         break
-else:
-    print("nothing over 6")
+```
 
+```text
+checking 3
+checking 8
+found 8
+```
+
+5 is never checked, because the loop stopped at 8.
+
+**`continue`: skip to the next item.** `continue` skips the rest of this pass through the loop and moves straight on to the next item.
+
+```python
+for n in [1, 2, 3, 4]:
+    if n == 2:
+        continue          # skip 2
+    print(n)
+```
+
+```text
+1
+3
+4
+```
+
+**A loop's `else`.** A `for` or `while` loop can have an `else` block. It runs only if the loop finished **without** a `break`. That makes it a natural place for "searched everything, found nothing":
+
+```python
 for n in [3, 5]:
     if n > 6:
         print("found", n)
         break
 else:
-    print("nothing over 6")
+    print("nothing over 6")       # runs: the loop never hit break
 ```
 
 ```text
-found 8
 nothing over 6
 ```
 
-The first loop breaks at 8, so its `else` is skipped (and 5 is never checked). The second loop runs to the end, so its `else` runs.
+If the list had contained 8, the loop would have hit `break` and the `else` would have been skipped.
 
-**`enumerate` and `zip`.** `enumerate(items)` gives `(index, item)` pairs, counting from 0 unless you pass `start`. `zip(a, b)` pairs the items of two sequences position by position and stops at the shorter one, silently dropping the extras.
+**`enumerate`: a counter alongside each item.** `enumerate(items)` gives you each item together with its position, counting from 0. `start=1` counts from 1 instead.
 
 ```python
 items = ["tea", "jam", "bread"]
-for i, item in enumerate(items, start=1):
-    print(i, item)
-
-names = ["Ann", "Bob", "Cy"]
-scores = [90, 75]
-print(list(zip(names, scores)))
+for number, item in enumerate(items, start=1):
+    print(number, item)
 ```
 
 ```text
 1 tea
 2 jam
 3 bread
-[('Ann', 90), ('Bob', 75)]
 ```
 
-**Conditional expressions and chained comparisons.** `a if condition else b` picks one of two values in a single expression. Comparisons chain, so `0 < x < 10` means `0 < x and x < 10`.
+**`zip`: walk through two lists together.** `zip(a, b)` pairs the first item of `a` with the first of `b`, the second with the second, and so on. If one list is shorter, it stops there and the extra items are dropped without warning.
+
+```python
+names = ["Ann", "Bob", "Cy"]
+scores = [90, 75]               # only two scores
+
+for name, score in zip(names, scores):
+    print(name, score)
+```
+
+```text
+Ann 90
+Bob 75
+```
+
+Cy has no score to pair with, so he is left out.
+
+**Choosing between two values in one line.** `value_if_true if condition else value_if_false` is a compact `if`/`else` that produces a value:
 
 ```python
 for x in [50, 150]:
     label = "high" if x > 100 else "low"
     print(x, label)
-
-x = 5
-print(0 < x < 10, 0 < x < 3)
 ```
 
 ```text
 50 low
 150 high
-True False
 ```
 
-**Comprehensions.** `[expression for item in iterable if condition]` builds a list in one line: the `if` filters, and the expression transforms what passes. Curly braces with `key: value` build a dict the same way.
+It does the same as this longer version:
+
+```python
+x = 150
+if x > 100:
+    label = "high"
+else:
+    label = "low"
+print(label)
+```
+
+```text
+high
+```
+
+**Chained comparisons.** `0 < x < 10` means "x is between 0 and 10": it is short for `0 < x and x < 10`.
+
+```python
+x = 5
+print(0 < x < 10)     # both parts true
+print(0 < x < 3)      # 5 < 3 is false
+```
+
+```text
+True
+False
+```
+
+**List comprehensions: building a list in one line.** A comprehension is a short way to write a loop that builds a list. These two produce the same result:
 
 ```python
 data = [3, -1, 4, 0]
-print([x * 2 for x in data if x > 0])
 
-pairs = [("a", 1), ("b", 2)]
-print({k: v for k, v in pairs})
-print({k: v * 10 for k, v in pairs})
+doubled = []
+for x in data:
+    doubled.append(x * 2)
+print(doubled)
+
+print([x * 2 for x in data])      # the same, as a comprehension
+```
+
+```text
+[6, -2, 8, 0]
+[6, -2, 8, 0]
+```
+
+Read `[x * 2 for x in data]` as "x times 2, for each x in data". Adding `if` at the end keeps only the items that pass the test:
+
+```python
+data = [3, -1, 4, 0]
+print([x * 2 for x in data if x > 0])     # only the positive numbers, doubled
 ```
 
 ```text
 [6, 8]
-{'a': 1, 'b': 2}
-{'a': 10, 'b': 20}
+```
+
+**Dict comprehensions.** Curly braces with `key: value` build a dict the same way:
+
+```python
+prices = {"tea": 2, "jam": 4}
+print({item: price * 10 for item, price in prices.items()})
+```
+
+```text
+{'tea': 20, 'jam': 40}
 ```
 
 ### Exam traps
@@ -445,99 +537,183 @@ print(t)
 (1, [2, 3, 4])
 ```
 
-- Lists: `append` (one item), `extend` (items of an iterable), `insert`, `pop` (by index, returns it), `remove` (first matching value), `sort()` (in place, returns `None`) vs `sorted()` (new list).
-
-The list methods side by side:
+**Adding to a list: `append` and `extend`.** `append` adds **one** item to the end. `extend` takes a collection and adds **each** of its items.
 
 ```python
 a = [1, 2]
-a.append([3, 4])            # adds ONE item: the list itself
+a.append([3, 4])      # adds the list [3, 4] as a single item
+print(a)
+
 b = [1, 2]
-b.extend([3, 4])            # adds each item
-print(a, b)
-
-c = [5, 3, 5, 1]
-c.insert(0, 9)
-print(c.pop(), c.pop(0), c)  # pop(): last item; pop(0): first item
-c.remove(5)                  # first 5 only
-print(c)
-
-nums = [3, 1, 2]
-print(sorted(nums), nums)    # sorted() returns a new list; nums is unchanged
-print(nums.sort(), nums)     # sort() changes nums in place and returns None
+b.extend([3, 4])      # adds 3, then 4
+print(b)
 ```
 
 ```text
-[1, 2, [3, 4]] [1, 2, 3, 4]
-1 9 [5, 3, 5]
-[3, 5]
+[1, 2, [3, 4]]
+[1, 2, 3, 4]
+```
+
+`a` now has three items, the last of which is itself a list. `b` has four numbers.
+
+**Removing from a list: `pop` and `remove`.** `pop` removes an item **by position** and gives it back to you; with no position it takes the last item. `remove` deletes the first item **equal to a value** you name.
+
+```python
+letters = ["a", "b", "c", "b"]
+
+last = letters.pop()       # removes and returns the last item
+print(last, letters)
+
+first = letters.pop(0)     # removes and returns the item at position 0
+print(first, letters)
+
+letters.remove("b")        # removes the first "b"
+print(letters)
+```
+
+```text
+b ['a', 'b', 'c']
+a ['b', 'c']
+['c']
+```
+
+`insert(position, item)` does the opposite of `pop`: `letters.insert(0, "z")` puts `"z"` at the front.
+
+**Sorting: `sorted()` versus `.sort()`.** `sorted(nums)` gives you a **new** sorted list and leaves `nums` alone. `nums.sort()` sorts `nums` itself and gives back `None`.
+
+```python
+nums = [3, 1, 2]
+
+new_list = sorted(nums)
+print(new_list, nums)      # nums is unchanged
+
+result = nums.sort()
+print(result, nums)        # nums is now sorted; result is None
+```
+
+```text
 [1, 2, 3] [3, 1, 2]
 None [1, 2, 3]
 ```
 
-- Dicts: `d[k]` raises `KeyError` if missing; `d.get(k, default)` doesn't. Iterate with `.items()`. Keys must be hashable (str, int, tuple of immutables; not lists).
-- Strings are immutable: methods such as `.replace()` and `.upper()` return new strings.
-- `(5)` is just `5`; a one-item tuple needs a comma: `(5,)`.
+This is why `nums = nums.sort()` is a classic mistake: it replaces your list with `None`.
 
-Dict lookups, hashable keys, immutable strings and one-item tuples:
+**Reading from a dict: `[]` versus `.get()`.** Square brackets raise a `KeyError` if the key isn't there. `.get(key, default)` returns the default instead (or `None` if you don't give one).
 
 ```python
 stock = {"tea": 4, "jam": 0}
-print(stock.get("milk"), stock.get("milk", 0))
+
+print(stock["tea"])
+print(stock.get("milk"))         # missing: None
+print(stock.get("milk", 0))      # missing: the default, 0
+
 try:
     stock["milk"]
 except KeyError as e:
     print("KeyError:", e)
-
-for item, qty in stock.items():
-    print(item, qty)
-
-try:
-    {["a", "b"]: 1}
-except TypeError as e:
-    print("TypeError:", e)
-print({("a", "b"): 1})       # a tuple of strings is hashable, so it can be a key
-
-s = "data"
-print(s.upper(), s)          # upper() returns a new string; s is unchanged
-
-print(type((5)).__name__, type((5,)).__name__)
 ```
 
 ```text
-None 0
+4
+None
+0
 KeyError: 'milk'
-tea 4
-jam 0
-TypeError: unhashable type: 'list'
-{('a', 'b'): 1}
-DATA data
-int tuple
 ```
 
-- `collections.Counter` counts items; `collections.defaultdict(list)` groups without checking for missing keys.
-
-Counting and grouping without checking for missing keys:
+**Looping over a dict.** `.items()` gives you each key and its value together:
 
 ```python
-from collections import Counter, defaultdict
+stock = {"tea": 4, "jam": 0}
+for item, qty in stock.items():
+    print(item, qty)
+```
+
+```text
+tea 4
+jam 0
+```
+
+**What can be a dict key.** A key must be **hashable**, which in practice means it can't change. Strings, numbers and tuples work; lists don't, because a list can be changed after it is created.
+
+```python
+prices = {("tea", "large"): 3.5}     # a tuple works as a key
+print(prices[("tea", "large")])
+
+try:
+    {["tea", "large"]: 3.5}          # a list doesn't
+except TypeError as e:
+    print("TypeError:", e)
+```
+
+```text
+3.5
+TypeError: unhashable type: 'list'
+```
+
+**Strings can't be changed.** String methods never change the original string. They return a new one, which you have to store.
+
+```python
+word = "data"
+word.upper()            # result thrown away
+print(word)
+
+word = word.upper()     # store the result
+print(word)
+```
+
+```text
+data
+DATA
+```
+
+**One-item tuples need a comma.** Brackets alone just group things, like in maths. It's the comma that makes a tuple.
+
+```python
+print(type((5)))      # just the number 5
+print(type((5,)))     # a tuple holding 5
+```
+
+```text
+<class 'int'>
+<class 'tuple'>
+```
+
+**Counting with `Counter`.** `collections.Counter` counts how many times each item appears. Asking for an item it never saw gives 0, not an error.
+
+```python
+from collections import Counter
 
 colors = ["red", "blue", "red", "green", "red"]
 counts = Counter(colors)
-print(counts["red"], counts["pink"], counts.most_common(2))
+
+print(counts["red"])
+print(counts["pink"])
+print(counts.most_common(2))     # the two most common items
+```
+
+```text
+3
+0
+[('red', 3), ('blue', 1)]
+```
+
+**Grouping with `defaultdict`.** A normal dict raises `KeyError` the first time you add to a key that isn't there yet. `defaultdict(list)` creates an empty list for a new key automatically, so you can append straight away.
+
+```python
+from collections import defaultdict
+
+sales = [("EU", 10), ("US", 5), ("EU", 7)]
 
 by_region = defaultdict(list)
-for region, amount in [("EU", 10), ("US", 5), ("EU", 7)]:
-    by_region[region].append(amount)    # no "if region not in by_region" needed
+for region, amount in sales:
+    by_region[region].append(amount)
+
 print(dict(by_region))
 ```
 
 ```text
-3 0 [('red', 3), ('blue', 1)]
 {'EU': [10, 7], 'US': [5]}
 ```
-
-A `Counter` returns 0 for an item it has never seen, and a `defaultdict(list)` creates an empty list the first time a key is used.
 
 ### Exam traps
 
@@ -664,67 +840,117 @@ finally
 None
 ```
 
-- Clauses are tried top to bottom; the **first** matching `except` wins, so put specific exceptions before general ones.
-
-The same error, with the clauses in the wrong order and then the right one:
+**The first matching `except` wins.** Python checks the `except` clauses from top to bottom and runs only the first one that matches. `Exception` matches almost every error, so if it comes first, the more specific clauses below it never get a chance.
 
 ```python
 try:
     int("12a")
 except Exception:
-    print("Exception clause caught it")
+    print("caught by the general clause")
 except ValueError:
     print("never reached")
-
-try:
-    int("12a")
-except ValueError:
-    print("ValueError clause caught it")
-except Exception:
-    print("only for anything else")
 ```
 
 ```text
-Exception clause caught it
-ValueError clause caught it
+caught by the general clause
 ```
 
-- `except (ValueError, TypeError) as e:` catches either; `e` holds the exception object.
-- A bare `except:` (or `except Exception:` everywhere) hides bugs. Catch what you expect.
-- `raise ValueError("price must be positive")` signals a problem; `raise` alone re-raises inside an `except` block.
-- Custom exceptions subclass `Exception`: `class DataQualityError(Exception): pass`.
+Put the specific error first:
 
-Raising, re-raising and a custom exception together:
+```python
+try:
+    int("12a")
+except ValueError:
+    print("caught by the ValueError clause")
+except Exception:
+    print("only for other errors")
+```
+
+```text
+caught by the ValueError clause
+```
+
+**Catching several errors at once.** Put them in a tuple. `as e` stores the error so you can read its message.
+
+```python
+for text in ["12a", None]:
+    try:
+        int(text)
+    except (ValueError, TypeError) as e:
+        print(type(e).__name__, "-", e)
+```
+
+```text
+ValueError - invalid literal for int() with base 10: '12a'
+TypeError - int() argument must be a string, a bytes-like object or a real number, not 'NoneType'
+```
+
+`int("12a")` is a `ValueError` (right type, bad value); `int(None)` is a `TypeError` (wrong type altogether). One clause handles both.
+
+**Don't catch everything.** A bare `except:`, or `except Exception:` wrapped around everything, also swallows bugs you didn't expect, such as a typo in a variable name. Catch only the errors you know how to handle.
+
+**Raising your own errors.** `raise` stops the function and sends an error to the caller. Use it when the input is wrong in a way the code can't fix.
+
+```python
+def set_price(value):
+    if value < 0:
+        raise ValueError("price must be positive")
+    return value
+
+print(set_price(5))
+
+try:
+    set_price(-1)
+except ValueError as e:
+    print("ValueError:", e)
+```
+
+```text
+5
+ValueError: price must be positive
+```
+
+**Re-raising.** Inside an `except` block, `raise` on its own sends the **same** error on to the caller. It is useful when you want to note something (a log message) but still let the error through.
+
+```python
+def parse(text):
+    try:
+        return float(text)
+    except ValueError:
+        print("could not parse", repr(text))
+        raise                    # pass the same ValueError on
+
+try:
+    parse("abc")
+except ValueError as e:
+    print("caller got:", e)
+```
+
+```text
+could not parse 'abc'
+caller got: could not convert string to float: 'abc'
+```
+
+**Custom exceptions.** Make your own error type by creating a class that inherits from `Exception`. A clear name tells the caller exactly what went wrong, and they can catch it separately from Python's built-in errors.
 
 ```python
 class DataQualityError(Exception):
     pass
 
-def parse_price(text):
-    try:
-        value = float(text)
-    except ValueError:
-        print("not a number:", repr(text))
-        raise                              # re-raise the same ValueError
-    if value < 0:
-        raise DataQualityError(f"negative price {value}")
-    return value
+def check_age(age):
+    if age > 120:
+        raise DataQualityError(f"age {age} is not plausible")
+    return age
 
-for text in ["4.5", "-2", "abc"]:
-    try:
-        print(parse_price(text))
-    except (ValueError, DataQualityError) as e:
-        print(type(e).__name__, "->", e)
+try:
+    check_age(150)
+except DataQualityError as e:
+    print("DataQualityError:", e)
 ```
 
 ```text
-4.5
-DataQualityError -> negative price -2.0
-not a number: 'abc'
-ValueError -> could not convert string to float: 'abc'
+DataQualityError: age 150 is not plausible
 ```
-
-`-2` parses fine but breaks the business rule, so the function raises `DataQualityError`. `abc` fails inside the `try`; the bare `raise` passes the original `ValueError` on to the caller after printing a note.
 
 | Exception | Typical cause |
 |---|---|
@@ -780,48 +1006,142 @@ Ana 150.0 retail EUR
 False 150.0
 ```
 
-- `__init__` is the constructor; it runs when you call `Customer(...)`. `self` is the new instance.
-- **Instance variables** (`self.name`) belong to one object; **class variables** (`currency`) are shared.
-- A single leading underscore (`_segment`) means "internal, don't touch from outside"; Python does not enforce it.
-- A double leading underscore (`__balance`) triggers **name mangling**: inside the class it becomes `_Customer__balance`, so `c.__balance` from outside raises `AttributeError`. It prevents accidental clashes; it is not real security.
-- **Getters and setters** control access and validate new values. The Pythonic form is a property:
+**Classes, objects and `__init__`.** A **class** is a blueprint; an **object** (or *instance*) is one thing built from it. Calling the class, `Customer("Ana")`, builds a new object and runs its `__init__` method (the **constructor**) to set it up. Inside the class, `self` means "the object being worked on".
+
+```python
+class Customer:
+    def __init__(self, name):
+        self.name = name          # store the name on this object
+
+ana = Customer("Ana")
+ben = Customer("Ben")
+print(ana.name, ben.name)
+```
+
+```text
+Ana Ben
+```
+
+`ana` and `ben` are two separate objects from the same blueprint, each with its own `name`.
+
+**Instance variables and class variables.** A variable set on `self` (an **instance variable**) belongs to one object. A variable written directly inside the class (a **class variable**) is shared by every object.
+
+```python
+class Customer:
+    currency = "EUR"              # class variable: shared
+
+    def __init__(self, name):
+        self.name = name          # instance variable: one per object
+
+ana = Customer("Ana")
+ben = Customer("Ben")
+print(ana.name, ana.currency)
+print(ben.name, ben.currency)
+print(Customer.currency)          # also readable from the class itself
+```
+
+```text
+Ana EUR
+Ben EUR
+EUR
+```
+
+**"Keep out" names: `_` and `__`.** Python has no truly private attributes, only conventions:
+
+- One leading underscore (`self._segment`) means "internal: please don't use this from outside". Nothing stops you.
+- Two leading underscores (`self.__balance`) make Python rename the attribute to `_Customer__balance` (**name mangling**). Code outside the class that asks for `__balance` doesn't find it. This prevents accidents, not determined access.
+
+```python
+class Customer:
+    def __init__(self, balance):
+        self._segment = "retail"
+        self.__balance = balance
+
+c = Customer(100)
+print(c._segment)                 # works: the single underscore is only a hint
+
+try:
+    print(c.__balance)
+except AttributeError as e:
+    print("AttributeError:", e)
+
+print(c._Customer__balance)       # the renamed attribute is still there
+```
+
+```text
+retail
+AttributeError: 'Customer' object has no attribute '__balance'
+100
+```
+
+**Getters and setters.** Instead of letting outside code change an attribute directly, a class can provide methods that read it (a **getter**) and change it (a **setter**). The setter can check the new value first.
+
+```python
+class Customer:
+    def __init__(self, balance):
+        self.__balance = balance
+
+    def get_balance(self):
+        return self.__balance
+
+    def set_balance(self, value):
+        if value < 0:
+            raise ValueError("balance cannot be negative")
+        self.__balance = value
+
+c = Customer(100)
+c.set_balance(150)
+print(c.get_balance())
+
+try:
+    c.set_balance(-5)
+except ValueError as e:
+    print("ValueError:", e)
+```
+
+```text
+150
+ValueError: balance cannot be negative
+```
+
+**The Pythonic version: `@property`.** A property gives you the same checks while letting outside code use plain attribute syntax (`p.price = 5`). `@property` marks the getter; `@price.setter` marks the setter. The real value is kept in `_price`.
 
 ```python
 class Product:
     def __init__(self, price):
-        self.price = price                 # goes through the setter
+        self.price = price            # this line already goes through the setter
 
     @property
-    def price(self):
+    def price(self):                  # runs when you read p.price
         return self._price
 
     @price.setter
-    def price(self, value):
+    def price(self, value):           # runs when you write p.price = ...
         if value < 0:
             raise ValueError("price cannot be negative")
         self._price = value
+
+p = Product(4)
+p.price = 5                           # looks like a plain assignment, but runs the setter
+print(p.price)
+
+try:
+    p.price = -1
+except ValueError as e:
+    print("ValueError:", e)
 ```
 
-`__repr__` returns an unambiguous developer string (shown in the console); `__str__` returns the friendly one used by `print()`. `@dataclass` generates `__init__`, `__repr__` and `__eq__` from annotated fields.
+```text
+5
+ValueError: price cannot be negative
+```
 
-Using the property, `__repr__` and `__str__`, and a dataclass:
+**How an object prints: `__repr__` and `__str__`.** `__str__` returns a friendly description and is what `print()` uses. `__repr__` returns an exact, developer-facing one, used by `repr()` and when an object is shown inside a list.
 
 ```python
-from dataclasses import dataclass
-
 class Product:
     def __init__(self, price):
         self.price = price
-
-    @property
-    def price(self):
-        return self._price
-
-    @price.setter
-    def price(self, value):
-        if value < 0:
-            raise ValueError("price cannot be negative")
-        self._price = value
 
     def __repr__(self):
         return f"Product(price={self.price})"
@@ -829,31 +1149,37 @@ class Product:
     def __str__(self):
         return f"{self.price:.2f} EUR"
 
-p = Product(4)
-p.price = 5                    # looks like a plain attribute, but runs the setter
-print(p.price, repr(p), str(p))
-print(p)                       # print() uses __str__
-try:
-    p.price = -1
-except ValueError as e:
-    print("ValueError:", e)
+p = Product(5)
+print(p)              # uses __str__
+print(repr(p))        # uses __repr__
+print([p])            # objects inside a list use __repr__
+```
+
+```text
+5.00 EUR
+Product(price=5)
+[Product(price=5)]
+```
+
+**`@dataclass` writes the boilerplate.** For a class that mainly holds data, `@dataclass` writes `__init__`, `__repr__` and `__eq__` for you from the fields you list.
+
+```python
+from dataclasses import dataclass
 
 @dataclass
 class Point:
     x: int
     y: int
 
-print(Point(1, 2), Point(1, 2) == Point(1, 2))
+p = Point(1, 2)
+print(p)                       # a readable __repr__ for free
+print(p == Point(1, 2))        # __eq__ compares the fields
 ```
 
 ```text
-5 Product(price=5) 5.00 EUR
-5.00 EUR
-ValueError: price cannot be negative
-Point(x=1, y=2) True
+Point(x=1, y=2)
+True
 ```
-
-`p.price = 5` looks like a plain assignment but runs the setter, which is how `-1` gets rejected. The dataclass wrote `__init__`, `__repr__` and `__eq__` from the two fields, so two equal points compare equal.
 
 ### Exam traps
 
@@ -900,62 +1226,158 @@ CsvExporter: 1,2
 JsonExporter: [[1, 2]]
 ```
 
-- **Inheritance** ("is-a"): `class CsvExporter(Exporter)` gets every method of `Exporter`. **Overriding** replaces a parent method by defining one with the same name. `super()` calls the parent's version.
-- **Polymorphism**: code calls `.export()` without knowing which subclass it has; each object runs its own version. Python also allows *duck typing*: any object with an `export()` method works, related or not.
-- **Composition** ("has-a"): a class holds other objects as attributes. An `Order` *has* a `Customer` and a list of `LineItem`s; it is not a kind of customer. Prefer composition when the relationship is "has-a"; it keeps classes small and loosely coupled.
+**Inheritance ("is-a").** Writing `class Child(Parent)` makes `Child` a specialised kind of `Parent`. It gets every method the parent has without you writing them again.
 
 ```python
-class LineItem:
-    def __init__(self, sku, qty, price):
-        self.sku, self.qty, self.price = sku, qty, price
+class Animal:
+    def __init__(self, name):
+        self.name = name
 
-class Order:
-    def __init__(self, customer, items):
-        self.customer = customer
-        self.items = items
+    def describe(self):
+        return f"{self.name} is an animal"
 
-    def total(self):
-        return sum(i.qty * i.price for i in self.items)
+class Dog(Animal):          # Dog inherits from Animal
+    pass                    # nothing new yet
 
-order = Order("Ana", [LineItem("tea", 2, 3.0), LineItem("jam", 1, 4.5)])
-print(order.customer, len(order.items), order.total())
+d = Dog("Rex")
+print(d.describe())         # describe() came from Animal
 ```
 
 ```text
-Ana 2 10.5
+Rex is an animal
 ```
 
-`isinstance(obj, Parent)` is `True` for instances of subclasses too; `issubclass(Child, Parent)` checks classes.
-
-`isinstance`, `issubclass`, and what happens when a subclass skips `super().__init__()`:
+**Overriding.** If the child defines a method with the same name as one in the parent, the child's version replaces it for child objects.
 
 ```python
-class Exporter:
-    def __init__(self, rows):
-        self.rows = rows
+class Animal:
+    def sound(self):
+        return "..."
 
-class CsvExporter(Exporter):
+class Dog(Animal):
+    def sound(self):        # overrides Animal.sound
+        return "Woof"
+
+print(Animal().sound(), Dog().sound())
+```
+
+```text
+... Woof
+```
+
+**`super()`: reuse the parent's version.** Often the child wants to add to the parent's method rather than replace it completely. `super().method()` runs the parent's version. It is most common in `__init__`, so the parent can set up its attributes before the child adds its own.
+
+```python
+class Animal:
+    def __init__(self, name):
+        self.name = name
+
+class Dog(Animal):
+    def __init__(self, name, breed):
+        super().__init__(name)      # let Animal set self.name
+        self.breed = breed          # then add what's new
+
+d = Dog("Rex", "collie")
+print(d.name, d.breed)
+```
+
+```text
+Rex collie
+```
+
+If a child's `__init__` forgets `super().__init__(...)`, the parent's setup never runs and its attributes don't exist:
+
+```python
+class Animal:
+    def __init__(self, name):
+        self.name = name
+
+class Cat(Animal):
+    def __init__(self, name, indoor):
+        self.indoor = indoor        # forgot super().__init__(name)
+
+c = Cat("Tom", True)
+try:
+    print(c.name)
+except AttributeError as e:
+    print("AttributeError:", e)
+```
+
+```text
+AttributeError: 'Cat' object has no attribute 'name'
+```
+
+**Polymorphism: one call, different behaviour.** Code can call the same method on different objects without checking what type each one is. Each object runs its own version. The `Exporter` example at the start of this section does this with `.export()`; here it is in its simplest form:
+
+```python
+class Animal:
+    def sound(self):
+        return "..."
+
+class Dog(Animal):
+    def sound(self):
+        return "Woof"
+
+class Cat(Animal):
+    def sound(self):
+        return "Meow"
+
+for pet in [Dog(), Cat(), Dog()]:
+    print(pet.sound())              # the same line works for every kind of animal
+```
+
+```text
+Woof
+Meow
+Woof
+```
+
+Python also allows **duck typing**: any object with a `sound()` method would work in that loop, even if it isn't an `Animal` at all.
+
+**Composition ("has-a").** Instead of inheriting, a class can hold other objects as attributes. An order *has* a customer and *has* line items; it is not a kind of customer, so inheritance would be wrong.
+
+```python
+class LineItem:
+    def __init__(self, product, qty, price):
+        self.product = product
+        self.qty = qty
+        self.price = price
+
+class Order:
+    def __init__(self, customer, items):
+        self.customer = customer    # an Order has a customer...
+        self.items = items          # ...and has a list of LineItems
+
+    def total(self):
+        return sum(item.qty * item.price for item in self.items)
+
+order = Order("Ana", [LineItem("tea", 2, 3.0), LineItem("jam", 1, 4.5)])
+print(order.customer, order.total())
+```
+
+```text
+Ana 10.5
+```
+
+A quick test: if "X is a Y" sounds right, use inheritance. If "X has a Y" sounds right, use composition.
+
+**Checking types: `isinstance` and `issubclass`.** `isinstance(obj, Class)` asks "is this object one of these?", and it counts children too: a dog **is** an animal. `issubclass(Child, Parent)` asks the same question about two classes.
+
+```python
+class Animal:
     pass
 
-class BrokenExporter(Exporter):
-    def __init__(self, rows, sep):
-        self.sep = sep                     # forgot super().__init__(rows)
+class Dog(Animal):
+    pass
 
-e = CsvExporter([[1, 2]])
-print(isinstance(e, CsvExporter), isinstance(e, Exporter), isinstance(e, str))
-print(issubclass(CsvExporter, Exporter), issubclass(Exporter, CsvExporter))
-
-b = BrokenExporter([[1, 2]], ";")
-try:
-    b.rows
-except AttributeError as err:
-    print("AttributeError:", err)
+d = Dog()
+print(isinstance(d, Dog), isinstance(d, Animal), isinstance(d, str))
+print(issubclass(Dog, Animal), issubclass(Animal, Dog))
 ```
 
 ```text
 True True False
 True False
-AttributeError: 'BrokenExporter' object has no attribute 'rows'
 ```
 
 ### Exam traps
@@ -984,11 +1406,42 @@ print(a, c, a == c, a is b, a is c)
 [1, 2, 3, 4] [1, 2, 3] False True False
 ```
 
-- `==` compares **values** (it calls `__eq__`); `is` compares **identity** (the same object in memory, same `id()`).
-- Use `is` only for singletons: `x is None`, `x is True`. Never compare numbers or strings with `is`; small-integer caching makes such code behave inconsistently.
-- Copies: `list(a)`, `a[:]`, `a.copy()` and `copy.copy(a)` are **shallow** (nested objects are still shared); `copy.deepcopy(a)` copies nested objects too. In pandas, `df2 = df` shares the object; `df.copy()` makes an independent one.
+**`==` versus `is`.** `==` asks "do these hold the **same value**?" `is` asks "are these the **same object**?" Two separate lists can be equal without being the same list.
 
-A shallow copy shares the inner lists; a deep copy doesn't:
+```python
+a = [1, 2]
+b = [1, 2]        # a separate list with the same values
+c = a             # another name for the list a
+
+print(a == b, a is b)    # equal values, different objects
+print(a == c, a is c)    # same object, so also equal
+```
+
+```text
+True False
+True True
+```
+
+Use `is` only to check for `None` (`if x is None:`), or for `True` and `False`. For numbers and strings always use `==`: Python sometimes reuses the same object for small numbers and short strings, so `is` can seem to work in one case and fail in another.
+
+**Copying a list.** Since `b = a` only adds a second name, you need an explicit copy to get an independent list. `a.copy()`, `list(a)` and `a[:]` all make one.
+
+```python
+a = [1, 2, 3]
+same = a           # same list, two names
+copy = a.copy()    # a new list
+
+a.append(4)
+print(same)        # sees the change
+print(copy)        # doesn't
+```
+
+```text
+[1, 2, 3, 4]
+[1, 2, 3]
+```
+
+**Shallow and deep copies.** Those copies are **shallow**: they copy the outer list, but any lists *inside* it are still shared. `copy.deepcopy` copies everything, all the way down.
 
 ```python
 import copy
@@ -996,20 +1449,18 @@ import copy
 a = [[1, 2], [3]]
 shallow = a.copy()
 deep = copy.deepcopy(a)
-a[0].append(99)            # change a nested list
-a.append([4])              # change the outer list
-print(a)
-print(shallow)             # shares the nested lists, not the outer one
-print(deep)                # fully independent
+
+a[0].append(99)        # change a list inside a
+print(shallow)         # the inner list is shared, so the change shows
+print(deep)            # fully separate, so it doesn't
 ```
 
 ```text
-[[1, 2, 99], [3], [4]]
 [[1, 2, 99], [3]]
 [[1, 2], [3]]
 ```
 
-Appending to `a` itself doesn't affect `shallow` (it has its own outer list), but changing `a[0]` does, because both point at the same inner list.
+The same applies in pandas: `df2 = df` is just a second name, and `df.copy()` makes an independent DataFrame.
 
 **Custom equality.** A class without `__eq__` compares by identity, so two separate objects with identical data are not equal.
 
@@ -1060,6 +1511,8 @@ LIMIT    5;
 
 **Logical order** (how the database evaluates it): FROM and JOIN → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT. That is why WHERE cannot use aggregates (groups don't exist yet) and why, in standard SQL, WHERE cannot use a column alias defined in SELECT, while ORDER BY can.
 
+**Joins.** A join combines rows from two tables wherever a condition matches, usually an ID in one table equal to an ID in the other. The join type decides what happens to rows that **don't** match:
+
 | Join | Returns |
 |---|---|
 | `INNER JOIN` (or `JOIN`) | Only rows with a match in both tables |
@@ -1074,7 +1527,9 @@ LIMIT    5;
 <div class="dg-col"><h4>FULL</h4><ul><li>All rows from both</li><li>NULLs on whichever side is missing</li></ul></div>
 </div></div>
 
-The same two tables with an inner join and a left join:
+The examples below run SQL from Python with the built-in `sqlite3` module (section 2.4.3 explains it). Each one creates a tiny table, runs one query, and prints the rows it returns; each row prints as a tuple, and `NULL` prints as `None`.
+
+Three customers, and four orders. Cy has no orders, and the last order belongs to customer 9, who doesn't exist:
 
 ```python
 import sqlite3
@@ -1087,59 +1542,119 @@ INSERT INTO customers VALUES (1, 'Ana'), (2, 'Ben'), (3, 'Cy');
 INSERT INTO orders VALUES (1, 50), (1, 70), (2, 20), (9, 15);
 """)
 
-def show(sql):
-    print(con.execute(sql).fetchall())
-
-show("""SELECT c.name, o.total FROM customers c
-        INNER JOIN orders o ON o.customer_id = c.id""")   # Cy and order 9 drop out
-show("""SELECT c.name, o.total FROM customers c
-        LEFT JOIN orders o ON o.customer_id = c.id""")    # Cy kept, total is NULL (None)
+inner = con.execute("""
+    SELECT c.name, o.total
+    FROM customers c
+    INNER JOIN orders o ON o.customer_id = c.id
+""").fetchall()
+print(inner)
 ```
 
 ```text
 [('Ana', 50.0), ('Ana', 70.0), ('Ben', 20.0)]
-[('Ana', 50.0), ('Ana', 70.0), ('Ben', 20.0), ('Cy', None)]
 ```
 
-Cy has no orders, so the inner join drops him and the left join keeps him with `NULL` (`None` in Python). Order 9 has no customer, so neither join returns it.
-
-- **Aggregates**: `COUNT(*)` counts rows; `COUNT(col)` counts non-NULL values; `SUM`, `AVG`, `MIN`, `MAX` ignore NULLs.
-- **WHERE** filters rows before grouping; **HAVING** filters groups after aggregation.
-- Every column in SELECT that isn't aggregated must appear in GROUP BY (SQLite is lenient here; most databases are not).
-
-Aggregates, `WHERE` and `HAVING` on one table:
+Only matching pairs: Ana's two orders and Ben's one. Cy (no orders) and order 9 (no customer) both disappear. Now the same query as a `LEFT JOIN`:
 
 ```python
 import sqlite3
 
 con = sqlite3.connect(":memory:")
 con.executescript("""
-CREATE TABLE sales (region TEXT, rep TEXT, amount REAL);
-INSERT INTO sales VALUES ('EU', 'Ana', 100), ('EU', 'Ben', NULL), ('EU', 'Ana', 40),
-                         ('US', 'Cy', 30), ('US', 'Dee', 20), ('ASIA', 'Eli', 500);
+CREATE TABLE customers (id INTEGER, name TEXT);
+CREATE TABLE orders (customer_id INTEGER, total REAL);
+INSERT INTO customers VALUES (1, 'Ana'), (2, 'Ben'), (3, 'Cy');
+INSERT INTO orders VALUES (1, 50), (1, 70), (2, 20), (9, 15);
 """)
 
-def show(sql):
-    print(con.execute(sql).fetchall())
+left = con.execute("""
+    SELECT c.name, o.total
+    FROM customers c
+    LEFT JOIN orders o ON o.customer_id = c.id
+""").fetchall()
+print(left)
+```
 
-show("SELECT COUNT(*), COUNT(amount), SUM(amount), AVG(amount) FROM sales WHERE region = 'EU'")
-show("SELECT region, SUM(amount) FROM sales WHERE amount > 25 GROUP BY region ORDER BY region")
-show("SELECT region, SUM(amount) FROM sales GROUP BY region HAVING SUM(amount) > 100 ORDER BY region")
+```text
+[('Ana', 50.0), ('Ana', 70.0), ('Ben', 20.0), ('Cy', None)]
+```
+
+Every customer from the left table (`customers`) is kept. Cy has no order, so his `total` is `NULL`. Order 9 is still missing, because it is on the right side and has no match.
+
+**Counting and adding up: aggregates.** `COUNT`, `SUM`, `AVG`, `MIN` and `MAX` turn many rows into one value. `COUNT(*)` counts rows; `COUNT(column)` counts only the rows where that column isn't `NULL`. The others skip `NULL`s too.
+
+```python
+import sqlite3
+
+con = sqlite3.connect(":memory:")
+con.executescript("""
+CREATE TABLE sales (rep TEXT, amount REAL);
+INSERT INTO sales VALUES ('Ana', 100), ('Ben', NULL), ('Cy', 40);
+""")
+
+print(con.execute("SELECT COUNT(*), COUNT(amount), SUM(amount), AVG(amount) FROM sales").fetchall())
 ```
 
 ```text
 [(3, 2, 140.0, 70.0)]
-[('ASIA', 500.0), ('EU', 140.0), ('US', 30.0)]
-[('ASIA', 500.0), ('EU', 140.0)]
 ```
 
-`COUNT(*)` counts all 3 EU rows; `COUNT(amount)`, `SUM` and `AVG` skip Ben's `NULL`, so the average is 140 / 2 = 70. `WHERE amount > 25` removes Dee's 20 before grouping, so the US total is 30. In the last query, `HAVING` runs after grouping and drops the US group, whose total of 50 is not over 100.
+3 rows, but only 2 amounts. The average is (100 + 40) / 2 = 70: Ben's `NULL` is ignored, not counted as 0.
 
-- Filters: `=`, `<>`/`!=`, `BETWEEN a AND b` (inclusive), `IN (...)`, `LIKE 'A%'` (`%` any run of characters, `_` one character), `IS NULL` / `IS NOT NULL` (never `= NULL`).
-- `SELECT DISTINCT` removes duplicate rows; `ORDER BY col DESC`; `LIMIT 10 OFFSET 20` skips 20 rows then returns 10.
-- `CASE WHEN total > 100 THEN 'high' ELSE 'low' END` builds conditional columns.
+**`GROUP BY`: one result per group.** `GROUP BY region` splits the rows into one group per region, and the aggregate is worked out separately for each group.
 
-The filters, `NULL` checks, paging and `CASE` in action:
+```python
+import sqlite3
+
+con = sqlite3.connect(":memory:")
+con.executescript("""
+CREATE TABLE sales (region TEXT, amount REAL);
+INSERT INTO sales VALUES ('EU', 100), ('EU', 40), ('US', 30), ('US', 20);
+""")
+
+print(con.execute("SELECT region, SUM(amount) FROM sales GROUP BY region").fetchall())
+```
+
+```text
+[('EU', 140.0), ('US', 50.0)]
+```
+
+Every column in the `SELECT` that isn't inside an aggregate (here `region`) must also be in `GROUP BY`. SQLite lets you break this rule; most databases don't.
+
+**`WHERE` versus `HAVING`.** Both filter, but at different moments. `WHERE` removes **rows before** they are grouped. `HAVING` removes **groups after** the totals are worked out, so it is the one that can use `SUM(...)` or `COUNT(...)`.
+
+```python
+import sqlite3
+
+con = sqlite3.connect(":memory:")
+con.executescript("""
+CREATE TABLE sales (region TEXT, amount REAL);
+INSERT INTO sales VALUES ('EU', 100), ('EU', 40), ('US', 30), ('US', 20);
+""")
+
+# WHERE: drop small sales first, then total what's left
+print(con.execute("""
+    SELECT region, SUM(amount) FROM sales
+    WHERE amount > 25
+    GROUP BY region
+""").fetchall())
+
+# HAVING: total everything, then drop small groups
+print(con.execute("""
+    SELECT region, SUM(amount) FROM sales
+    GROUP BY region
+    HAVING SUM(amount) > 100
+""").fetchall())
+```
+
+```text
+[('EU', 140.0), ('US', 30.0)]
+[('EU', 140.0)]
+```
+
+In the first query the US sale of 20 is removed before grouping, so the US total is 30. In the second, all sales are totalled (EU 140, US 50), then the US group is dropped because 50 is not over 100.
+
+**Filtering rows.** The everyday `WHERE` conditions, on one small table:
 
 ```python
 import sqlite3
@@ -1151,30 +1666,92 @@ INSERT INTO products VALUES ('Apple', 1.2), ('Avocado', 2.5), ('Bread', 3.0),
                             ('Cake', 12.0), ('Milk', NULL);
 """)
 
-def show(sql):
-    print(con.execute(sql).fetchall())
+def names(sql):
+    return [row[0] for row in con.execute(sql)]
 
-show("SELECT name FROM products WHERE price BETWEEN 1.2 AND 3")     # both ends included
-show("SELECT name FROM products WHERE name LIKE 'A%'")
-show("SELECT name FROM products WHERE name IN ('Cake', 'Milk')")
-show("SELECT name FROM products WHERE price = NULL")                # matches nothing
-show("SELECT name FROM products WHERE price IS NULL")
-show("SELECT name FROM products ORDER BY price DESC LIMIT 2 OFFSET 1")
-show("""SELECT name, CASE WHEN price > 10 THEN 'high' ELSE 'low' END
-        FROM products WHERE price IS NOT NULL""")
+print(names("SELECT name FROM products WHERE price BETWEEN 1.2 AND 3"))
+print(names("SELECT name FROM products WHERE name LIKE 'A%'"))
+print(names("SELECT name FROM products WHERE name IN ('Cake', 'Milk')"))
+print(names("SELECT name FROM products WHERE price <> 3"))
 ```
 
 ```text
-[('Apple',), ('Avocado',), ('Bread',)]
-[('Apple',), ('Avocado',)]
-[('Cake',), ('Milk',)]
-[]
-[('Milk',)]
-[('Bread',), ('Avocado',)]
-[('Apple', 'low'), ('Avocado', 'low'), ('Bread', 'low'), ('Cake', 'high')]
+['Apple', 'Avocado', 'Bread']
+['Apple', 'Avocado']
+['Cake', 'Milk']
+['Apple', 'Avocado', 'Cake']
 ```
 
-`ORDER BY price DESC` puts Cake first and Milk (`NULL`) last; `OFFSET 1` skips Cake and `LIMIT 2` keeps the next two.
+- `BETWEEN 1.2 AND 3` includes both ends, so Apple (1.2) and Bread (3.0) are in.
+- `LIKE 'A%'`: `%` stands for any run of characters, so this means "starts with A". `_` stands for exactly one character.
+- `IN (...)` matches any value in the list.
+- `<>` (or `!=`) means "not equal". Milk isn't in that result even though its price isn't 3, which leads to the next point.
+
+**`NULL` needs `IS NULL`.** `NULL` means "unknown", and comparing anything with an unknown value gives "unknown", which `WHERE` treats as false. So `= NULL` never matches, and neither does `<>` on a `NULL` row. Use `IS NULL` and `IS NOT NULL`.
+
+```python
+import sqlite3
+
+con = sqlite3.connect(":memory:")
+con.executescript("""
+CREATE TABLE products (name TEXT, price REAL);
+INSERT INTO products VALUES ('Apple', 1.2), ('Milk', NULL);
+""")
+
+print(con.execute("SELECT name FROM products WHERE price = NULL").fetchall())
+print(con.execute("SELECT name FROM products WHERE price IS NULL").fetchall())
+```
+
+```text
+[]
+[('Milk',)]
+```
+
+**Sorting, removing duplicates and paging.** `ORDER BY col` sorts (add `DESC` for largest first). `SELECT DISTINCT` drops repeated rows. `LIMIT n` keeps only the first n rows, and `OFFSET m` skips m rows before that.
+
+```python
+import sqlite3
+
+con = sqlite3.connect(":memory:")
+con.executescript("""
+CREATE TABLE products (name TEXT, category TEXT, price REAL);
+INSERT INTO products VALUES ('Apple', 'fruit', 1.2), ('Avocado', 'fruit', 2.5),
+                            ('Bread', 'bakery', 3.0), ('Cake', 'bakery', 12.0);
+""")
+
+print(con.execute("SELECT name FROM products ORDER BY price DESC").fetchall())
+print(con.execute("SELECT name FROM products ORDER BY price DESC LIMIT 2 OFFSET 1").fetchall())
+print(con.execute("SELECT DISTINCT category FROM products").fetchall())
+```
+
+```text
+[('Cake',), ('Bread',), ('Avocado',), ('Apple',)]
+[('Bread',), ('Avocado',)]
+[('fruit',), ('bakery',)]
+```
+
+`OFFSET 1` skipped the most expensive item (Cake), then `LIMIT 2` kept the next two.
+
+**`CASE`: a column built from conditions.** `CASE WHEN condition THEN value ELSE other END` works like an if/else for each row.
+
+```python
+import sqlite3
+
+con = sqlite3.connect(":memory:")
+con.executescript("""
+CREATE TABLE products (name TEXT, price REAL);
+INSERT INTO products VALUES ('Apple', 1.2), ('Bread', 3.0), ('Cake', 12.0);
+""")
+
+print(con.execute("""
+    SELECT name, CASE WHEN price > 10 THEN 'high' ELSE 'low' END
+    FROM products
+""").fetchall())
+```
+
+```text
+[('Apple', 'low'), ('Bread', 'low'), ('Cake', 'high')]
+```
 
 ### Exam traps
 
@@ -1197,35 +1774,102 @@ show("""SELECT name, CASE WHEN price > 10 THEN 'high' ELSE 'low' END
 | Update | `UPDATE` | `UPDATE products SET price = 2.75 WHERE name = 'Tea';` |
 | Delete | `DELETE` | `DELETE FROM products WHERE price IS NULL;` |
 
-- `UPDATE` or `DELETE` **without** `WHERE` changes or removes **every** row. Run the matching `SELECT` first to see what will be affected.
-- `DELETE FROM t` empties a table but keeps it; `DROP TABLE t` removes the table itself (structure and data).
-- `CREATE TABLE`, `ALTER TABLE` and `DROP TABLE` are data *definition* statements (DDL); CRUD's "Create" is about rows (`INSERT`).
-- Inserting several rows: `INSERT INTO t (a, b) VALUES (1, 'x'), (2, 'y');` or, from Python, `executemany`.
-- In Python's `sqlite3`, `INSERT`, `UPDATE` and `DELETE` run inside a transaction that you must `commit()`; closing without committing discards them.
+Here are the four operations one at a time, on a small `products` table. The examples run the SQL from Python with `sqlite3` (see 2.4.3), and `fetchall()` returns the rows as a list of tuples.
 
-All four operations, an `UPDATE` without `WHERE`, and `DELETE` versus `DROP`:
+**Create: `INSERT`.** Adds new rows. You can add several in one statement by separating them with commas.
 
 ```python
 import sqlite3
 
 con = sqlite3.connect(":memory:")
 con.execute("CREATE TABLE products (name TEXT, price REAL)")
-con.execute("INSERT INTO products (name, price) VALUES ('Tea', 2.5), ('Jam', 4.0)")   # Create
-con.commit()
-print(con.execute("SELECT * FROM products").fetchall())                               # Read
+con.execute("INSERT INTO products (name, price) VALUES ('Tea', 2.5), ('Jam', 4.0)")
+print(con.execute("SELECT * FROM products").fetchall())
+```
 
-con.execute("UPDATE products SET price = 2.75 WHERE name = 'Tea'")                    # Update one row
+```text
+[('Tea', 2.5), ('Jam', 4.0)]
+```
+
+**Read: `SELECT`.** Returns rows, optionally filtered with `WHERE`. It never changes the data.
+
+```python
+import sqlite3
+
+con = sqlite3.connect(":memory:")
+con.execute("CREATE TABLE products (name TEXT, price REAL)")
+con.execute("INSERT INTO products VALUES ('Tea', 2.5), ('Jam', 4.0)")
+print(con.execute("SELECT name FROM products WHERE price < 3").fetchall())
+```
+
+```text
+[('Tea',)]
+```
+
+**Update: `UPDATE ... SET ... WHERE`.** Changes values in the rows that match the `WHERE`.
+
+```python
+import sqlite3
+
+con = sqlite3.connect(":memory:")
+con.execute("CREATE TABLE products (name TEXT, price REAL)")
+con.execute("INSERT INTO products VALUES ('Tea', 2.5), ('Jam', 4.0)")
+
+con.execute("UPDATE products SET price = 2.75 WHERE name = 'Tea'")
+print(con.execute("SELECT * FROM products").fetchall())
+```
+
+```text
+[('Tea', 2.75), ('Jam', 4.0)]
+```
+
+**Forgetting `WHERE` changes every row.** With no `WHERE`, `UPDATE` and `DELETE` apply to the whole table. A safe habit: run a `SELECT` with the same `WHERE` first to see which rows will be affected.
+
+```python
+import sqlite3
+
+con = sqlite3.connect(":memory:")
+con.execute("CREATE TABLE products (name TEXT, price REAL)")
+con.execute("INSERT INTO products VALUES ('Tea', 2.5), ('Jam', 4.0)")
+
+con.execute("UPDATE products SET price = 0")      # no WHERE
+print(con.execute("SELECT * FROM products").fetchall())
+```
+
+```text
+[('Tea', 0.0), ('Jam', 0.0)]
+```
+
+**Delete: `DELETE FROM ... WHERE`.** Removes the matching rows. `DELETE FROM products` with no `WHERE` removes every row but keeps the (now empty) table.
+
+```python
+import sqlite3
+
+con = sqlite3.connect(":memory:")
+con.execute("CREATE TABLE products (name TEXT, price REAL)")
+con.execute("INSERT INTO products VALUES ('Tea', 2.5), ('Jam', 4.0)")
+
+con.execute("DELETE FROM products WHERE name = 'Jam'")
 print(con.execute("SELECT * FROM products").fetchall())
 
-con.execute("UPDATE products SET price = 0")                                          # no WHERE: every row
+con.execute("DELETE FROM products")               # every row
 print(con.execute("SELECT * FROM products").fetchall())
-con.rollback()                                                                        # undo since last commit
-print(con.execute("SELECT * FROM products").fetchall())
+```
 
-con.execute("DELETE FROM products WHERE name = 'Jam'")                                # Delete
-con.execute("DELETE FROM products")                                                   # all rows; table stays
-print(con.execute("SELECT COUNT(*) FROM products").fetchone())
-con.execute("DROP TABLE products")                                                    # table gone
+```text
+[('Tea', 2.5)]
+[]
+```
+
+**`DELETE` versus `DROP`.** `DELETE` removes rows; the table is still there. `DROP TABLE` removes the table itself, structure and all, so any later query on it fails.
+
+```python
+import sqlite3
+
+con = sqlite3.connect(":memory:")
+con.execute("CREATE TABLE products (name TEXT, price REAL)")
+con.execute("DROP TABLE products")
+
 try:
     con.execute("SELECT * FROM products")
 except sqlite3.OperationalError as e:
@@ -1233,15 +1877,31 @@ except sqlite3.OperationalError as e:
 ```
 
 ```text
-[('Tea', 2.5), ('Jam', 4.0)]
-[('Tea', 2.75), ('Jam', 4.0)]
-[('Tea', 0.0), ('Jam', 0.0)]
-[('Tea', 2.5), ('Jam', 4.0)]
-(0,)
 OperationalError: no such table: products
 ```
 
-The unfiltered `UPDATE` set every price to 0; `rollback()` undid it because nothing had been committed since the insert.
+`CREATE TABLE`, `ALTER TABLE` and `DROP TABLE` change the table's structure (they are called DDL, data definition language). The "Create" in CRUD means adding **rows** with `INSERT`, not creating tables.
+
+**Saving changes: `commit()`.** In Python's `sqlite3`, `INSERT`, `UPDATE` and `DELETE` are held in a pending **transaction** until you call `con.commit()`. Until then, `con.rollback()` undoes them, and closing the connection without committing throws them away.
+
+```python
+import sqlite3
+
+con = sqlite3.connect(":memory:")
+con.execute("CREATE TABLE products (name TEXT, price REAL)")
+con.execute("INSERT INTO products VALUES ('Tea', 2.5)")
+con.commit()                                      # the insert is now saved
+
+con.execute("UPDATE products SET price = 0")      # oops: no WHERE
+con.rollback()                                    # undo everything since the last commit
+print(con.execute("SELECT * FROM products").fetchall())
+```
+
+```text
+[('Tea', 2.5)]
+```
+
+To insert many rows from Python, use `executemany` with placeholders (section 2.4.4).
 
 ### Exam traps
 
@@ -1273,13 +1933,77 @@ con.close()
 (3,)
 ```
 
-- `connect()` → `cursor()` → `execute()` → `fetchone()` / `fetchall()` / `fetchmany(n)` → `commit()` → `close()`.
-- `fetchone()` returns one tuple (or `None` when no rows are left); `fetchall()` returns a list of tuples.
-- `with sqlite3.connect(path) as con:` commits on success and rolls back on an exception, but it does **not** close the connection.
-- `con.row_factory = sqlite3.Row` lets you read columns by name (`row["region"]`).
-- pandas: `pd.read_sql_query("SELECT ...", con)` returns a DataFrame; `df.to_sql("table", con, if_exists="append", index=False)` writes one.
+The example above does the whole job in one go. Here are the steps one at a time.
 
-Fetching rows one at a time, reading columns by name, and pandas:
+**1. Connect.** `sqlite3.connect()` opens a database file and returns a **connection**. `":memory:"` makes a temporary database that exists only while the program runs, which is handy for examples. A real file path creates the file if it doesn't exist yet.
+
+**2. Run SQL with `execute`.** `execute` runs one SQL statement. Calling it on the connection is a shortcut that creates a **cursor** for you; a cursor is the object that runs queries and holds their results.
+
+**3. Fetch the results.** After a `SELECT`, the cursor holds the result rows. Each row comes back as a tuple.
+
+- `fetchone()` gives the next row, or `None` when there are no rows left.
+- `fetchall()` gives all remaining rows as a list.
+- `fetchmany(n)` gives up to n rows.
+
+```python
+import sqlite3
+
+con = sqlite3.connect(":memory:")
+con.execute("CREATE TABLE sales (region TEXT, amount REAL)")
+con.execute("INSERT INTO sales VALUES ('EU', 120.0), ('US', 80.0)")
+
+cur = con.execute("SELECT region, amount FROM sales ORDER BY region")
+print(cur.fetchone())      # first row
+print(cur.fetchone())      # second row
+print(cur.fetchone())      # nothing left
+```
+
+```text
+('EU', 120.0)
+('US', 80.0)
+None
+```
+
+**4. Commit, then close.** `con.commit()` saves inserts, updates and deletes (see 2.4.2); `con.close()` closes the connection when you're done.
+
+**`with` commits, but doesn't close.** `with sqlite3.connect(path) as con:` commits automatically if the block succeeds, and rolls back if it raises an error. It does **not** close the connection, so you still call `con.close()` afterwards.
+
+```python
+import sqlite3
+
+con = sqlite3.connect(":memory:")
+con.execute("CREATE TABLE sales (region TEXT, amount REAL)")
+
+with con:                                              # commits at the end of the block
+    con.execute("INSERT INTO sales VALUES ('EU', 120.0)")
+
+print(con.execute("SELECT COUNT(*) FROM sales").fetchone())   # still open: this works
+con.close()
+```
+
+```text
+(1,)
+```
+
+**Reading columns by name.** Set `con.row_factory = sqlite3.Row` and each row can be read like a dict, by column name, instead of by position.
+
+```python
+import sqlite3
+
+con = sqlite3.connect(":memory:")
+con.row_factory = sqlite3.Row
+con.execute("CREATE TABLE sales (region TEXT, amount REAL)")
+con.execute("INSERT INTO sales VALUES ('EU', 120.0)")
+
+row = con.execute("SELECT region, amount FROM sales").fetchone()
+print(row["region"], row["amount"])
+```
+
+```text
+EU 120.0
+```
+
+**Straight into pandas.** `pd.read_sql_query(sql, con)` runs a query and returns the result as a DataFrame. Going the other way, `df.to_sql("table", con, if_exists="append", index=False)` writes a DataFrame into a table.
 
 ```python
 import sqlite3
@@ -1287,37 +2011,22 @@ import pandas as pd
 
 con = sqlite3.connect(":memory:")
 con.execute("CREATE TABLE sales (region TEXT, amount REAL)")
-con.executemany("INSERT INTO sales VALUES (?, ?)", [("EU", 120.0), ("US", 80.0)])
+con.execute("INSERT INTO sales VALUES ('EU', 120.0), ('US', 80.0)")
 
-cur = con.execute("SELECT region, amount FROM sales ORDER BY region")
-print(cur.fetchone())         # first row
-print(cur.fetchone())         # next row
-print(cur.fetchone())         # no rows left -> None
-
-con.row_factory = sqlite3.Row
-row = con.execute("SELECT region, amount FROM sales").fetchone()
-print(row["region"], row["amount"])
-
-print(pd.read_sql_query("SELECT region, amount FROM sales", con))
-
-with con:                     # commits this block (or rolls back on error)...
-    con.execute("INSERT INTO sales VALUES ('ASIA', 50.0)")
-print(con.execute("SELECT COUNT(*) FROM sales").fetchone()[0])   # ...but the connection is still open
-con.close()
+df = pd.read_sql_query("SELECT region, amount FROM sales", con)
+print(df)
 ```
 
 ```text
-('EU', 120.0)
-('US', 80.0)
-None
-EU 120.0
   region  amount
 0     EU   120.0
 1     US    80.0
-3
 ```
 
+**MySQL with `pymysql`.** Connecting to a MySQL server works the same way, but you give the server's address and your login instead of a file path. Keep the password out of the code, for example in an environment variable. pymysql uses `%s` as its placeholder where sqlite3 uses `?`. (This example needs a running MySQL server, so its output isn't shown.)
+
 ```python
+import os
 import pymysql
 
 con = pymysql.connect(host="db.example.com", port=3306, user="analyst",
@@ -1410,46 +2119,98 @@ print(con.execute(f"SELECT role FROM users WHERE name = '{attack}'").fetchall())
 | `DATE` / `DATETIME` | `datetime.date` / `datetime.datetime` |
 | `BOOLEAN` (`TINYINT(1)`) | `int` (0 or 1) |
 
-- SQLite has no dedicated date or boolean type. Store dates as ISO 8601 `TEXT` (`'2025-07-15'`), which sorts correctly as text, and convert when reading (`datetime.date.fromisoformat`, `pd.to_datetime`, or `parse_dates=` in `read_sql_query`). Python `True`/`False` are stored as 1/0.
-- SQLite uses *type affinity*: a column declared `INTEGER` can still hold text. Validate types in Python before inserting.
-- A DataFrame integer column with a missing value becomes `float64`; use the nullable `"Int64"` dtype to keep integers.
-- Use `Decimal` (or integer cents) for money to avoid float rounding (`0.1 + 0.2`).
-
-What comes back from SQLite, and how to convert it:
+**What comes back from SQLite.** Each value you read back arrives as the matching Python type from the first table. Two surprises: SQLite has no date type and no true/false type.
 
 ```python
 import sqlite3
-import datetime
-import pandas as pd
 
 con = sqlite3.connect(":memory:")
 con.execute("CREATE TABLE t (qty INTEGER, price REAL, day TEXT, paid INTEGER, note TEXT)")
 con.execute("INSERT INTO t VALUES (?, ?, ?, ?, ?)", (3, 2.5, "2025-07-15", True, None))
-con.execute("INSERT INTO t VALUES (?, ?, ?, ?, ?)", (None, 4.0, "2025-07-16", False, "late"))
 
 row = con.execute("SELECT * FROM t").fetchone()
 print(row)
-print([type(v).__name__ for v in row])          # the date comes back as str, True as 1
-print(datetime.date.fromisoformat(row[2]) + datetime.timedelta(days=1))
-
-df = pd.read_sql_query("SELECT qty, day FROM t", con, parse_dates=["day"])
-print(df["qty"].dtype, df["day"].dt.day_name().tolist())   # NULL turns qty into float64; day is a real date
-print(df["qty"].astype("Int64").tolist())       # nullable integers keep whole numbers
-
-con.execute("INSERT INTO t (qty) VALUES ('three')")   # INTEGER column happily stores text
-print(con.execute("SELECT qty, typeof(qty) FROM t").fetchall())
+print([type(value).__name__ for value in row])
 ```
 
 ```text
 (3, 2.5, '2025-07-15', 1, None)
 ['int', 'float', 'str', 'int', 'NoneType']
-2025-07-16
-float64 ['Tuesday', 'Wednesday']
-[3, <NA>]
-[(3, 'integer'), (None, 'null'), ('three', 'text')]
 ```
 
-The date comes back as text and `True` as `1`, so convert before doing arithmetic. The last query shows type affinity: the `INTEGER` column accepted the text `'three'`.
+The date came back as a plain string, `True` came back as `1`, and `NULL` came back as `None`.
+
+**Dates are stored as text.** Store dates as ISO 8601 text (`'2025-07-15'`): year first, so sorting the text also sorts the dates. To do date arithmetic, convert the string back to a real date first.
+
+```python
+import datetime
+
+day = "2025-07-15"                            # what SQLite gave back
+real_date = datetime.date.fromisoformat(day)
+print(real_date + datetime.timedelta(days=1))
+
+try:
+    day + datetime.timedelta(days=1)          # can't add days to a string
+except TypeError as e:
+    print("TypeError:", e)
+```
+
+```text
+2025-07-16
+TypeError: can only concatenate str (not "datetime.timedelta") to str
+```
+
+In pandas, `pd.read_sql_query(..., parse_dates=["day"])` or `pd.to_datetime` does the conversion.
+
+**Missing values turn integer columns into floats.** pandas' standard integer type has no way to store "missing", so an integer column containing a `NULL` becomes `float64`, and `3` shows as `3.0`. The nullable `"Int64"` type (capital I) keeps whole numbers and shows the gap as `<NA>`.
+
+```python
+import sqlite3
+import pandas as pd
+
+con = sqlite3.connect(":memory:")
+con.execute("CREATE TABLE t (qty INTEGER)")
+con.execute("INSERT INTO t VALUES (3), (NULL)")
+
+df = pd.read_sql_query("SELECT qty FROM t", con)
+print(df["qty"].dtype, df["qty"].tolist())
+print(df["qty"].astype("Int64").tolist())
+```
+
+```text
+float64 [3.0, nan]
+[3, <NA>]
+```
+
+**SQLite doesn't enforce column types.** A column declared `INTEGER` will still accept text (this is called **type affinity**). Check your values in Python before inserting them. `typeof()` shows what was actually stored:
+
+```python
+import sqlite3
+
+con = sqlite3.connect(":memory:")
+con.execute("CREATE TABLE t (qty INTEGER)")
+con.execute("INSERT INTO t VALUES (3)")
+con.execute("INSERT INTO t VALUES ('three')")     # accepted, no error
+print(con.execute("SELECT qty, typeof(qty) FROM t").fetchall())
+```
+
+```text
+[(3, 'integer'), ('three', 'text')]
+```
+
+**Money: avoid floats.** Floats can't store most decimals exactly, so sums drift (`0.1 + 0.2` is `0.30000000000000004`). For money, use `decimal.Decimal`, which MySQL's `DECIMAL` type maps to, or store whole cents as integers.
+
+```python
+from decimal import Decimal
+
+print(0.1 + 0.2)
+print(Decimal("0.1") + Decimal("0.2"))
+```
+
+```text
+0.30000000000000004
+0.3
+```
 
 ### Exam traps
 

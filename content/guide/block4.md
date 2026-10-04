@@ -44,35 +44,91 @@ print(df.sort_values("sales", ascending=False, na_position="last")["sales"].toli
 | Sort | `sort_values(by, ascending)`, `sort_index()`, `nlargest(n, col)` |
 | Columns | `rename(columns={...})`, `drop(columns=[...])` |
 
-- Methods return a **new** object; the original is unchanged unless you assign the result back. With `inplace=True` they modify in place and return **`None`**.
-- `dropna()` with no arguments drops a row if **any** column is missing.
-- `drop_duplicates()` compares whole rows; pass `subset=` to compare only some columns.
-- To change values that match a condition, use `df.loc[mask, "col"] = value`. Chained assignment such as `df[df["a"] > 0]["b"] = 1` modifies a temporary copy; under pandas 3's copy-on-write it never changes `df`.
-
-Assigning back, `inplace=True`, `subset=` and a `.loc` update:
+**Methods give you a new DataFrame.** Methods like `dropna`, `fillna`, `drop_duplicates` and `sort_values` don't change your DataFrame. They return a changed **copy**, and you have to store it, usually back in the same name.
 
 ```python
 import pandas as pd
 
-df = pd.DataFrame({"name": ["Ana", "Ana", "Ben"], "city": ["Oslo", "Rome", "Oslo"],
-                   "sales": [10, 20, -5]})
+df = pd.DataFrame({"name": ["Ana", "Ana", "Ben"], "sales": [10, 10, 5]})
 
-df.drop_duplicates(subset=["name"])         # result not assigned: df is unchanged
+df.drop_duplicates()              # the result is thrown away
+print(len(df))                    # still 3 rows
+
+df = df.drop_duplicates()         # store the result
 print(len(df))
-result = df.drop_duplicates(subset=["name"], inplace=True)
-print(result, len(df))                      # inplace=True changed df and returned None
-
-df.loc[df["sales"] < 0, "sales"] = 0        # conditional update with .loc
-print(df["sales"].tolist())
 ```
 
 ```text
 3
-None 2
-[10, 0]
+2
 ```
 
-The first `drop_duplicates` returned a new DataFrame that was thrown away, so `df` still had 3 rows. With `inplace=True` the method changed `df` and returned `None`.
+**`inplace=True` returns `None`.** With `inplace=True`, the method changes the DataFrame itself and returns `None`. Never combine it with `df = ...`, or you replace your data with `None`.
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"name": ["Ana", "Ana", "Ben"], "sales": [10, 10, 5]})
+
+result = df.drop_duplicates(inplace=True)
+print(result)                     # None
+print(len(df))                    # df itself was changed
+```
+
+```text
+None
+2
+```
+
+**`dropna()` drops a row if any value is missing.** With no arguments it removes every row that has a `NaN` in **any** column. `subset=` limits the check to the columns you name.
+
+```python
+import numpy as np
+import pandas as pd
+
+df = pd.DataFrame({"city": ["Oslo", None, "Rome"], "sales": [10, 20, np.nan]})
+
+print(len(df.dropna()))                     # rows 1 and 2 both have a gap
+print(len(df.dropna(subset=["sales"])))     # only row 2 is missing sales
+```
+
+```text
+1
+2
+```
+
+**`drop_duplicates()` compares whole rows.** Two rows count as duplicates only if **every** column matches. `subset=` compares only the columns you name.
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"name": ["Ana", "Ana", "Ben"], "city": ["Oslo", "Rome", "Oslo"]})
+
+print(len(df.drop_duplicates()))                    # the Ana rows differ in city
+print(len(df.drop_duplicates(subset=["name"])))     # same name counts as a duplicate
+```
+
+```text
+3
+2
+```
+
+**Changing values that match a condition.** Use `df.loc[condition, "column"] = value`. The condition picks the rows; the column name picks what to change.
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"name": ["Ana", "Ben", "Cy"], "sales": [10, -5, 7]})
+
+df.loc[df["sales"] < 0, "sales"] = 0        # negative sales become 0
+print(df["sales"].tolist())
+```
+
+```text
+[10, 0, 7]
+```
+
+Don't write it as two separate selections, `df[df["sales"] < 0]["sales"] = 0`. The first part makes a temporary copy, so the change is made to the copy, not to `df`. Under pandas 3 it never changes `df`.
 
 ### Exam traps
 
@@ -171,31 +227,71 @@ Series DataFrame (2, 2) (2,)
 [13.5, 24.5]
 ```
 
-- Arithmetic between Series (or DataFrames) **aligns on the index**: labels present in only one side give `NaN`.
-- **Vectorized** operations (`s * 2`, `s.str.upper()`, `np.log(s)`) run in optimized C code and are much faster than Python loops or `apply` with a lambda.
-- The index labels rows: `set_index("id")` makes a column the index; `reset_index()` turns the index back into a column (`drop=True` discards it).
-- `axis=0` means "along the rows" (an aggregation per column); `axis=1` means "along the columns" (one result per row).
-- `.to_numpy()` returns the underlying values as a NumPy array, without the labels.
+**Arithmetic lines up labels, not positions.** When you add two Series, pandas pairs values with the **same index label**. A label that exists on only one side has nothing to pair with, so the result there is `NaN`. In the example above, `a` and `d` each appear on only one side.
 
-An index, a row as a Series, the two axes, and the raw values:
+**Vectorized operations.** Writing `s * 2` applies the operation to every value at once, with no loop. These operations run in fast compiled code, so they are much quicker than a Python `for` loop or `.apply()` with a `lambda`.
+
+```python
+import pandas as pd
+
+prices = pd.Series([2.5, 4.0, 3.0])
+print((prices * 2).tolist())                 # every value doubled
+print((prices > 3).tolist())                 # a True/False for every value
+
+names = pd.Series(["tea", "jam"])
+print(names.str.upper().tolist())            # every string uppercased
+```
+
+```text
+[5.0, 8.0, 6.0]
+[False, True, False]
+['TEA', 'JAM']
+```
+
+**The index labels the rows.** `set_index("id")` turns a column into the index, so you can look rows up by that value. `reset_index()` turns the index back into an ordinary column. A single row comes back as a Series, labelled by the column names.
 
 ```python
 import pandas as pd
 
 df = pd.DataFrame({"id": [101, 102], "q1": [5, 3], "q2": [7, 1]})
+
 df = df.set_index("id")
-print(df.loc[102].to_dict())                # one row comes back as a Series
-print(df.sum(axis=0).to_dict())             # down the rows: one total per column
-print(df.sum(axis=1).to_dict())             # across the columns: one total per row
-print(df.reset_index().columns.tolist())    # id is a column again
-print(df.to_numpy())
+print(df.loc[102].to_dict())                 # look up the row whose id is 102
+
+print(df.reset_index().columns.tolist())     # id is a normal column again
 ```
 
 ```text
 {'q1': 3, 'q2': 1}
-{'q1': 8, 'q2': 8}
-{101: 12, 102: 4}
 ['id', 'q1', 'q2']
+```
+
+**`axis=0` and `axis=1`.** `axis=0` works **down** the rows, giving one result per column. `axis=1` works **across** the columns, giving one result per row.
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"q1": [5, 3], "q2": [7, 1]}, index=["Ana", "Ben"])
+
+print(df.sum(axis=0).to_dict())    # total for each column
+print(df.sum(axis=1).to_dict())    # total for each row
+```
+
+```text
+{'q1': 8, 'q2': 8}
+{'Ana': 12, 'Ben': 4}
+```
+
+**Just the values: `.to_numpy()`.** `.to_numpy()` returns the data as a plain NumPy array, without the row and column labels.
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"q1": [5, 3], "q2": [7, 1]}, index=["Ana", "Ben"])
+print(df.to_numpy())
+```
+
+```text
 [[5 7]
  [3 1]]
 ```
@@ -238,38 +334,108 @@ print(df["qty"].tolist())
 [1, 4, 0, 7, 3]
 ```
 
-- `df.loc[rows, cols]` and `df.iloc[rows, cols]`: each part can be a single item, a list, a slice or (for `.loc`) a boolean mask.
-- `df.iloc[0]` is the first row as a Series; `df.iloc[:, 0]` is the first column; `df.iloc[-1]` is the last row.
-- `df.at[label, col]` and `df.iat[i, j]` get or set a single value quickly.
-- Plain brackets: `df["col"]` selects a column; `df[1:3]` slices **rows by position**; `df[mask]` filters rows.
-- With a default integer index (0, 1, 2…), `.loc[0:2]` returns **three** rows (labels 0, 1, 2) while `.iloc[0:2]` returns two.
-
-Inclusive `.loc`, exclusive `.iloc`, plain-bracket row slices, and a non-default index:
+**Rows and columns together.** Both `.loc` and `.iloc` take `[rows, columns]`. Each part can be one item, a list, or a slice (`start:end`). `.loc` can also take a True/False condition for the rows.
 
 ```python
 import pandas as pd
 
-df = pd.DataFrame({"v": [10, 20, 30, 40]})          # default index 0, 1, 2, 3
-print(df.loc[0:2, "v"].tolist())                    # labels 0 to 2: end included
-print(df.iloc[0:2, 0].tolist())                     # positions 0 and 1: end excluded
-print(df[1:3]["v"].tolist())                        # plain brackets with a slice: rows by position
-print(df.iat[3, 0], df.iloc[:, 0].tolist())
+df = pd.DataFrame({"price": [5, 8, 3], "qty": [1, 4, 2]}, index=["a", "b", "c"])
 
-s = pd.Series(["w", "x", "y", "z"], index=[3, 2, 1, 0])
-print(s.loc[1], s.iloc[1])                          # label 1 vs second position
+print(df.loc["b", "price"])                   # one row label, one column label
+print(df.loc[["a", "c"], "qty"].tolist())     # a list of row labels
+print(df.iloc[0, 1])                          # row 0, column 1 (by position)
+print(df.loc[df["qty"] > 1, "price"].tolist())   # rows where qty > 1
+```
+
+```text
+8
+[1, 2]
+1
+[8, 3]
+```
+
+**Whole rows and whole columns.** A bare `:` means "all". So `df.iloc[0]` is the first row, `df.iloc[:, 0]` is the first column, and `-1` counts from the end.
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"price": [5, 8, 3], "qty": [1, 4, 2]}, index=["a", "b", "c"])
+
+print(df.iloc[0].to_dict())          # first row
+print(df.iloc[:, 0].tolist())        # first column, all rows
+print(df.iloc[-1].to_dict())         # last row
+```
+
+```text
+{'price': 5, 'qty': 1}
+[5, 8, 3]
+{'price': 3, 'qty': 2}
+```
+
+**One value, quickly: `.at` and `.iat`.** `.at[row_label, column]` and `.iat[row_position, column_position]` get or set a single cell. They work like `.loc` and `.iloc` but only for one value, and they're faster.
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"price": [5, 8, 3]}, index=["a", "b", "c"])
+print(df.at["b", "price"], df.iat[2, 0])
+```
+
+```text
+8 3
+```
+
+**Plain brackets.** Without `.loc` or `.iloc`, square brackets do three different things depending on what you put inside:
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"price": [5, 8, 3, 9], "qty": [1, 4, 2, 7]})
+
+print(df["price"].tolist())          # a column name: that column
+print(df[1:3]["price"].tolist())     # a slice: rows by position (1 and 2)
+print(df[df["qty"] > 3]["price"].tolist())   # a condition: the matching rows
+```
+
+```text
+[5, 8, 3, 9]
+[8, 3]
+[8, 9]
+```
+
+**The default-index trap.** With the default index 0, 1, 2…, the labels and positions are the same numbers. But `.loc` includes the end label and `.iloc` doesn't, so the same-looking slice gives a different number of rows:
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"v": [10, 20, 30, 40]})     # index 0, 1, 2, 3
+
+print(df.loc[0:2, "v"].tolist())     # labels 0, 1 and 2: three rows
+print(df.iloc[0:2, 0].tolist())      # positions 0 and 1: two rows
 ```
 
 ```text
 [10, 20, 30]
 [10, 20]
-[20, 30]
-40 [10, 20, 30, 40]
-y x
 ```
 
-On the last line, `s.loc[1]` finds the label 1 (`"y"`), while `s.iloc[1]` takes the second item (`"x"`).
+**When labels and positions differ.** With a non-default index, `.loc` and `.iloc` can return completely different items for the same number:
 
-- Efficient indexing: set a meaningful index (for example an ID or a date) for fast label lookups and time slicing, keep it sorted, and use vectorized masks instead of loops.
+```python
+import pandas as pd
+
+s = pd.Series(["w", "x", "y", "z"], index=[3, 2, 1, 0])
+
+print(s.loc[1])      # the item labelled 1
+print(s.iloc[1])     # the item in position 1 (the second one)
+```
+
+```text
+y
+x
+```
+
+**Indexing for speed.** If you often look rows up by an ID or a date, make that column the index (`set_index`) and keep it sorted. Label lookups and date ranges are then fast. Prefer conditions like `df[df["qty"] > 3]` to looping over rows.
 
 ### Exam traps
 
@@ -355,45 +521,109 @@ US          1    2
 [0.71, 0.29, 0.44, 0.19, 0.38]
 ```
 
-- **Split-apply-combine**: `groupby` splits rows by key, applies a function to each group, and combines the results.
-- `agg` **reduces** each group to one row; `transform` returns a result the **same length** as the original (useful for group shares or group-mean imputation); `filter` keeps or drops whole groups.
-- Named aggregation: `agg(total=("amount", "sum"))` names the output columns.
-- Grouping by several keys gives a MultiIndex; `as_index=False` or `.reset_index()` flattens it.
-- `size()` counts rows per group (including NaN); `count()` counts non-null values per column.
+**How `groupby` works: split, apply, combine.** `groupby("region")` **splits** the rows into one group per region, **applies** a calculation to each group separately, then **combines** the answers into one result.
 
-`size` versus `count`, `filter`, and grouping by two keys:
+```python
+import pandas as pd
+
+df = pd.DataFrame({"region": ["EU", "EU", "US", "US", "US"],
+                   "amount": [100, 40, 70, 30, 60]})
+
+print(df.groupby("region")["amount"].sum())
+```
+
+```text
+region
+EU    140
+US    160
+Name: amount, dtype: int64
+```
+
+EU's rows (100 and 40) add up to 140; US's rows (70, 30 and 60) add up to 160.
+
+**`agg`: one row per group.** `agg` reduces each group to a single row. Named aggregation, `new_name=("column", "function")`, lets you choose the output column names.
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"region": ["EU", "EU", "US", "US", "US"],
+                   "amount": [100, 40, 70, 30, 60]})
+
+print(df.groupby("region").agg(total=("amount", "sum"), orders=("amount", "count")))
+```
+
+```text
+        total  orders
+region
+EU        140       2
+US        160       3
+```
+
+**`transform`: one value per original row.** `transform` works out the same group result but gives it back to **every row** of the group, so the result is as long as the original table. That makes it easy to compare each row with its group, for example as a share of the group total.
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"region": ["EU", "EU", "US", "US", "US"],
+                   "amount": [100, 40, 70, 30, 60]})
+
+df["region_total"] = df.groupby("region")["amount"].transform("sum")
+df["share"] = (df["amount"] / df["region_total"]).round(2)
+print(df)
+```
+
+```text
+  region  amount  region_total  share
+0     EU     100           140   0.71
+1     EU      40           140   0.29
+2     US      70           160   0.44
+3     US      30           160   0.19
+4     US      60           160   0.38
+```
+
+Every EU row gets 140, every US row gets 160, and each share is the row's amount divided by its group total.
+
+**`filter`: keep or drop whole groups.** `filter` runs a test on each group and keeps all its rows if the test is true. Here, only regions with more than 2 rows are kept:
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"region": ["EU", "EU", "US", "US", "US"],
+                   "amount": [100, 40, 70, 30, 60]})
+
+print(df.groupby("region").filter(lambda group: len(group) > 2))
+```
+
+```text
+  region  amount
+2     US      70
+3     US      30
+4     US      60
+```
+
+(`lambda group: len(group) > 2` is a small unnamed function: it takes a group and returns True or False.)
+
+**`size` versus `count`.** `size()` counts the **rows** in each group. `count()` counts only the values that **aren't missing**.
 
 ```python
 import numpy as np
 import pandas as pd
 
-df = pd.DataFrame({"region": ["EU", "EU", "US", "US", "US"],
-                   "channel": ["web", "shop", "web", "web", "shop"],
-                   "amount": [100, np.nan, 70, 30, 60]})
+df = pd.DataFrame({"region": ["EU", "EU", "US"],
+                   "amount": [100, np.nan, 70]})
 
-print(df.groupby("region").size().to_dict())                 # rows per group
-print(df.groupby("region")["amount"].count().to_dict())      # non-null values per group
-print(df.groupby("region").filter(lambda g: len(g) > 2)["region"].tolist())   # keep whole groups
-print(df.groupby(["region", "channel"], as_index=False)["amount"].sum())   # EU/shop is all NaN: sum 0
+print(df.groupby("region").size().to_dict())
+print(df.groupby("region")["amount"].count().to_dict())
 ```
 
 ```text
-{'EU': 2, 'US': 3}
-{'EU': 1, 'US': 3}
-['US', 'US', 'US']
-  region channel  amount
-0     EU    shop     0.0
-1     EU     web   100.0
-2     US    shop    60.0
-3     US     web   100.0
+{'EU': 2, 'US': 1}
+{'EU': 1, 'US': 1}
 ```
 
-EU has 2 rows but only 1 non-null amount. `filter` keeps the US rows because only that group has more than 2. `as_index=False` returns the keys as ordinary columns.
+EU has 2 rows, but only 1 of them has an amount.
 
-- `pd.crosstab(a, b)` counts combinations (a frequency table); `normalize=True` gives proportions; `margins=True` adds totals. `pivot_table` summarizes a value column with any aggregation.
-- `value_counts(normalize=True)` gives the share of each category.
-
-Totals, row shares, a pivot table and category shares:
+**Grouping by two columns.** Pass a list of columns to group by every combination. The result has a two-level index (a **MultiIndex**); `as_index=False` gives ordinary columns instead, which are easier to work with.
 
 ```python
 import pandas as pd
@@ -402,10 +632,27 @@ df = pd.DataFrame({"region": ["EU", "EU", "US", "US", "US"],
                    "channel": ["web", "shop", "web", "web", "shop"],
                    "amount": [100, 40, 70, 30, 60]})
 
+print(df.groupby(["region", "channel"], as_index=False)["amount"].sum())
+```
+
+```text
+  region channel  amount
+0     EU    shop      40
+1     EU     web     100
+2     US    shop      60
+3     US     web     100
+```
+
+**`crosstab`: counting combinations.** `pd.crosstab(a, b)` counts how many rows have each combination of two columns. `margins=True` adds row and column totals; `normalize="index"` turns each row into shares that add up to 1.
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"region": ["EU", "EU", "US", "US", "US"],
+                   "channel": ["web", "shop", "web", "web", "shop"]})
+
 print(pd.crosstab(df["region"], df["channel"], margins=True))
-print(pd.crosstab(df["region"], df["channel"], normalize="index").round(2))   # shares within each row
-print(pd.pivot_table(df, index="region", columns="channel", values="amount"))  # mean by default
-print(df["channel"].value_counts(normalize=True).to_dict())
+print(pd.crosstab(df["region"], df["channel"], normalize="index").round(2))
 ```
 
 ```text
@@ -418,27 +665,64 @@ channel  shop   web
 region
 EU       0.50  0.50
 US       0.33  0.67
-channel  shop    web
-region
-EU       40.0  100.0
-US       60.0   50.0
-{'web': 0.6, 'shop': 0.4}
 ```
 
-`normalize="index"` makes each row add up to 1. The pivot table shows the US web cell as 50.0, the **mean** of 70 and 30, not their sum.
+US had 3 orders: 2 web and 1 shop, so its shares are 0.67 and 0.33.
 
-- Trends over time: group by a date part (`df.groupby(df["date"].dt.to_period("M"))`) or `resample("ME")` on a datetime index, then compare periods with `pct_change()`.
-
-Monthly totals and the change from one month to the next:
+**`pivot_table`: summarizing a value.** `pivot_table` lays out the same kind of grid, but fills it with a calculation on a value column. Its default calculation is the **mean**; pass `aggfunc="sum"` for totals.
 
 ```python
 import pandas as pd
 
-sales = pd.DataFrame({"date": pd.to_datetime(["2025-01-05", "2025-01-20", "2025-02-11", "2025-03-02"]),
-                      "amount": [100, 50, 180, 135]})
+df = pd.DataFrame({"region": ["EU", "EU", "US", "US", "US"],
+                   "channel": ["web", "shop", "web", "web", "shop"],
+                   "amount": [100, 40, 70, 30, 60]})
+
+print(pd.pivot_table(df, index="region", columns="channel", values="amount"))
+print(pd.pivot_table(df, index="region", columns="channel", values="amount", aggfunc="sum"))
+```
+
+```text
+channel  shop    web
+region
+EU       40.0  100.0
+US       60.0   50.0
+channel  shop  web
+region
+EU         40  100
+US         60  100
+```
+
+The US web cell is 50 in the first table, the average of 70 and 30, and 100 in the second, their sum.
+
+**Shares of one column: `value_counts`.** `value_counts()` counts each value in a column; `normalize=True` gives shares instead.
+
+```python
+import pandas as pd
+
+channel = pd.Series(["web", "shop", "web", "web", "shop"])
+print(channel.value_counts().to_dict())
+print(channel.value_counts(normalize=True).to_dict())
+```
+
+```text
+{'web': 3, 'shop': 2}
+{'web': 0.6, 'shop': 0.4}
+```
+
+**Trends over time.** To compare periods, group by part of a date, such as the month (`.dt.to_period("M")`), then use `pct_change()` to get the change from one period to the next. (On a date index, `resample("ME")` does the same monthly grouping.)
+
+```python
+import pandas as pd
+
+sales = pd.DataFrame({
+    "date": pd.to_datetime(["2025-01-05", "2025-01-20", "2025-02-11", "2025-03-02"]),
+    "amount": [100, 50, 180, 135],
+})
+
 monthly = sales.groupby(sales["date"].dt.to_period("M"))["amount"].sum()
-print(monthly.tolist())                          # Jan, Feb, Mar
-print(monthly.pct_change().round(2).tolist())     # change vs the previous month
+print(monthly.tolist())                       # January, February, March
+print(monthly.pct_change().round(2).tolist())
 ```
 
 ```text
@@ -446,7 +730,7 @@ print(monthly.pct_change().round(2).tolist())     # change vs the previous month
 [nan, 0.2, -0.25]
 ```
 
-February is 20% up on January (180 vs 150) and March 25% down on February. The first month has nothing to compare with, so it is `NaN`.
+February (180) is 20% up on January (150), and March (135) is 25% down on February. January has no previous month, so its change is `NaN`.
 
 ### Exam traps
 
@@ -478,42 +762,96 @@ nan nan present
 {'count': 5.0, 'mean': 5.6, 'std': 2.97, 'min': 2.0, '25%': 3.0, '50%': 7.0, '75%': 7.0, 'max': 9.0}
 ```
 
-- pandas skips NaN by default (`skipna=True`); NumPy does not, so `np.mean` of data with NaN is `nan` (use `np.nanmean`, `np.nanstd`).
-- pandas `var()` and `std()` use ddof=1 (sample); NumPy uses ddof=0 (population) unless you pass `ddof=1`.
-- `mode()` returns a **Series**, because there can be several modes; take `[0]` for the first.
-- `describe()` gives count, mean, std, min, the quartiles (25%, 50% = median, 75%) and max for numeric columns; for text columns it gives count, unique, top and freq.
-- `quantile(0.9)`, `skew()`, `idxmax()`, `cumsum()`, `rolling(7).mean()` and `corr()` round out the toolkit.
+**Missing values: pandas skips them, NumPy doesn't.** pandas ignores `NaN` when it calculates (`skipna=True` is the default). NumPy doesn't, so a single `NaN` makes the whole result `nan`. NumPy's `nan` versions (`np.nanmean`, `np.nanstd`) skip them.
 
-Sample versus population spread, several modes, text columns and the rest of the toolkit:
+```python
+import numpy as np
+import pandas as pd
+
+values = [3, 7, np.nan]
+
+print(pd.Series(values).mean())    # skips the NaN: (3 + 7) / 2
+print(np.mean(values))             # the NaN spreads to the result
+print(np.nanmean(values))          # skips the NaN
+```
+
+```text
+5.0
+nan
+5.0
+```
+
+**Sample or population standard deviation.** pandas' `.std()` and `.var()` treat the data as a **sample** and divide by n − 1 (`ddof=1`). NumPy's `np.std` treats it as the whole **population** and divides by n (`ddof=0`). Same data, different answer, unless you pass `ddof` yourself.
 
 ```python
 import numpy as np
 import pandas as pd
 
 x = [2, 4, 4, 4, 5, 5, 7, 9]
-print(round(pd.Series(x).std(), 3), round(np.std(x), 3), round(np.std(x, ddof=1), 3))
 
-print(pd.Series([1, 1, 2, 2, 3]).mode().tolist())    # two modes
-
-names = pd.Series(["tea", "jam", "tea", "milk"])
-print(names.describe().to_dict())                    # text: count, unique, top, freq
-
-s = pd.Series([3, 8, 1, 9, 4], index=list("abcde"))
-print(s.quantile(0.5), s.idxmax(), s.cumsum().tolist())
-print(s.rolling(3).mean().round(2).tolist())                   # mean of each 3-value window
+print(round(pd.Series(x).std(), 3))     # divides by n - 1
+print(round(np.std(x), 3))              # divides by n
+print(round(np.std(x, ddof=1), 3))      # now matches pandas
 ```
 
 ```text
-2.138 2.0 2.138
+2.138
+2.0
+2.138
+```
+
+**`mode()` returns a Series.** A column can have more than one most common value, so `mode()` always returns a Series. Take `[0]` if you want just the first.
+
+```python
+import pandas as pd
+
+s = pd.Series([1, 1, 2, 2, 3])
+print(s.mode().tolist())      # 1 and 2 both appear twice
+print(s.mode()[0])
+```
+
+```text
 [1, 2]
+1
+```
+
+**`describe()` summarizes a column.** For numbers it gives count, mean, std, min, the quartiles (25%, 50% = the median, 75%) and max. For text it gives count, number of unique values, the most common value (`top`) and how often it appears (`freq`).
+
+```python
+import pandas as pd
+
+print(pd.Series([3, 7, 7, 2, 9]).describe().round(2).to_dict())
+print(pd.Series(["tea", "jam", "tea", "milk"]).describe().to_dict())
+```
+
+```text
+{'count': 5.0, 'mean': 5.6, 'std': 2.97, 'min': 2.0, '25%': 3.0, '50%': 7.0, '75%': 7.0, 'max': 9.0}
 {'count': 4, 'unique': 3, 'top': 'tea', 'freq': 2}
-4.0 d [3, 11, 12, 21, 25]
+```
+
+**More tools.** `quantile(0.9)` gives the value 90% of the data falls below. `idxmax()` gives the **label** of the largest value. `cumsum()` gives a running total. `rolling(3).mean()` gives the average of each window of 3 consecutive values.
+
+```python
+import pandas as pd
+
+s = pd.Series([3, 8, 1, 9, 4], index=["mon", "tue", "wed", "thu", "fri"])
+
+print(s.quantile(0.5))                          # the median
+print(s.idxmax())                               # the day with the largest value
+print(s.cumsum().tolist())                      # 3, 3+8, 3+8+1, ...
+print(s.rolling(3).mean().round(2).tolist())
+```
+
+```text
+4.0
+thu
+[3, 11, 12, 21, 25]
 [nan, nan, 4.0, 6.0, 4.67]
 ```
 
-The rolling mean needs three values, so the first two are `NaN`; the third is (3 + 8 + 1) / 3 = 4.
+The rolling mean needs 3 values, so the first two are `NaN`. The third is (3 + 8 + 1) / 3 = 4.
 
-- Interpret in context: a mean far above the median signals right skew; a large standard deviation relative to the mean signals high variability.
+**Reading the numbers.** A mean well above the median signals right skew (a few very large values). A standard deviation that is large compared with the mean signals widely spread data.
 
 ### Exam traps
 
@@ -533,12 +871,72 @@ A model is only useful if it **generalizes** to new data. Scoring it on the data
 | Validation set (or cross-validation) | Choosing features, models and hyperparameters |
 | Test set | One final, unbiased estimate, used once at the end |
 
-- Typical splits: 80/20 or 70/30. `train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)`.
-- **Representative**: `stratify=y` keeps class proportions (vital with imbalanced classes); random shuffling for independent rows; a time-based split for time series (train on the past, test on the future).
-- **k-fold cross-validation** (`cross_val_score(model, X, y, cv=5)`) rotates which part is held out, giving a more stable estimate when data are limited. It is used for model selection; keep a final test set apart if you can.
-- **Data leakage** makes test scores look better than reality: fitting scalers or imputers on all the data before splitting, duplicate records landing in both sets, features that contain the answer (a "cancellation date" when predicting churn), or future information in time series. Put preprocessing inside a scikit-learn `Pipeline` so it is fitted on training folds only.
+**Splitting the data.** `train_test_split` shuffles the rows and sets some aside as the test set. `test_size=0.2` keeps 20% for testing (80/20 and 70/30 are typical). `random_state` fixes the shuffle so you get the same split every time.
 
-Five-fold cross-validation with the scaler inside a pipeline, so each fold's scaler sees only that fold's training data:
+```python
+from sklearn.model_selection import train_test_split
+
+X = list(range(10))                       # 10 rows of data
+y = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1]        # their labels
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+print(len(X_train), len(X_test))
+```
+
+```text
+8 2
+```
+
+**A representative test set.** The test set should look like the data the model will meet in real life.
+
+- **Imbalanced classes:** pass `stratify=y` so the test set keeps the same class proportions. Without it, a rare class might barely appear, or not appear at all.
+- **Independent rows:** a random shuffle is fine.
+- **Time series:** don't shuffle. Train on the past and test on the later period, or the model gets to "see the future".
+
+```python
+from sklearn.model_selection import train_test_split
+
+X = list(range(50))
+y = [0] * 40 + [1] * 10                   # 20% of rows are class 1
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, stratify=y, random_state=0)
+print(len(y_test), sum(y_test))           # test rows, and how many are class 1
+```
+
+```text
+10 2
+```
+
+The 10 test rows keep the 20% share: 2 of them are class 1.
+
+**Cross-validation.** With little data, a single split can be lucky or unlucky. **k-fold cross-validation** splits the data into k parts (folds), then trains k times, each time testing on a different fold. The average of the k scores is a steadier estimate. It is used to compare and tune models; if you can, still keep a final test set aside.
+
+```python
+from sklearn.datasets import load_iris
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import cross_val_score
+
+X, y = load_iris(return_X_y=True)          # a small built-in dataset of flowers
+scores = cross_val_score(LogisticRegression(max_iter=1000), X, y, cv=5)
+
+print(scores.round(2))                     # one accuracy per fold
+print(round(scores.mean(), 2))             # the overall estimate
+```
+
+```text
+[0.97 1.   0.93 0.97 1.  ]
+0.97
+```
+
+**Data leakage.** Leakage is when information from the test data sneaks into training, so the test score looks better than the model really is. Common causes:
+
+- Fitting a scaler or imputer on **all** the data before splitting (see 1.2.3).
+- The same record appearing in both the training and test sets.
+- A feature that already contains the answer, such as a "cancellation date" when predicting whether a customer will cancel.
+- Future information in time-series data.
+
+**Pipelines prevent preprocessing leakage.** A `Pipeline` chains preprocessing and the model into one object. Inside cross-validation, the whole pipeline is refitted on each fold's training part, so the scaler never sees that fold's test part.
 
 ```python
 from sklearn.datasets import load_iris
@@ -548,18 +946,16 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
 X, y = load_iris(return_X_y=True)
-model = make_pipeline(StandardScaler(), LogisticRegression())   # scaler is refit inside each fold
-scores = cross_val_score(model, X, y, cv=5)
-print(scores.round(2), round(scores.mean(), 2))
+model = make_pipeline(StandardScaler(), LogisticRegression())   # scale, then classify
+
+print(cross_val_score(model, X, y, cv=5).mean().round(2))
 ```
 
 ```text
-[0.97 1.   0.93 0.9  1.  ] 0.96
+0.96
 ```
 
-Each number is the accuracy on one held-out fold; their mean is the estimate.
-
-- If you tune repeatedly against the test set, it quietly becomes a validation set and its score is no longer unbiased.
+**Use the test set once.** If you keep adjusting the model until the test score looks good, you are tuning to the test set. It then becomes a validation set, and its score is no longer an honest estimate.
 
 ### Exam traps
 
