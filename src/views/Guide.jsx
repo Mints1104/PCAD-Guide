@@ -322,6 +322,10 @@ function ObjectiveBlock({ chunk, block, revised, notesOpen, onNotes, onRevised, 
           )}
         </div>
       )}
+      <details class="full-notes" open={notesOpen} onToggle={(ev) => onNotes(ev.currentTarget.open)}>
+        <summary>Full notes</summary>
+        <div dangerouslySetInnerHTML={{ __html: html }} />
+      </details>
       <div class="objective-actions">
         <button class="btn btn-primary" onClick={onTry} disabled={count === 0}>
           Try 5 questions on {chunk.objective}
@@ -331,10 +335,6 @@ function ObjectiveBlock({ chunk, block, revised, notesOpen, onNotes, onRevised, 
           Mark {chunk.objective} as revised
         </label>
       </div>
-      <details class="full-notes" open={notesOpen} onToggle={(ev) => onNotes(ev.currentTarget.open)}>
-        <summary>Full notes</summary>
-        <div dangerouslySetInnerHTML={{ __html: html }} />
-      </details>
     </section>
   );
 }

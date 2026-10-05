@@ -1459,6 +1459,7 @@ pre {
   cursor: pointer;
 }
 .full-notes {
+  margin-bottom: 12px;
   padding: 10px 14px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
