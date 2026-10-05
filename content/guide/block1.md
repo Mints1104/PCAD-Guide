@@ -365,31 +365,6 @@ Label-encoding a nominal feature invents an order ("red" = 0 < "green" = 1 < "bl
 
 ### Core facts
 
-```python
-import pandas as pd
-
-df = pd.DataFrame({
-    "name": ["  Ana ", "BEN", "cara"],
-    "active": ["Yes", "n", "TRUE"],
-    "price": ["$1,200", "85", "n/a"],
-    "age": [23, 41, 67],
-})
-
-df["name"] = df["name"].str.strip().str.title()                 # 'Ana', 'Ben', 'Cara'
-df["active"] = df["active"].str.lower().map({"yes": True, "y": True, "true": True,
-                                              "no": False, "n": False, "false": False})
-df["price"] = pd.to_numeric(df["price"].str.replace(r"[$,]", "", regex=True), errors="coerce")
-df["age_band"] = pd.cut(df["age"], bins=[0, 30, 60, 120], labels=["young", "middle", "senior"])
-print(df)
-```
-
-```text
-   name  active   price  age age_band
-0   Ana    True  1200.0   23    young
-1   Ben   False    85.0   41   middle
-2  Cara    True     NaN   67   senior
-```
-
 **Cleaning text.** Adding `.str` to a column lets you call a string method on every value at once.
 
 ```python
@@ -513,6 +488,35 @@ print(pd.qcut(ages, q=3, labels=["low", "mid", "high"]).tolist())
 ```
 
 Six values in three groups: two in each.
+
+**Putting it together.** One small table with all of these problems at once: names with stray spaces and mixed case, yes/no written different ways, prices stored as text with symbols, and ages to put into bands.
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({
+    "name": ["  Ana ", "BEN", "cara"],
+    "active": ["Yes", "n", "TRUE"],
+    "price": ["$1,200", "85", "n/a"],
+    "age": [23, 41, 67],
+})
+
+df["name"] = df["name"].str.strip().str.title()
+df["active"] = df["active"].str.lower().map({"yes": True, "y": True, "true": True,
+                                              "no": False, "n": False, "false": False})
+df["price"] = pd.to_numeric(df["price"].str.replace(r"[$,]", "", regex=True), errors="coerce")
+df["age_band"] = pd.cut(df["age"], bins=[0, 30, 60, 120], labels=["young", "middle", "senior"])
+print(df)
+```
+
+```text
+   name  active   price  age age_band
+0   Ana    True  1200.0   23    young
+1   Ben   False    85.0   41   middle
+2  Cara    True     NaN   67   senior
+```
+
+The names are trimmed and capitalised, `active` holds real booleans, `"$1,200"` became the number 1200.0 once `$` and `,` were removed, `"n/a"` became `NaN`, and each age has a band.
 
 ### Exam traps
 
@@ -655,31 +659,139 @@ CSV details: a header row names the columns; a field containing the delimiter is
 
 ### Core facts
 
+**Loading data into pandas.** Each data source has a `read_` function that returns a DataFrame. These three lines show the usual sources (they need real files and a network, so there's no output here):
+
 ```python
 import pandas as pd
 import sqlite3
 
-local = pd.read_csv("data/sales.csv")                                   # local file (relative path)
-remote = pd.read_csv("https://example.org/open-data/air_quality.csv")   # online repository, straight from a URL
+local = pd.read_csv("data/sales.csv")                                   # a file on your computer
+remote = pd.read_csv("https://example.org/open-data/air_quality.csv")   # a file online, read straight from its URL
 with sqlite3.connect("shop.db") as con:
-    orders = pd.read_sql_query("SELECT * FROM orders WHERE total > 100", con)
+    orders = pd.read_sql_query("SELECT * FROM orders WHERE total > 100", con)   # a database query
 ```
+
+- `"data/sales.csv"` is a **relative path**: it is looked up starting from the folder the program runs in.
+- `read_csv` accepts a web address just like a file path.
+- `read_sql_query` runs a SQL query and returns the result as a DataFrame (section 2.4.3).
 
 Online repositories include government open-data portals, the UCI Machine Learning Repository, Kaggle and GitHub (use the "raw" file URL). Check the licence and the documentation (a data dictionary) before using a dataset.
 
-**First look.** `df.shape`, `df.head()`, `df.info()`, `df.describe()`, `df.columns`.
-
-**Organize.** Keep data *tidy*: each variable a column, each observation a row, each kind of observation its own table. Keep the raw file unchanged and write cleaned versions separately. Use consistent, lowercase column names.
-
-**Sort and filter.**
+**A first look.** Before doing anything with a new dataset, check its size, its columns and a few rows. The example below reads a small CSV from a string, which behaves exactly like reading a file:
 
 ```python
-df.sort_values("total", ascending=False)                  # largest first
-df.sort_values(["region", "total"], ascending=[True, False])
-df[df["total"] > 100]                                     # boolean mask
-df[(df["region"] == "EU") & (df["total"] > 100)]          # & and |, each condition in brackets
-df.query("region == 'EU' and total > 100")                 # same filter as a string
-df[df["region"].isin(["EU", "UK"])]
+import io
+import pandas as pd
+
+csv_text = """region,product,total
+EU,tea,120
+US,jam,80
+EU,jam,150
+UK,tea,60
+"""
+df = pd.read_csv(io.StringIO(csv_text))     # io.StringIO makes a string behave like a file
+
+print(df.shape)                  # (rows, columns)
+print(df.columns.tolist())
+print(df.head(2))                # the first 2 rows
+```
+
+```text
+(4, 3)
+['region', 'product', 'total']
+  region product  total
+0     EU     tea    120
+1     US     jam     80
+```
+
+`df.info()` lists each column with its type and how many values are missing, and `df.describe()` gives summary statistics (section 4.2.1).
+
+**Keep it organized.** Keep data **tidy**: each variable in its own column, each observation in its own row, and each kind of observation in its own table. Never change the raw file; save cleaned versions separately. Use consistent, lowercase column names.
+
+**Sorting.** `sort_values` sorts by a column; `ascending=False` puts the largest first. Give a list of columns to sort by one and then the next.
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"region": ["EU", "US", "EU", "UK"],
+                   "total": [120, 80, 150, 60]})
+
+print(df.sort_values("total", ascending=False))
+print(df.sort_values(["region", "total"], ascending=[True, False]))
+```
+
+```text
+  region  total
+2     EU    150
+0     EU    120
+1     US     80
+3     UK     60
+  region  total
+2     EU    150
+0     EU    120
+3     UK     60
+1     US     80
+```
+
+The second sort puts the regions in A–Z order, and within EU puts the larger total first. `sort_values` returns a new DataFrame; `df` itself is unchanged unless you assign the result back.
+
+**Filtering with a condition.** Put a condition in square brackets to keep only the rows where it is true. This is called a **boolean mask**: `df["total"] > 100` is a True/False for every row.
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"region": ["EU", "US", "EU", "UK"],
+                   "total": [120, 80, 150, 60]})
+
+print((df["total"] > 100).tolist())      # the mask
+print(df[df["total"] > 100])             # the rows where it is True
+```
+
+```text
+[True, False, True, False]
+  region  total
+0     EU    120
+2     EU    150
+```
+
+**Combining conditions.** Use `&` for "and", `|` for "or" and `~` for "not", and put **each condition in brackets**. Python's `and` and `or` don't work here.
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"region": ["EU", "US", "EU", "UK"],
+                   "total": [120, 80, 150, 60]})
+
+print(df[(df["region"] == "EU") & (df["total"] > 130)])
+print(df[(df["region"] == "US") | (df["region"] == "UK")])
+```
+
+```text
+  region  total
+2     EU    150
+  region  total
+1     US     80
+3     UK     60
+```
+
+**Two shortcuts.** `isin` checks against a list of values, and `query` lets you write the condition as a string:
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"region": ["EU", "US", "EU", "UK"],
+                   "total": [120, 80, 150, 60]})
+
+print(df[df["region"].isin(["US", "UK"])])
+print(df.query("region == 'EU' and total > 130"))     # inside query, "and" is allowed
+```
+
+```text
+  region  total
+1     US     80
+3     UK     60
+  region  total
+2     EU    150
 ```
 
 ### Exam traps

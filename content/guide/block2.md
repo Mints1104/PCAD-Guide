@@ -771,19 +771,99 @@ def median(values):
 
 ### Core facts
 
+**What importing does.** A **module** is a file of Python code that someone has already written, such as `math` for maths functions. `import` loads it so you can use what's inside. There are four ways to write an import, and they differ in what name you use afterwards.
+
+**1. Import the whole module.** You then write the module name, a dot, and the function.
+
 ```python
-import math                          # whole module: math.sqrt(16)
-import numpy as np                   # alias (np, pd, plt and sns are the conventions)
-from statistics import mean, median  # selective: use mean(...) directly
-from datetime import datetime as dt  # selective + alias
+import math
+
+print(math.sqrt(16))
+print(math.pi)
 ```
 
-- `from module import *` pulls every public name into your namespace; it hides where names come from and can overwrite your own names. PEP 8 discourages it.
-- **Standard library** modules ship with Python (`math`, `statistics`, `random`, `datetime`, `csv`, `json`, `sqlite3`, `re`, `os`, `pathlib`, `collections`): no install needed.
-- **Third-party** packages come from PyPI via pip (`numpy`, `pandas`, `requests`…). Importing one that isn't installed raises `ModuleNotFoundError`.
-- **Local modules** are your own `.py` files. `import cleaning` finds `cleaning.py` in the script's folder (or anywhere on `sys.path`). A folder with modules (optionally with `__init__.py`) is a package: `from utils.cleaning import fix_dates`.
-- A module's top-level code runs **once**, the first time it is imported; later imports reuse the cached module.
-- `if __name__ == "__main__":` guards code that should run only when the file is executed directly, not when it is imported.
+```text
+4.0
+3.141592653589793
+```
+
+**2. Import with an alias.** `as` gives the module a shorter name. The community uses standard aliases: `np` for NumPy, `pd` for pandas, `plt` for Matplotlib's pyplot and `sns` for Seaborn.
+
+```python
+import statistics as st
+
+print(st.mean([2, 4, 9]))
+```
+
+```text
+5
+```
+
+**3. Import only certain names.** `from module import name` brings in just those names, and you use them directly, without the module name in front.
+
+```python
+from statistics import mean, median
+
+print(mean([2, 4, 9]), median([2, 4, 9]))
+```
+
+```text
+5 4
+```
+
+With this style, the module name itself is **not** defined, only the names you imported:
+
+```python
+from math import sqrt
+
+print(sqrt(25))
+try:
+    math.sqrt(25)
+except NameError as e:
+    print("NameError:", e)
+```
+
+```text
+5.0
+NameError: name 'math' is not defined
+```
+
+**4. Import a name with an alias.** The two ideas combine: `from datetime import datetime as dt` imports `datetime` and calls it `dt`.
+
+**Avoid `import *`.** `from module import *` pulls in every public name at once. You can no longer tell where a name came from, and it can silently replace names of your own. PEP 8 advises against it.
+
+**Where modules come from.**
+
+- **Standard library**: modules that come with Python, so nothing needs installing. Examples: `math`, `statistics`, `random`, `datetime`, `csv`, `json`, `sqlite3`, `re`, `os`, `pathlib`, `collections`.
+- **Third-party packages**: written by others and installed with pip from PyPI, such as `numpy`, `pandas` and `requests`. Importing one that isn't installed raises `ModuleNotFoundError`.
+- **Your own modules**: any `.py` file you write. If `cleaning.py` sits next to your script, `import cleaning` loads it. A folder of modules is a **package**: `from utils.cleaning import fix_dates`.
+
+```python
+try:
+    import not_a_real_package
+except ModuleNotFoundError as e:
+    print("ModuleNotFoundError:", e)
+```
+
+```text
+ModuleNotFoundError: No module named 'not_a_real_package'
+```
+
+**A module runs once.** The first time a module is imported, Python runs all its top-level code. Importing it again reuses the loaded copy without running it again.
+
+**`if __name__ == "__main__":`.** Every module has a variable `__name__`. When you run a file directly, its `__name__` is `"__main__"`; when it is imported by another file, `__name__` is the module's own name. So code inside `if __name__ == "__main__":` runs when you run the file, but not when another file imports it. It's the usual place for code that tests or demonstrates the module.
+
+```python
+def clean(text):
+    return text.strip().lower()
+
+if __name__ == "__main__":          # true here, because this code is run directly
+    print(clean("  Hello "))
+```
+
+```text
+hello
+```
 
 **pip.**
 
@@ -811,6 +891,65 @@ Run pip inside a virtual environment (`python -m venv .venv`) so each project ke
 
 ### Core facts
 
+**What an exception is.** When something goes wrong while code runs, such as dividing by zero or turning `"abc"` into a number, Python **raises an exception**: it stops and prints an error. Exception handling lets your code catch that error and decide what to do instead of crashing.
+
+**`try` and `except`.** Put the code that might fail inside `try:`. If it raises an error, Python jumps straight to the matching `except` block. If nothing goes wrong, the `except` block is skipped.
+
+```python
+for text in ["42", "abc"]:
+    try:
+        number = int(text)
+        print("converted:", number)
+    except ValueError:
+        print("not a number:", text)
+```
+
+```text
+converted: 42
+not a number: abc
+```
+
+For `"abc"`, `int()` raised a `ValueError`, so the `print("converted:", ...)` line never ran. Python jumped to `except`.
+
+**`else`: runs only when nothing went wrong.** An `else` block after the `except` blocks runs only if the `try` block finished **without** an error. It keeps the "it worked" code apart from the code being protected.
+
+```python
+for text in ["42", "abc"]:
+    try:
+        number = int(text)
+    except ValueError:
+        print(text, "-> failed")
+    else:
+        print(text, "-> worked, doubled:", number * 2)
+```
+
+```text
+42 -> worked, doubled: 84
+abc -> failed
+```
+
+**`finally`: always runs.** A `finally` block runs at the end **whatever happened**: success, a caught error, or even a `return`. It is for clean-up that must always happen, such as closing a file or a database connection.
+
+```python
+for text in ["42", "abc"]:
+    try:
+        int(text)
+        print(text, "-> converted")
+    except ValueError:
+        print(text, "-> failed")
+    finally:
+        print("   finished with", text)
+```
+
+```text
+42 -> converted
+   finished with 42
+abc -> failed
+   finished with abc
+```
+
+**All four together.** This function divides two numbers. Follow the printed words to see which blocks ran for each call:
+
 ```python
 def safe_ratio(a, b):
     try:
@@ -818,14 +957,11 @@ def safe_ratio(a, b):
     except ZeroDivisionError:
         print("except")
         return None
-    except TypeError as e:
-        print("bad types:", e)
-        return None
     else:
-        print("else")          # runs only if no exception was raised
+        print("else")          # only if no error
         return result
     finally:
-        print("finally")       # always runs, even after return
+        print("finally")       # always, even after a return
 
 print(safe_ratio(6, 3))
 print(safe_ratio(1, 0))
@@ -839,6 +975,8 @@ except
 finally
 None
 ```
+
+`safe_ratio(6, 3)` worked, so `else` ran, then `finally`, and then the result 2.0 was printed. `safe_ratio(1, 0)` divided by zero, so `except` ran, then `finally`, and the function returned `None`. Notice that `finally` ran **before** each result was printed, even though `return` had already been reached.
 
 **The first matching `except` wins.** Python checks the `except` clauses from top to bottom and runs only the first one that matches. `Exception` matches almost every error, so if it comes first, the more specific clauses below it never get a chance.
 
@@ -1254,39 +1392,6 @@ The first line shows the name, the balance (changed by the setter), the "interna
 
 ### Core facts
 
-```python
-class Exporter:
-    def __init__(self, rows):
-        self.rows = rows
-
-    def export(self):
-        raise NotImplementedError
-
-    def describe(self):
-        return f"{type(self).__name__}: {self.export()}"
-
-class CsvExporter(Exporter):
-    def export(self):                              # overrides the parent method
-        return "\n".join(",".join(map(str, r)) for r in self.rows)
-
-class JsonExporter(Exporter):
-    def __init__(self, rows, indent=None):
-        super().__init__(rows)                     # reuse the parent's constructor
-        self.indent = indent
-
-    def export(self):
-        import json
-        return json.dumps(self.rows, indent=self.indent)
-
-for exporter in [CsvExporter([[1, 2]]), JsonExporter([[1, 2]])]:
-    print(exporter.describe())                     # same call, different behaviour
-```
-
-```text
-CsvExporter: 1,2
-JsonExporter: [[1, 2]]
-```
-
 **Inheritance ("is-a").** Writing `class Child(Parent)` makes `Child` a specialised kind of `Parent`. It gets every method the parent has without you writing them again.
 
 ```python
@@ -1368,7 +1473,7 @@ except AttributeError as e:
 AttributeError: 'Cat' object has no attribute 'name'
 ```
 
-**Polymorphism: one call, different behaviour.** Code can call the same method on different objects without checking what type each one is. Each object runs its own version. The `Exporter` example at the start of this section does this with `.export()`; here it is in its simplest form:
+**Polymorphism: one call, different behaviour.** Code can call the same method on different objects without checking what type each one is. Each object runs its own version. The example at the end of this section does the same with data exporters; here it is in its simplest form:
 
 ```python
 class Animal:
@@ -1440,6 +1545,52 @@ print(issubclass(Dog, Animal), issubclass(Animal, Dog))
 True True False
 True False
 ```
+
+**Putting it together.** A realistic use of all of this: one parent class, `Exporter`, and two subclasses that turn the same rows into different text formats.
+
+- `Exporter.export()` only raises `NotImplementedError`: the parent says "every exporter has an `export` method" but leaves the details to each subclass.
+- `describe()` is written **once**, in the parent. It calls `self.export()`, so it automatically uses whichever subclass's version belongs to the object.
+- `CsvExporter` **overrides** `export()` to produce comma-separated text.
+- `JsonExporter` adds its own `indent` setting, so its `__init__` calls `super().__init__(rows)` first to let the parent store the rows.
+
+```python
+import json
+
+class Exporter:
+    def __init__(self, rows):
+        self.rows = rows
+
+    def export(self):
+        raise NotImplementedError          # each subclass must supply its own
+
+    def describe(self):
+        return f"{type(self).__name__}: {self.export()}"
+
+class CsvExporter(Exporter):
+    def export(self):                      # overrides the parent method
+        lines = []
+        for row in self.rows:
+            lines.append(",".join(str(value) for value in row))
+        return "\n".join(lines)
+
+class JsonExporter(Exporter):
+    def __init__(self, rows, indent=None):
+        super().__init__(rows)             # let Exporter store the rows
+        self.indent = indent
+
+    def export(self):
+        return json.dumps(self.rows, indent=self.indent)
+
+for exporter in [CsvExporter([[1, 2]]), JsonExporter([[1, 2]])]:
+    print(exporter.describe())             # same call, different behaviour
+```
+
+```text
+CsvExporter: 1,2
+JsonExporter: [[1, 2]]
+```
+
+`type(self).__name__` is the name of the object's class, which is how `describe()` prints `CsvExporter` or `JsonExporter`. The loop calls the same method on both objects and gets a different format from each: that is polymorphism.
 
 ### Exam traps
 
@@ -1974,6 +2125,8 @@ To insert many rows from Python, use `executemany` with placeholders (section 2.
 
 ### Core facts
 
+Here is a complete round trip with Python's built-in `sqlite3` module: connect to a database, create a table, insert three rows, run a query, and close the connection. The steps after it go through each part.
+
 ```python
 import sqlite3
 
@@ -1993,8 +2146,6 @@ con.close()
 [('EU', 150.0), ('US', 80.0)]
 (3,)
 ```
-
-The example above does the whole job in one go. Here are the steps one at a time.
 
 **1. Connect.** `sqlite3.connect()` opens a database file and returns a **connection**. `":memory:"` makes a temporary database that exists only while the program runs, which is handy for examples. A real file path creates the file if it doesn't exist yet.
 
@@ -2122,34 +2273,107 @@ con.close()
 
 ### Core facts
 
+**The problem: building SQL from user input.** Programs often put a value typed by a user into a query, for example looking up a name. The tempting way is to paste the value into the SQL text with an f-string. That lets the **user's text become part of the SQL**, which is called **SQL injection**.
+
+Here is a normal lookup done the unsafe way. It works fine with an ordinary name:
+
 ```python
 import sqlite3
 
 con = sqlite3.connect(":memory:")
 con.execute("CREATE TABLE users (name TEXT, role TEXT)")
-con.executemany("INSERT INTO users VALUES (?, ?)", [("ana", "admin"), ("ben", "viewer")])
+con.execute("INSERT INTO users VALUES ('ana', 'admin'), ('ben', 'viewer')")
 
-name = "ben"
-print(con.execute("SELECT role FROM users WHERE name = ?", (name,)).fetchall())
-print(con.execute("SELECT role FROM users WHERE name = :n", {"n": "ana"}).fetchall())
-
-attack = "x' OR '1'='1"
-print(con.execute("SELECT role FROM users WHERE name = ?", (attack,)).fetchall())
-print(con.execute(f"SELECT role FROM users WHERE name = '{attack}'").fetchall())
+name = "ben"                                                    # typed by a user
+print(con.execute(f"SELECT role FROM users WHERE name = '{name}'").fetchall())
 ```
 
 ```text
 [('viewer',)]
-[('admin',)]
-[]
+```
+
+But a user can type something that changes the query itself:
+
+```python
+import sqlite3
+
+con = sqlite3.connect(":memory:")
+con.execute("CREATE TABLE users (name TEXT, role TEXT)")
+con.execute("INSERT INTO users VALUES ('ana', 'admin'), ('ben', 'viewer')")
+
+name = "x' OR '1'='1"                                           # a malicious "name"
+sql = f"SELECT role FROM users WHERE name = '{name}'"
+print(sql)
+print(con.execute(sql).fetchall())
+```
+
+```text
+SELECT role FROM users WHERE name = 'x' OR '1'='1'
 [('admin',), ('viewer',)]
 ```
 
-- Placeholders: `?` with a tuple or list (`(name,)`: note the comma in a one-item tuple), or `:name` with a dict. pymysql uses `%s` / `%(name)s`.
-- The driver sends the values **separately** from the SQL text, so a value can never change the query's structure. The last line above shows what string formatting allows: the injected `OR '1'='1'` returned every row.
-- Parameters also handle quoting (names like `O'Brien`), types and dates for you, and let the database reuse the query plan.
-- `executemany(sql, rows)` runs one parameterized statement for many rows.
-- Placeholders work for **values only**, not table or column names. If a user chooses a column, check it against a fixed allow-list.
+The quote in the "name" closed the string early, and `OR '1'='1'` (always true) was added to the condition, so the query returned **every** row.
+
+**The fix: placeholders.** Write `?` in the SQL where the value goes, and pass the value separately as a tuple. The database driver sends the SQL and the value **separately**, so the value is always treated as plain data, never as SQL.
+
+```python
+import sqlite3
+
+con = sqlite3.connect(":memory:")
+con.execute("CREATE TABLE users (name TEXT, role TEXT)")
+con.execute("INSERT INTO users VALUES ('ana', 'admin'), ('ben', 'viewer')")
+
+for name in ["ben", "x' OR '1'='1"]:
+    print(con.execute("SELECT role FROM users WHERE name = ?", (name,)).fetchall())
+```
+
+```text
+[('viewer',)]
+[]
+```
+
+The normal name still works. The attack now just looks for a user literally called `x' OR '1'='1`, finds nobody, and returns nothing.
+
+**The one-item tuple.** The values go in a tuple, even when there is only one. `(name,)` with a comma is a tuple; `(name)` without one is just `name`, and the call fails. A list, `[name]`, also works.
+
+**Named placeholders.** Instead of `?`, you can write `:name` in the SQL and pass a dict. This is easier to read when there are several values.
+
+```python
+import sqlite3
+
+con = sqlite3.connect(":memory:")
+con.execute("CREATE TABLE users (name TEXT, role TEXT)")
+con.execute("INSERT INTO users VALUES ('ana', 'admin'), ('ben', 'viewer')")
+
+print(con.execute("SELECT name FROM users WHERE role = :r", {"r": "admin"}).fetchall())
+```
+
+```text
+[('ana',)]
+```
+
+pymysql (for MySQL) uses `%s` and `%(name)s` instead of `?` and `:name`, but the idea is the same.
+
+**Many rows at once: `executemany`.** `executemany` runs the same statement once for each item in a list:
+
+```python
+import sqlite3
+
+con = sqlite3.connect(":memory:")
+con.execute("CREATE TABLE users (name TEXT, role TEXT)")
+
+new_users = [("cy", "viewer"), ("dee", "editor"), ("o'brien", "viewer")]
+con.executemany("INSERT INTO users VALUES (?, ?)", new_users)
+print(con.execute("SELECT * FROM users").fetchall())
+```
+
+```text
+[('cy', 'viewer'), ('dee', 'editor'), ("o'brien", 'viewer')]
+```
+
+`o'brien` went in without any trouble: placeholders also take care of quotes inside values, which would break an f-string query.
+
+**Values only.** Placeholders can stand in for **values**, not for table or column names. If a user picks which column to sort by, check their choice against a fixed list of allowed names before putting it in the SQL.
 
 ### Exam traps
 

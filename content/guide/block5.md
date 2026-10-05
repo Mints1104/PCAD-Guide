@@ -8,6 +8,15 @@ Block 5 is 5 items, 10.4% of the exam: building charts with Matplotlib and Seabo
 
 ### Core facts
 
+The example below builds a small sales table, then draws four different charts in one figure, arranged as a 2 × 2 grid. Charts are drawn on screen or saved as images, so there is no printed output. Here is what each part does:
+
+- `plt.subplots(2, 2)` creates the **figure** (the whole image) and a 2 × 2 grid of **Axes** (the individual chart areas). `axes[0, 0]` is the top-left chart, `axes[1, 1]` the bottom-right.
+- Top left: a **histogram** of sales, drawn with Matplotlib's `ax.hist`.
+- Top right: a **scatter plot** of visits against sales, with `alpha=0.7` making the dots slightly see-through.
+- Bottom left: a **box plot** of sales for each store, drawn with Seaborn. `ax=axes[1, 0]` tells Seaborn which chart area to draw in.
+- Bottom right: a **correlation heatmap**. `annot=True` writes each value in its cell, and `vmin=-1, vmax=1` fixes the colour scale to the full range of r.
+- `fig.tight_layout()` stops the four charts overlapping, and `fig.savefig` writes the image to a file.
+
 ```python
 import matplotlib.pyplot as plt
 import numpy as np
@@ -93,6 +102,16 @@ A chart is effective when it answers one question, the takeaway is visible withi
 **Syllabus asks:** add labels, titles and annotations for clarity and emphasis; use visual exploration to form hypotheses and support data-driven decisions; customize scatter plot colours; label axes and add titles; set legend properties (position, font size, background colour).
 
 ### Core facts
+
+The example below draws a line chart of monthly online and in-store sales, then adds everything that makes a chart readable. Charts produce an image rather than printed output. Here is what each line adds:
+
+- `ax.plot(..., label="Online")` draws a line with a dot at each month (`marker="o"`). The `label` is the name the legend will show.
+- `ax.set_title` adds a title that states the **finding** ("Online sales overtook in-store sales in May"), not just the topic.
+- `ax.set_xlabel` and `ax.set_ylabel` name both axes, with units.
+- `ax.annotate` writes "Spring campaign" with an arrow pointing at the May value. `xy` is the point being pointed at; `xytext` is where the text sits.
+- `ax.axhline(180, ...)` draws a dashed horizontal line across the chart at the target of 180.
+- `ax.legend(...)` shows the key, placed at the lower right with a title.
+- `ax.set_ylim(0, 240)` makes the y-axis start at 0, so the differences aren't exaggerated.
 
 ```python
 import matplotlib.pyplot as plt

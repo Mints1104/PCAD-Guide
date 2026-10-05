@@ -10,27 +10,7 @@ All examples here were run with pandas 3 and NumPy 2. Behaviour that differs fro
 
 ### Core facts
 
-```python
-import pandas as pd
-import numpy as np
-
-df = pd.DataFrame({
-    "city": ["Oslo", "oslo ", "Rome", "Rome", None],
-    "sales": [120, 120, np.nan, 90, 40],
-})
-df["city"] = df["city"].str.strip().str.title()
-print(df.isna().sum().to_dict())
-print(df.drop_duplicates().shape, df.dropna().shape, df.dropna(subset=["sales"]).shape)
-print(df.fillna({"city": "Unknown", "sales": 0})["sales"].tolist())
-print(df.sort_values("sales", ascending=False, na_position="last")["sales"].tolist())
-```
-
-```text
-{'city': 1, 'sales': 1}
-(4, 2) (3, 2) (4, 2)
-[120.0, 120.0, 0.0, 90.0, 40.0]
-[120.0, 120.0, 90.0, 40.0, nan]
-```
+The main cleaning tools at a glance:
 
 | Task | Method |
 |---|---|
@@ -130,6 +110,34 @@ print(df["sales"].tolist())
 
 Don't write it as two separate selections, `df[df["sales"] < 0]["sales"] = 0`. The first part makes a temporary copy, so the change is made to the copy, not to `df`. Under pandas 3 it never changes `df`.
 
+**Putting it together.** A small messy table cleaned step by step. `.shape` gives (rows, columns).
+
+```python
+import pandas as pd
+import numpy as np
+
+df = pd.DataFrame({
+    "city": ["Oslo", "oslo ", "Rome", "Rome", None],
+    "sales": [120, 120, np.nan, 90, 40],
+})
+df["city"] = df["city"].str.strip().str.title()
+print(df.isna().sum().to_dict())
+print(df.drop_duplicates().shape, df.dropna().shape, df.dropna(subset=["sales"]).shape)
+print(df.fillna({"city": "Unknown", "sales": 0})["sales"].tolist())
+print(df.sort_values("sales", ascending=False, na_position="last")["sales"].tolist())
+```
+
+```text
+{'city': 1, 'sales': 1}
+(4, 2) (3, 2) (4, 2)
+[120.0, 120.0, 0.0, 90.0, 40.0]
+[120.0, 120.0, 90.0, 40.0, nan]
+```
+
+- After fixing the text, the first two rows are both `Oslo, 120`. `isna().sum()` counts one missing city and one missing sales figure.
+- `drop_duplicates()` removes the repeated Oslo row (4 left). `dropna()` removes the two rows with any gap (3 left). `dropna(subset=["sales"])` only removes the row missing sales (4 left).
+- `fillna` puts 0 where sales were missing, and `sort_values` puts the largest first with the missing value last.
+
 ### Exam traps
 
 > **Trap.** `df = df.dropna(inplace=True)` sets `df` to `None`.
@@ -142,24 +150,91 @@ Don't write it as two separate selections, `df[df["sales"] < 0]["sales"] = 0`. T
 
 ### Core facts
 
+Two tables are used for the merge examples. `orders` has four orders, each with a customer code. `custs` says which region each customer is in. Notice that customer `z` (order 4) isn't in `custs`, and customer `c` has no orders.
+
+**`merge` with `how=`: which rows to keep.** `merge` matches rows on a shared column (`on="cust"`). The `how=` option decides what happens to rows that find no match:
+
+- `"inner"` (the default) keeps only rows that match on both sides.
+- `"left"` keeps every row of the left table, with `NaN` where the right has no match.
+- `"outer"` keeps every row from both tables.
+
 ```python
 import pandas as pd
 
 orders = pd.DataFrame({"order": [1, 2, 3, 4], "cust": ["a", "b", "b", "z"], "amount": [50, 20, 30, 70]})
 custs = pd.DataFrame({"cust": ["a", "b", "c"], "region": ["EU", "US", "EU"]})
 
-print(orders.merge(custs, on="cust").shape)                 # inner: unmatched rows dropped
-print(orders.merge(custs, on="cust", how="left").shape)     # all orders kept
-print(orders.merge(custs, on="cust", how="outer").shape)    # everything from both
-print(pd.concat([custs, custs], ignore_index=True).shape)   # stacked rows
+print(orders.merge(custs, on="cust"))                 # inner
 ```
 
 ```text
-(3, 4)
-(4, 4)
-(5, 4)
-(6, 2)
+   order cust  amount region
+0      1    a      50     EU
+1      2    b      20     US
+2      3    b      30     US
 ```
+
+Order 4 (customer `z`) is gone because `z` has no region. Customer `c` is gone because `c` has no orders.
+
+```python
+import pandas as pd
+
+orders = pd.DataFrame({"order": [1, 2, 3, 4], "cust": ["a", "b", "b", "z"], "amount": [50, 20, 30, 70]})
+custs = pd.DataFrame({"cust": ["a", "b", "c"], "region": ["EU", "US", "EU"]})
+
+print(orders.merge(custs, on="cust", how="left"))     # every order kept
+```
+
+```text
+   order cust  amount region
+0      1    a      50     EU
+1      2    b      20     US
+2      3    b      30     US
+3      4    z      70    NaN
+```
+
+All four orders are kept. Order 4 has `NaN` for region.
+
+```python
+import pandas as pd
+
+orders = pd.DataFrame({"order": [1, 2, 3, 4], "cust": ["a", "b", "b", "z"], "amount": [50, 20, 30, 70]})
+custs = pd.DataFrame({"cust": ["a", "b", "c"], "region": ["EU", "US", "EU"]})
+
+print(orders.merge(custs, on="cust", how="outer"))    # everything from both
+```
+
+```text
+   order cust  amount region
+0    1.0    a    50.0     EU
+1    2.0    b    20.0     US
+2    3.0    b    30.0     US
+3    NaN    c     NaN     EU
+4    4.0    z    70.0    NaN
+```
+
+Now customer `c` appears too, with `NaN` for the order columns, because it has no orders. The order numbers and amounts now show as `1.0`, `50.0` and so on: a number column that contains `NaN` is stored as decimals (floats).
+
+**Stacking with `concat`.** `pd.concat` doesn't match anything. It puts tables one under the other (rows stacked). `ignore_index=True` numbers the rows 0, 1, 2… again.
+
+```python
+import pandas as pd
+
+custs = pd.DataFrame({"cust": ["a", "b", "c"], "region": ["EU", "US", "EU"]})
+more = pd.DataFrame({"cust": ["d"], "region": ["US"]})
+
+print(pd.concat([custs, more], ignore_index=True))
+```
+
+```text
+  cust region
+0    a     EU
+1    b     US
+2    c     EU
+3    d     US
+```
+
+The tools at a glance:
 
 | Tool | Combines | Key facts |
 |---|---|---|
@@ -167,16 +242,14 @@ print(pd.concat([custs, custs], ignore_index=True).shape)   # stacked rows
 | `a.join(b)` | Columns side by side, matched on the **index** | `how="left"` by default |
 | `pd.concat([a, b])` | Rows stacked (`axis=0`) or columns side by side (`axis=1`) | Aligns on column names (NaN where missing); `ignore_index=True` renumbers |
 
-If a key appears several times on **both** sides, the merge produces every combination for that key (many-to-many), so the row count can grow a lot.
+If a key appears several times on **both** sides, the merge produces every combination for that key (many-to-many), so the row count can grow a lot. Section 1.1.2 shows an example.
 
-**Reshaping.**
+**Reshaping: long and wide.** The same data can be laid out two ways:
 
-| Tool | Does |
-|---|---|
-| `df.pivot(index, columns, values)` | Long → wide; fails if an index/column pair repeats |
-| `df.pivot_table(values, index, columns, aggfunc="mean")` | Long → wide with aggregation of repeats; `fill_value=`, `margins=True` for totals |
-| `df.melt(id_vars, value_vars, var_name, value_name)` | Wide → long |
-| `stack()` / `unstack()` | Move a level between the columns and the index |
+- **Long**: one row per measurement, such as one row per region per quarter.
+- **Wide**: one row per item, with a column for each category, such as one row per region with a column per quarter.
+
+**Long to wide: `pivot_table`.** `pivot_table` picks a column for the rows (`index`), a column whose values become new columns (`columns`), and the values to fill in (`values`). If several rows land in the same cell, `aggfunc` combines them.
 
 ```python
 import pandas as pd
@@ -184,15 +257,54 @@ import pandas as pd
 sales = pd.DataFrame({"region": ["EU", "EU", "US", "US", "EU"],
                       "quarter": ["Q1", "Q2", "Q1", "Q2", "Q1"],
                       "revenue": [10, 12, 8, 9, 4]})
+print(sales)
 print(sales.pivot_table(values="revenue", index="region", columns="quarter", aggfunc="sum"))
 ```
 
 ```text
+  region quarter  revenue
+0     EU      Q1       10
+1     EU      Q2       12
+2     US      Q1        8
+3     US      Q2        9
+4     EU      Q1        4
 quarter  Q1  Q2
 region
 EU       14  12
 US        8   9
 ```
+
+EU has two Q1 rows (10 and 4), so its Q1 cell is their sum, 14. `pivot` (without `_table`) does the same reshaping but raises an error when two rows would land in the same cell.
+
+**Wide to long: `melt`.** `melt` goes the other way: it turns the quarter columns back into rows.
+
+```python
+import pandas as pd
+
+wide = pd.DataFrame({"region": ["EU", "US"], "Q1": [14, 8], "Q2": [12, 9]})
+print(wide)
+print(wide.melt(id_vars="region", var_name="quarter", value_name="revenue"))
+```
+
+```text
+  region  Q1  Q2
+0     EU  14  12
+1     US   8   9
+  region quarter  revenue
+0     EU      Q1       14
+1     US      Q1        8
+2     EU      Q2       12
+3     US      Q2        9
+```
+
+`id_vars` is the column to keep as it is; every other column becomes a row with its column name in `quarter` and its value in `revenue`.
+
+| Tool | Does |
+|---|---|
+| `df.pivot(index, columns, values)` | Long → wide; fails if an index/column pair repeats |
+| `df.pivot_table(values, index, columns, aggfunc="mean")` | Long → wide with aggregation of repeats; `fill_value=`, `margins=True` for totals |
+| `df.melt(id_vars, value_vars, var_name, value_name)` | Wide → long |
+| `stack()` / `unstack()` | Move a level between the columns and the index |
 
 ### Exam traps
 
@@ -449,30 +561,146 @@ x
 
 ### Core facts
 
+**What a NumPy array is.** A NumPy array is a grid of numbers that are all the same type. It can have one dimension (a row of numbers), two (a table), or more. Arrays are much faster than Python lists for maths.
+
+**Describing an array.** Four attributes tell you its layout:
+
+- `shape`: the size of each dimension, as (rows, columns) for a 2-D array.
+- `ndim`: how many dimensions it has.
+- `dtype`: the type of every element.
+- `size`: the total number of elements.
+
 ```python
 import numpy as np
 
-a = np.array([[1, 2, 3], [4, 5, 6]])
-print(a.shape, a.ndim, a.dtype, a.size)
-print(a * 2)
-print(a + np.array([10, 20, 30]))              # (2,3) + (3,) broadcasts across rows
-print(a.sum(), a.sum(axis=0), a.mean(axis=1))
-print(a[a > 3], [1, 2] * 2, np.array([1, 2]) * 2)
+a = np.array([[1, 2, 3],
+              [4, 5, 6]])
+print(a.shape)     # 2 rows, 3 columns
+print(a.ndim)
+print(a.dtype)
+print(a.size)
 ```
 
 ```text
-(2, 3) 2 int64 6
-[[ 2  4  6]
- [ 8 10 12]]
-[[11 22 33]
- [14 25 36]]
-21 [5 7 9] [2. 5.]
-[4 5 6] [1, 2, 1, 2] [2 4]
+(2, 3)
+2
+int64
+6
 ```
 
-**Broadcasting.** Compare shapes from the right. Two dimensions are compatible if they are equal or one of them is 1; the size-1 dimension is stretched. `(2, 3) + (3,)` works; `(3, 1) + (1, 4)` gives `(3, 4)`; `(2, 3) + (2,)` fails with a `ValueError`.
+**Maths happens element by element.** An operation on an array applies to every element separately, with no loop needed:
 
-**Aggregations.** `sum`, `mean`, `min`, `max`, `std` (ddof=0), `argmax`, `cumsum`. `axis=0` collapses rows (one result per column); `axis=1` collapses columns (one result per row). `np.nanmean` and friends skip NaN; plain `np.mean` returns `nan` if any value is NaN.
+```python
+import numpy as np
+
+a = np.array([[1, 2, 3],
+              [4, 5, 6]])
+print(a * 2)
+print(a > 3)
+```
+
+```text
+[[ 2  4  6]
+ [ 8 10 12]]
+[[False False False]
+ [ True  True  True]]
+```
+
+**Arrays versus lists.** The same symbol means something different for a Python list. `*` on a list **repeats** it; on an array it multiplies each number.
+
+```python
+import numpy as np
+
+print([1, 2] * 2)               # list: repeated
+print(np.array([1, 2]) * 2)     # array: each element doubled
+```
+
+```text
+[1, 2, 1, 2]
+[2 4]
+```
+
+**Picking elements with a condition.** Put a condition in square brackets to keep only the elements where it's true:
+
+```python
+import numpy as np
+
+a = np.array([[1, 2, 3],
+              [4, 5, 6]])
+print(a[a > 3])
+```
+
+```text
+[4 5 6]
+```
+
+**Totals and averages along an axis.** With no `axis`, `sum()` adds up everything. `axis=0` works **down** the rows, giving one result per column. `axis=1` works **across** the columns, giving one result per row.
+
+```python
+import numpy as np
+
+a = np.array([[1, 2, 3],
+              [4, 5, 6]])
+print(a.sum())             # 1 + 2 + ... + 6
+print(a.sum(axis=0))       # each column: 1+4, 2+5, 3+6
+print(a.mean(axis=1))      # each row: mean of 1,2,3 and of 4,5,6
+```
+
+```text
+21
+[5 7 9]
+[2. 5.]
+```
+
+Other aggregations work the same way: `min`, `max`, `std` (which uses ddof=0), `argmax` (the position of the largest value) and `cumsum` (a running total). `np.nanmean` and the other `nan` functions skip missing values; plain `np.mean` returns `nan` if any value is missing.
+
+**Broadcasting: arrays of different shapes.** NumPy can combine arrays of different shapes by stretching the smaller one to fit. Adding a row of three numbers to a 2 × 3 array adds it to **each** row:
+
+```python
+import numpy as np
+
+a = np.array([[1, 2, 3],
+              [4, 5, 6]])
+print(a + np.array([10, 20, 30]))
+```
+
+```text
+[[11 22 33]
+ [14 25 36]]
+```
+
+The rule: compare the shapes from the **right**. Two sizes fit if they are equal or one of them is 1. Here the shapes are (2, 3) and (3,): the 3s match on the right, so the row is reused for both rows. Shapes that don't fit raise an error:
+
+```python
+import numpy as np
+
+a = np.array([[1, 2, 3],
+              [4, 5, 6]])
+try:
+    a + np.array([10, 20])      # shape (2,) against (2, 3): 2 doesn't match 3
+except ValueError as e:
+    print("ValueError:", e)
+```
+
+```text
+ValueError: operands could not be broadcast together with shapes (2,3) (2,)
+```
+
+**One type per array.** All elements must share one type, so mixing types converts them. A float makes everything a float, and a string makes everything a string:
+
+```python
+import numpy as np
+
+print(np.array([1, 2.5]))
+print(np.array([1, "a"]))
+```
+
+```text
+[1.  2.5]
+['1' 'a']
+```
+
+**Choosing a structure.**
 
 | Structure | Dimensions | Labels | Types | Choose it for |
 |---|---|---|---|---|
@@ -481,7 +709,7 @@ print(a[a > 3], [1, 2] * 2, np.array([1, 2]) * 2)
 | pandas `Series` | 1 | Index labels | One dtype | One labeled column |
 | pandas `DataFrame` | 2 | Row index + column names | One per column | Tables with mixed column types |
 
-Mixing types in one array upcasts: `np.array([1, 2.5])` is float; `np.array([1, "a"])` is all strings. `a * b` on arrays is element-wise; use `a @ b` for matrix multiplication.
+`a * b` on two arrays multiplies element by element; `a @ b` does matrix multiplication.
 
 ### Exam traps
 
@@ -494,32 +722,6 @@ Mixing types in one array upcasts: `np.array([1, 2.5])` is float; `np.array([1, 
 **Syllabus asks:** use `groupby()` and summary tables; pivot and cross-tabulation; descriptive statistics with pandas and NumPy to spot trends.
 
 ### Core facts
-
-```python
-import pandas as pd
-
-df = pd.DataFrame({"region": ["EU", "EU", "US", "US", "US"],
-                   "channel": ["web", "shop", "web", "web", "shop"],
-                   "amount": [100, 40, 70, 30, 60]})
-print(df.groupby("region")["amount"].sum().to_dict())
-print(df.groupby("region").agg(total=("amount", "sum"), orders=("amount", "count")))
-print(pd.crosstab(df["region"], df["channel"]))
-df["share"] = df["amount"] / df.groupby("region")["amount"].transform("sum")
-print(df["share"].round(2).tolist())
-```
-
-```text
-{'EU': 140, 'US': 160}
-        total  orders
-region
-EU        140       2
-US        160       3
-channel  shop  web
-region
-EU          1    1
-US          1    2
-[0.71, 0.29, 0.44, 0.19, 0.38]
-```
 
 **How `groupby` works: split, apply, combine.** `groupby("region")` **splits** the rows into one group per region, **applies** a calculation to each group separately, then **combines** the answers into one result.
 
@@ -732,6 +934,34 @@ print(monthly.pct_change().round(2).tolist())
 
 February (180) is 20% up on January (150), and March (135) is 25% down on February. January has no previous month, so its change is `NaN`.
 
+**Putting it together.** The same sales table summarized four ways: a total per region, named totals and counts, a count of each region/channel combination, and each sale's share of its region's total.
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"region": ["EU", "EU", "US", "US", "US"],
+                   "channel": ["web", "shop", "web", "web", "shop"],
+                   "amount": [100, 40, 70, 30, 60]})
+print(df.groupby("region")["amount"].sum().to_dict())
+print(df.groupby("region").agg(total=("amount", "sum"), orders=("amount", "count")))
+print(pd.crosstab(df["region"], df["channel"]))
+df["share"] = df["amount"] / df.groupby("region")["amount"].transform("sum")
+print(df["share"].round(2).tolist())
+```
+
+```text
+{'EU': 140, 'US': 160}
+        total  orders
+region
+EU        140       2
+US        160       3
+channel  shop  web
+region
+EU          1    1
+US          1    2
+[0.71, 0.29, 0.44, 0.19, 0.38]
+```
+
 ### Exam traps
 
 > **Trap.** `crosstab` counts by default; `pivot_table` averages by default.
@@ -743,24 +973,6 @@ February (180) is 20% up on January (150), and March (135) is 25% down on Februa
 **Syllabus asks:** calculate and interpret mean, median, mode, variance and standard deviation with pandas and NumPy on real datasets.
 
 ### Core facts
-
-```python
-import numpy as np
-import pandas as pd
-
-s = pd.Series([3, 7, 7, 2, 9, np.nan])
-print(s.mean(), s.median(), s.mode().tolist(), s.count())
-print(round(s.var(), 2), round(s.std(), 2), round(np.nanstd(s.to_numpy()), 2))
-print(np.mean(s.to_numpy()), s.to_numpy().mean() if not s.isna().any() else "nan present")
-print(s.describe().round(2).to_dict())
-```
-
-```text
-5.6 7.0 [7.0] 5
-8.8 2.97 2.65
-nan nan present
-{'count': 5.0, 'mean': 5.6, 'std': 2.97, 'min': 2.0, '25%': 3.0, '50%': 7.0, '75%': 7.0, 'max': 9.0}
-```
 
 **Missing values: pandas skips them, NumPy doesn't.** pandas ignores `NaN` when it calculates (`skipna=True` is the default). NumPy doesn't, so a single `NaN` makes the whole result `nan`. NumPy's `nan` versions (`np.nanmean`, `np.nanstd`) skip them.
 
@@ -852,6 +1064,26 @@ thu
 The rolling mean needs 3 values, so the first two are `NaN`. The third is (3 + 8 + 1) / 3 = 4.
 
 **Reading the numbers.** A mean well above the median signals right skew (a few very large values). A standard deviation that is large compared with the mean signals widely spread data.
+
+**Putting it together.** The main statistics on one small Series that has a missing value. pandas skips the `NaN`, so `count()` is 5, not 6, and every statistic uses the five real values.
+
+```python
+import numpy as np
+import pandas as pd
+
+s = pd.Series([3, 7, 7, 2, 9, np.nan])
+print(s.mean(), s.median(), s.mode().tolist(), s.count())
+print(round(s.var(), 2), round(s.std(), 2))
+print(s.describe().round(2).to_dict())
+```
+
+```text
+5.6 7.0 [7.0] 5
+8.8 2.97
+{'count': 5.0, 'mean': 5.6, 'std': 2.97, 'min': 2.0, '25%': 3.0, '50%': 7.0, '75%': 7.0, 'max': 9.0}
+```
+
+The mean (5.6) is below the median (7.0), a hint that a few low values pull the average down.
 
 ### Exam traps
 
