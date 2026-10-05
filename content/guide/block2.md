@@ -978,34 +978,6 @@ DataQualityError: age 150 is not plausible
 
 ### Core facts
 
-```python
-class Customer:
-    currency = "EUR"                       # class variable: shared by all instances
-
-    def __init__(self, name, balance=0.0):
-        self.name = name                   # instance variables
-        self._segment = "retail"           # "protected" by convention
-        self.__balance = balance           # "private": name-mangled to _Customer__balance
-
-    def get_balance(self):
-        return self.__balance
-
-    def set_balance(self, value):
-        if value < 0:
-            raise ValueError("balance cannot be negative")
-        self.__balance = value
-
-c = Customer("Ana", 120.0)
-c.set_balance(150.0)
-print(c.name, c.get_balance(), c._segment, Customer.currency)
-print(hasattr(c, "__balance"), c._Customer__balance)
-```
-
-```text
-Ana 150.0 retail EUR
-False 150.0
-```
-
 **Classes, objects and `__init__`.** A **class** is a blueprint; an **object** (or *instance*) is one thing built from it. Calling the class, `Customer("Ana")`, builds a new object and runs its `__init__` method (the **constructor**) to set it up. Inside the class, `self` means "the object being worked on".
 
 ```python
@@ -1046,31 +1018,88 @@ Ben EUR
 EUR
 ```
 
-**"Keep out" names: `_` and `__`.** Python has no truly private attributes, only conventions:
-
-- One leading underscore (`self._segment`) means "internal: please don't use this from outside". Nothing stops you.
-- Two leading underscores (`self.__balance`) make Python rename the attribute to `_Customer__balance` (**name mangling**). Code outside the class that asks for `__balance` doesn't find it. This prevents accidents, not determined access.
+**"Keep out" names: one underscore.** Python has no truly private attributes, only conventions. A name starting with one underscore (`self._segment`) means "internal: please don't use this from outside the class". It is only a hint to other programmers; Python doesn't stop you.
 
 ```python
 class Customer:
-    def __init__(self, balance):
+    def __init__(self):
         self._segment = "retail"
-        self.__balance = balance
 
-c = Customer(100)
-print(c._segment)                 # works: the single underscore is only a hint
-
-try:
-    print(c.__balance)
-except AttributeError as e:
-    print("AttributeError:", e)
-
-print(c._Customer__balance)       # the renamed attribute is still there
+c = Customer()
+print(c._segment)        # works fine: the underscore is only a hint
 ```
 
 ```text
 retail
+```
+
+**Two underscores: name mangling.** A name starting with **two** underscores (`self.__balance`) gets renamed by Python behind the scenes. Python adds an underscore and the class name to the front, so `__balance` is actually stored as `_Customer__balance`. This is called **name mangling**.
+
+`hasattr(obj, "name")` asks "does this object have an attribute with exactly this name?" and answers `True` or `False`. It shows the renaming clearly:
+
+```python
+class Customer:
+    def __init__(self, balance):
+        self.__balance = balance        # stored as _Customer__balance
+
+c = Customer(100)
+print(hasattr(c, "__balance"))            # False: no attribute with that exact name
+print(hasattr(c, "_Customer__balance"))   # True: this is the real name
+```
+
+```text
+False
+True
+```
+
+So asking for `c.__balance` from outside the class fails:
+
+```python
+class Customer:
+    def __init__(self, balance):
+        self.__balance = balance
+
+c = Customer(100)
+try:
+    print(c.__balance)
+except AttributeError as e:
+    print("AttributeError:", e)
+```
+
+```text
 AttributeError: 'Customer' object has no attribute '__balance'
+```
+
+**Inside the class, the short name still works.** Python renames `__balance` inside the class's own code too, so the class's methods can keep writing `self.__balance` and it all lines up:
+
+```python
+class Customer:
+    def __init__(self, balance):
+        self.__balance = balance
+
+    def get_balance(self):
+        return self.__balance           # also renamed, so this finds it
+
+c = Customer(100)
+print(c.get_balance())
+```
+
+```text
+100
+```
+
+**It isn't real security.** Anyone who knows the renamed version can still reach the value. Name mangling prevents **accidents**, such as a subclass using the same attribute name by mistake. It doesn't stop someone who is determined.
+
+```python
+class Customer:
+    def __init__(self, balance):
+        self.__balance = balance
+
+c = Customer(100)
+print(c._Customer__balance)     # the "private" value, read from outside
+```
+
+```text
 100
 ```
 
@@ -1180,6 +1209,38 @@ print(p == Point(1, 2))        # __eq__ compares the fields
 Point(x=1, y=2)
 True
 ```
+
+**Putting it together.** Here is one class that uses everything above. Each comment points back to the step that explains it.
+
+```python
+class Customer:
+    currency = "EUR"                       # class variable: shared by every customer
+
+    def __init__(self, name, balance=0.0): # the constructor
+        self.name = name                   # instance variable: one per customer
+        self._segment = "retail"           # one underscore: "internal", only a hint
+        self.__balance = balance           # two underscores: stored as _Customer__balance
+
+    def get_balance(self):                 # getter
+        return self.__balance
+
+    def set_balance(self, value):          # setter, which checks the value first
+        if value < 0:
+            raise ValueError("balance cannot be negative")
+        self.__balance = value
+
+c = Customer("Ana", 120.0)
+c.set_balance(150.0)
+print(c.name, c.get_balance(), c._segment, Customer.currency)
+print(hasattr(c, "__balance"), c._Customer__balance)
+```
+
+```text
+Ana 150.0 retail EUR
+False 150.0
+```
+
+The first line shows the name, the balance (changed by the setter), the "internal" segment and the shared currency. The second shows name mangling: there is no attribute called `__balance`, but the value is still there under `_Customer__balance`.
 
 ### Exam traps
 
