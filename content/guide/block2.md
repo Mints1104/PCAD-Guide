@@ -1732,12 +1732,18 @@ LIMIT    5;
 | `RIGHT JOIN` | Every row of the right table; NULLs where the left has no match |
 | `FULL OUTER JOIN` | Every row of both tables, matched where possible |
 
-<div class="dg"><p class="dg-title">Which rows survive a join</p><div class="dg-compare">
-<div class="dg-col"><h4>INNER</h4><ul><li>Matches only</li><li>Unmatched rows on either side disappear</li></ul></div>
-<div class="dg-col"><h4>LEFT</h4><ul><li>All left rows</li><li>Right columns NULL when no match</li></ul></div>
-<div class="dg-col"><h4>RIGHT</h4><ul><li>All right rows</li><li>Left columns NULL when no match</li></ul></div>
-<div class="dg-col"><h4>FULL</h4><ul><li>All rows from both</li><li>NULLs on whichever side is missing</li></ul></div>
-</div></div>
+<div class="dg jd">
+<p class="dg-title">The same two tables, four joins</p>
+<p class="jd-intro">Each join below uses <code>ON orders.customer_id = customers.id</code>. Ana appears twice in every result because she has two orders.</p>
+<div class="jd-sources"><table class="jt"><caption>customers (left table)</caption><thead><tr><th>id</th><th>name</th></tr></thead><tbody><tr><td>1</td><td>Ana</td></tr><tr><td>2</td><td>Ben</td></tr><tr class="jd-l"><td>3</td><td>Cy</td></tr></tbody></table><table class="jt"><caption>orders (right table)</caption><thead><tr><th>customer_id</th><th>total</th></tr></thead><tbody><tr><td>1</td><td>50</td></tr><tr><td>1</td><td>70</td></tr><tr><td>2</td><td>20</td></tr><tr class="jd-r"><td>9</td><td>15</td></tr></tbody></table></div>
+<p class="jd-legend"><span class="jd-key jd-key-l">Cy: a customer with no orders</span> <span class="jd-key jd-key-r">Order 9: an order with no customer</span></p>
+<div class="jd-grid">
+<div class="jd-card"><table class="jt"><thead><tr><th>id</th><th>name</th><th>customer_id</th><th>total</th></tr></thead><tbody><tr><td>1</td><td>Ana</td><td>1</td><td>50</td></tr><tr><td>1</td><td>Ana</td><td>1</td><td>70</td></tr><tr><td>2</td><td>Ben</td><td>2</td><td>20</td></tr></tbody></table><p class="jd-name">INNER JOIN</p><p class="jd-why">Only pairs where <code>customer_id</code> equals <code>id</code>. Cy has no orders and order 9's customer doesn't exist, so both disappear. <b>3 rows.</b></p></div>
+<div class="jd-card"><table class="jt"><thead><tr><th>id</th><th>name</th><th>customer_id</th><th>total</th></tr></thead><tbody><tr><td>1</td><td>Ana</td><td>1</td><td>50</td></tr><tr><td>1</td><td>Ana</td><td>1</td><td>70</td></tr><tr><td>2</td><td>Ben</td><td>2</td><td>20</td></tr><tr class="jd-l"><td>3</td><td>Cy</td><td class="jd-null">NULL</td><td class="jd-null">NULL</td></tr></tbody></table><p class="jd-name">LEFT JOIN</p><p class="jd-why">Every row of the left table (customers) is kept. Cy matches no order, so his order columns are NULL. Order 9 is still dropped: it is on the right and matches no one. <b>4 rows.</b></p></div>
+<div class="jd-card"><table class="jt"><thead><tr><th>id</th><th>name</th><th>customer_id</th><th>total</th></tr></thead><tbody><tr><td>1</td><td>Ana</td><td>1</td><td>50</td></tr><tr><td>1</td><td>Ana</td><td>1</td><td>70</td></tr><tr><td>2</td><td>Ben</td><td>2</td><td>20</td></tr><tr class="jd-r"><td class="jd-null">NULL</td><td class="jd-null">NULL</td><td>9</td><td>15</td></tr></tbody></table><p class="jd-name">RIGHT JOIN</p><p class="jd-why">The mirror image: every row of the right table (orders) is kept. Order 9 matches no customer, so its customer columns are NULL. Cy is dropped. <b>4 rows.</b></p></div>
+<div class="jd-card"><table class="jt"><thead><tr><th>id</th><th>name</th><th>customer_id</th><th>total</th></tr></thead><tbody><tr><td>1</td><td>Ana</td><td>1</td><td>50</td></tr><tr><td>1</td><td>Ana</td><td>1</td><td>70</td></tr><tr><td>2</td><td>Ben</td><td>2</td><td>20</td></tr><tr class="jd-l"><td>3</td><td>Cy</td><td class="jd-null">NULL</td><td class="jd-null">NULL</td></tr><tr class="jd-r"><td class="jd-null">NULL</td><td class="jd-null">NULL</td><td>9</td><td>15</td></tr></tbody></table><p class="jd-name">FULL OUTER JOIN</p><p class="jd-why">Everything from both sides: the three matches, plus Cy and order 9, each with NULLs on the side it's missing. <b>5 rows.</b></p></div>
+</div>
+</div>
 
 The examples below run SQL from Python with the built-in `sqlite3` module (section 2.4.3 explains it). Each one creates a tiny table, runs one query, and prints the rows it returns; each row prints as a tuple, and `NULL` prints as `None`.
 

@@ -171,5 +171,6 @@ export function renderMarkdown(md, { dropTitle = false } = {}) {
       },
     },
   });
-  return marked.parse(source).replace(/<table>/g, '<div class="table-wrap"><table>').replace(/<\/table>/g, '</table></div>');
+  // Wrap Markdown tables (plain <table>) so they scroll sideways; HTML tables with a class are left alone.
+  return marked.parse(source).replace(/<table>[\s\S]*?<\/table>/g, (t) => `<div class="table-wrap">${t}</div>`);
 }

@@ -1575,6 +1575,71 @@ pre {
   margin: 0;
   padding-left: 18px;
 }
+/* Join diagram: two source tables, then the result of each join */
+.guide .jd-intro,
+.guide .jd-legend {
+  margin: 0 0 10px;
+  font-size: 0.9rem;
+}
+.guide .jd-sources,
+.guide .jd-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.guide .jd-sources {
+  align-items: start;
+}
+.guide .jd-card {
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-elevated);
+}
+.guide table.jt {
+  margin: 0;
+}
+.guide table.jt caption {
+  margin-bottom: 4px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  text-align: left;
+}
+.guide table.jt th,
+.guide table.jt td {
+  padding: 4px 8px;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+}
+.guide .jt tr.jd-l td,
+.guide .jd-key-l {
+  background: color-mix(in srgb, var(--b1) 20%, transparent);
+}
+.guide .jt tr.jd-r td,
+.guide .jd-key-r {
+  background: color-mix(in srgb, var(--b5) 20%, transparent);
+}
+.guide .jt td.jd-null {
+  color: var(--text-muted);
+  font-style: italic;
+}
+.guide .jd-key {
+  display: inline-block;
+  margin: 2px 6px 2px 0;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+.guide .jd-name {
+  margin: 10px 0 4px;
+  font-family: var(--mono);
+  font-weight: 700;
+}
+.guide .jd-why {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
 @media (max-width: 480px) {
   .guide .dg-arrow {
     display: none;
