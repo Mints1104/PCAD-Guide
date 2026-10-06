@@ -171,7 +171,7 @@ customers = pd.DataFrame({"cust": ["a", "a"], "city": ["Oslo", "Bergen"]})
 try:
     orders.merge(customers, on="cust", validate="many_to_one")
 except pd.errors.MergeError as e:
-    print("MergeError:", e)
+    print("MergeError:", str(e).splitlines()[0])   # the first line of the message
 ```
 
 ```text
@@ -186,7 +186,7 @@ The other options are `"one_to_one"` and `"one_to_many"`. `indicator=True`, used
 
 ### Exam traps
 
-> **Trap.** Merging a string key with an integer key finds no matches (pandas raises an error for some type pairs). Align dtypes first.
+> **Trap.** pandas won't merge a text key with an integer key: `"001"` and `1` are different types, so it raises a ValueError instead of matching them. Convert both keys to the same type first, as the first example does with `astype(int)`.
 
 > **Trap.** `concat` for same-shaped pieces, `merge` for matching on keys. Stacking two tables that should be joined leaves NaNs everywhere.
 

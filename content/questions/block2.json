@@ -913,7 +913,7 @@
   "why_wrong": [
    "",
    "72 is the limit for comments and docstrings.",
-   "Some teams choose 100, but PEP 8 says 79.",
+   "PEP 8 lets a team agree on up to 99 characters, but its standard limit is 79.",
    "120 is a common editor setting, not PEP 8."
   ],
   "source": "Syllabus 2.1.5 · PEP 8",
@@ -2695,6 +2695,113 @@
   }
  },
  {
+  "id": "b2-109",
+  "objective": "2.4.1",
+  "type": "single",
+  "stem": "How many rows does this query return?",
+  "options": [
+   "6",
+   "5",
+   "4",
+   "9"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "The 4 matching pairs (Ana ×2, Ben, Cara), plus Dev with no orders (order columns NULL), plus order 14 whose customer 5 doesn't exist (customer columns NULL): 6 rows.",
+  "why_wrong": [
+   "",
+   "A LEFT or RIGHT JOIN would give 5; a FULL OUTER JOIN keeps both Dev and order 14.",
+   "4 is the INNER JOIN: matching pairs only.",
+   "Rows aren't created for every customer-order combination; only matching pairs join, and each unmatched row appears once."
+  ],
+  "source": "Syllabus 2.4.1 · SQLite: FULL OUTER JOIN",
+  "difficulty": 2,
+  "tags": [
+   "sql",
+   "full-outer-join"
+  ],
+  "code": "SELECT c.name, o.id\nFROM customers AS c\nFULL OUTER JOIN orders AS o ON o.customer_id = c.id;",
+  "lang": "sql",
+  "setup": "CREATE TABLE customers (id INTEGER PRIMARY KEY, name TEXT, region TEXT);\nINSERT INTO customers VALUES (1, 'Ana', 'EU'), (2, 'Ben', 'US'), (3, 'Cara', 'EU'), (4, 'Dev', 'APAC');\nCREATE TABLE orders (id INTEGER PRIMARY KEY, customer_id INTEGER, total REAL, status TEXT);\nINSERT INTO orders VALUES (10, 1, 120, 'paid'), (11, 1, 80, 'paid'), (12, 2, 200, 'refunded'),\n                          (13, 3, 50, 'paid'), (14, 5, 70, 'paid');",
+  "tables": [
+   {
+    "name": "customers",
+    "columns": [
+     "id",
+     "name",
+     "region"
+    ],
+    "rows": [
+     [
+      1,
+      "Ana",
+      "EU"
+     ],
+     [
+      2,
+      "Ben",
+      "US"
+     ],
+     [
+      3,
+      "Cara",
+      "EU"
+     ],
+     [
+      4,
+      "Dev",
+      "APAC"
+     ]
+    ]
+   },
+   {
+    "name": "orders",
+    "columns": [
+     "id",
+     "customer_id",
+     "total",
+     "status"
+    ],
+    "rows": [
+     [
+      10,
+      1,
+      120.0,
+      "paid"
+     ],
+     [
+      11,
+      1,
+      80.0,
+      "paid"
+     ],
+     [
+      12,
+      2,
+      200.0,
+      "refunded"
+     ],
+     [
+      13,
+      3,
+      50.0,
+      "paid"
+     ],
+     [
+      14,
+      5,
+      70.0,
+      "paid"
+     ]
+    ]
+   }
+  ],
+  "verify": {
+   "py": "assert len(run_sql(setup, code)) == 6"
+  }
+ },
+ {
   "id": "b2-110",
   "objective": "2.4.2",
   "type": "single",
@@ -3191,7 +3298,7 @@
   "why_wrong": [
    "",
    "Braces are Python format fields, not SQL placeholders; the query has no parameters.",
-   "Named placeholders need a dict (mapping), not a tuple.",
+   "Named placeholders take a dict. A tuple is matched by position and the names are ignored: Python 3.12 and 3.13 warn that this is deprecated, and Python 3.14 raises a ProgrammingError.",
    "`execute` doesn't take keyword arguments for parameters."
   ],
   "source": "Syllabus 2.4.4 · Python docs: sqlite3 placeholders",
@@ -3201,7 +3308,7 @@
    "named-parameters"
   ],
   "verify": {
-   "py": "import sqlite3\ncon = sqlite3.connect(\":memory:\")\ncon.execute(\"CREATE TABLE t (region TEXT, total REAL)\")\ncon.execute(\"INSERT INTO t VALUES ('EU', 150)\")\nrows = con.execute(\"SELECT * FROM t WHERE region = :r AND total > :m\", {\"r\": \"EU\", \"m\": 100}).fetchall()\nassert rows == [('EU', 150.0)]"
+   "py": "import sqlite3\nimport sys\nimport warnings\n\ndef run(i):\n    con = sqlite3.connect(\":memory:\")\n    con.execute(\"CREATE TABLE t (region TEXT, total REAL)\")\n    con.execute(\"INSERT INTO t VALUES ('EU', 150)\")\n    with warnings.catch_warnings():\n        warnings.simplefilter(\"error\")          # a deprecation counts as incorrect use\n        return eval(opt(i), {\"con\": con}).fetchall()\n\nassert run(0) == [('EU', 150.0)]\nfor i in (1, 3):\n    try:\n        run(i)\n        raise AssertionError(f\"option {i} should fail\")\n    except (sqlite3.Error, TypeError):\n        pass\nif sys.version_info >= (3, 12):                # earlier versions accept a tuple silently\n    try:\n        run(2)\n        raise AssertionError(\"option 2 should warn or fail\")\n    except (DeprecationWarning, sqlite3.ProgrammingError):\n        pass"
   }
  },
  {

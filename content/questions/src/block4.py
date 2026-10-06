@@ -44,7 +44,7 @@ QUESTIONS = [
       ["`[3, 4, 5]`", "`[1, 2, 4]`", "`[4]`", "`[5, 4, 3]`"],
       0,
       {1: "`keep=\"last\"` keeps the last occurrence of each email, not the first.",
-       2: "Each email keeps one row; only fully duplicated rows would all go with keep=False.",
+       2: "That is what `keep=False` gives: it drops every row whose email appears more than once, leaving only c@x.",
        3: "Kept rows stay in their original order."},
       "For each email the last row is kept: a@x → visit 3, c@x → 4, b@x → 5, in original row order.",
       "Syllabus 4.1.1 · pandas: drop_duplicates", ["duplicates", "cleaning"],
@@ -93,29 +93,39 @@ QUESTIONS = [
       """, verify="stdout"),
 
     Q("b4-006", "4.1.1", 3,
-      "Which line sets `discount` to 0.1 for rows where `qty` is above 10, actually changing `df` (pandas 2 and 3)?",
+      "Which line reliably sets `discount` to 0.1 for rows where `qty` is above 10, changing `df` itself in every recent pandas version (2.x and 3.x)?",
       ["`df.loc[df[\"qty\"] > 10, \"discount\"] = 0.1`",
        "`df[df[\"qty\"] > 10][\"discount\"] = 0.1`",
        "`df[\"discount\"][df[\"qty\"] > 10] = 0.1`",
        "`df.query(\"qty > 10\")[\"discount\"] = 0.1`"],
       0,
-      {1: "Chained indexing assigns to a temporary copy; with copy-on-write `df` never changes.",
-       2: "Also chained assignment: under copy-on-write it changes nothing in `df`.",
+      {1: "Chained indexing: `df[mask]` makes a temporary copy, and the assignment changes that copy, not `df`.",
+       2: "Also chained assignment. In pandas 2 it happens to change `df` (with a warning), but under copy-on-write, the default from pandas 3, it changes nothing.",
        3: "`query` returns a new DataFrame; assigning into it leaves `df` alone."},
-      "`.loc[row_mask, column] = value` selects and assigns in one step on the original DataFrame.",
+      "`.loc[row_mask, column] = value` selects and assigns in one step on the original DataFrame, so it works the same in every version.",
       "Syllabus 4.1.1, 4.1.4 · pandas: copy-on-write", ["loc", "chained-assignment"],
       verify={"py": """
       import warnings
       import pandas as pd
-      changed = []
-      for i in range(4):
-          df = pd.DataFrame({"qty": [1, 12, 5], "discount": [0.0, 0.0, 0.0]})
-          with warnings.catch_warnings():
-              warnings.simplefilter("ignore")
-              exec(opt(i), {"df": df})
-          if df["discount"].tolist() == [0.0, 0.1, 0.0]:
-              changed.append(i)
-      assert changed == q["answer"], changed
+
+      # pandas 2 can run with copy-on-write off (its default) or on; pandas 3 always uses it.
+      modes = [False, True] if int(pd.__version__.split(".")[0]) < 3 else [None]
+      works_everywhere = None
+      for mode in modes:
+          changed = set()
+          for i in range(4):
+              df = pd.DataFrame({"qty": [1, 12, 5], "discount": [0.0, 0.0, 0.0]})
+              with warnings.catch_warnings():
+                  warnings.simplefilter("ignore")
+                  if mode is None:
+                      exec(opt(i), {"df": df})
+                  else:
+                      with pd.option_context("mode.copy_on_write", mode):
+                          exec(opt(i), {"df": df})
+              if df["discount"].tolist() == [0.0, 0.1, 0.0]:
+                  changed.add(i)
+          works_everywhere = changed if works_everywhere is None else works_everywhere & changed
+      assert sorted(works_everywhere) == q["answer"], works_everywhere
       """}),
 
     # ---------- 4.1.2 Merge and reshape ----------
@@ -875,4 +885,17 @@ QUESTIONS = [
        3: "The threshold is separate from C."},
       "Smaller C penalizes large coefficients more, trading a little bias for less variance.",
       "Syllabus 4.2.3 · scikit-learn: LogisticRegression", ["regularization", "logistic-regression"]),
+
+    Q("b4-088", "4.2.3", 2,
+      "Compared with an unrestricted decision tree, what is the typical tendency of linear and logistic regression?",
+      ["Higher bias and lower variance: stable, but they can underfit curved relationships",
+       "Lower bias and higher variance: they memorize the training data",
+       "They can't overfit under any circumstances",
+       "They have no bias, because their coefficients are calculated exactly"],
+      0,
+      {1: "That describes very flexible models such as deep, unpruned trees.",
+       2: "With many features compared with rows they can overfit, which is why regularization (such as a smaller `C`) exists.",
+       3: "Assuming a straight-line relationship is itself a source of bias, however exactly the line is fitted."},
+      "A straight-line model can't bend to follow complex patterns (bias) but changes little between training samples (low variance). Add features if it underfits; regularize if many features make it overfit.",
+      "Syllabus 4.2.3", ["bias-variance", "linear-regression"]),
 ]

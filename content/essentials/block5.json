@@ -6,7 +6,7 @@
       {"cue": "Which Seaborn function draws each core chart?", "fact": "`sns.histplot` (histogram), `sns.boxplot` (box plot), `sns.scatterplot` (scatter), `sns.lineplot` (line) and `sns.heatmap` (heatmap, often of `df.corr()`).", "why": "Items describe a chart and ask for the call."},
       {"cue": "How do Matplotlib's two interfaces differ?", "fact": "The pyplot style (`plt.plot`, `plt.title`) acts on the current figure; the object-oriented style (`fig, ax = plt.subplots()`, `ax.plot`, `ax.set_title`) calls methods on explicit Axes.", "why": "Code items mix the two and ask which line is valid."},
       {"cue": "What does `plt.subplots(2, 2)` return?", "fact": "A figure and a 2 × 2 array of Axes, indexed as `axes[row, col]`; pass `ax=axes[r, c]` to Seaborn functions to draw on one of them.", "why": "Dashboard-style items use subplot grids."},
-      {"cue": "How do `sns.barplot` and `sns.countplot` differ?", "fact": "`barplot` shows the mean of a numeric column per category (with an error bar); `countplot` shows how many rows fall in each category.", "why": "A frequent distractor pair."},
+      {"cue": "How do `sns.barplot` and `sns.countplot` differ?", "fact": "`barplot` shows the mean of a numeric column per category (with an error bar); `countplot` shows how many rows fall in each category.", "why": "Easy to confuse: one averages a numeric column, the other counts rows."},
       {"cue": "How do you save a figure?", "fact": "`fig.savefig(\"chart.png\", dpi=150, bbox_inches=\"tight\")`, called before `plt.show()`, which may clear the figure.", "why": "Items ask why a saved file is blank."}
     ],
     "traps": [
@@ -20,7 +20,7 @@
     "objective": "5.1.2",
     "oneLine": "Choose the chart from the question: trends → line, comparisons → bar, distributions → histogram or box plot, relationships → scatter, many correlations → heatmap.",
     "know": [
-      {"cue": "Which chart shows a trend over time?", "fact": "A line chart: time on the x-axis, the value on the y-axis.", "why": "The most common chart-choice item."},
+      {"cue": "Which chart shows a trend over time?", "fact": "A line chart: time on the x-axis, the value on the y-axis.", "why": "Time on the x-axis is the signal for a line chart."},
       {"cue": "Which chart compares values across categories?", "fact": "A bar chart, ideally sorted, horizontal for long labels, with the value axis starting at zero.", "why": "Pie charts are the usual distractor."},
       {"cue": "Which charts show a single variable's distribution?", "fact": "A histogram (shape, skew, modality) or a box plot (median, IQR, outliers); side-by-side box plots compare groups.", "why": "\"Compare salary spread across departments\" → box plots."},
       {"cue": "When is a pie chart acceptable?", "fact": "Only for parts of a whole with two to five slices; angles are hard to compare, so bar charts are usually clearer.", "why": "Items ask what's wrong with a 12-slice pie."},

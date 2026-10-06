@@ -77,7 +77,7 @@
   "why_wrong": [
    "",
    "`keep=\"last\"` keeps the last occurrence of each email, not the first.",
-   "Each email keeps one row; only fully duplicated rows would all go with keep=False.",
+   "That is what `keep=False` gives: it drops every row whose email appears more than once, leaving only c@x.",
    "Kept rows stay in their original order."
   ],
   "source": "Syllabus 4.1.1 · pandas: drop_duplicates",
@@ -153,7 +153,7 @@
   "id": "b4-006",
   "objective": "4.1.1",
   "type": "single",
-  "stem": "Which line sets `discount` to 0.1 for rows where `qty` is above 10, actually changing `df` (pandas 2 and 3)?",
+  "stem": "Which line reliably sets `discount` to 0.1 for rows where `qty` is above 10, changing `df` itself in every recent pandas version (2.x and 3.x)?",
   "options": [
    "`df.loc[df[\"qty\"] > 10, \"discount\"] = 0.1`",
    "`df[df[\"qty\"] > 10][\"discount\"] = 0.1`",
@@ -163,11 +163,11 @@
   "answer": [
    0
   ],
-  "explanation": "`.loc[row_mask, column] = value` selects and assigns in one step on the original DataFrame.",
+  "explanation": "`.loc[row_mask, column] = value` selects and assigns in one step on the original DataFrame, so it works the same in every version.",
   "why_wrong": [
    "",
-   "Chained indexing assigns to a temporary copy; with copy-on-write `df` never changes.",
-   "Also chained assignment: under copy-on-write it changes nothing in `df`.",
+   "Chained indexing: `df[mask]` makes a temporary copy, and the assignment changes that copy, not `df`.",
+   "Also chained assignment. In pandas 2 it happens to change `df` (with a warning), but under copy-on-write, the default from pandas 3, it changes nothing.",
    "`query` returns a new DataFrame; assigning into it leaves `df` alone."
   ],
   "source": "Syllabus 4.1.1, 4.1.4 · pandas: copy-on-write",
@@ -177,7 +177,7 @@
    "chained-assignment"
   ],
   "verify": {
-   "py": "import warnings\nimport pandas as pd\nchanged = []\nfor i in range(4):\n    df = pd.DataFrame({\"qty\": [1, 12, 5], \"discount\": [0.0, 0.0, 0.0]})\n    with warnings.catch_warnings():\n        warnings.simplefilter(\"ignore\")\n        exec(opt(i), {\"df\": df})\n    if df[\"discount\"].tolist() == [0.0, 0.1, 0.0]:\n        changed.append(i)\nassert changed == q[\"answer\"], changed"
+   "py": "import warnings\nimport pandas as pd\n\n# pandas 2 can run with copy-on-write off (its default) or on; pandas 3 always uses it.\nmodes = [False, True] if int(pd.__version__.split(\".\")[0]) < 3 else [None]\nworks_everywhere = None\nfor mode in modes:\n    changed = set()\n    for i in range(4):\n        df = pd.DataFrame({\"qty\": [1, 12, 5], \"discount\": [0.0, 0.0, 0.0]})\n        with warnings.catch_warnings():\n            warnings.simplefilter(\"ignore\")\n            if mode is None:\n                exec(opt(i), {\"df\": df})\n            else:\n                with pd.option_context(\"mode.copy_on_write\", mode):\n                    exec(opt(i), {\"df\": df})\n        if df[\"discount\"].tolist() == [0.0, 0.1, 0.0]:\n            changed.add(i)\n    works_everywhere = changed if works_everywhere is None else works_everywhere & changed\nassert sorted(works_everywhere) == q[\"answer\"], works_everywhere"
   }
  },
  {
@@ -1596,6 +1596,34 @@
   "tags": [
    "regularization",
    "logistic-regression"
+  ]
+ },
+ {
+  "id": "b4-088",
+  "objective": "4.2.3",
+  "type": "single",
+  "stem": "Compared with an unrestricted decision tree, what is the typical tendency of linear and logistic regression?",
+  "options": [
+   "Higher bias and lower variance: stable, but they can underfit curved relationships",
+   "Lower bias and higher variance: they memorize the training data",
+   "They can't overfit under any circumstances",
+   "They have no bias, because their coefficients are calculated exactly"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "A straight-line model can't bend to follow complex patterns (bias) but changes little between training samples (low variance). Add features if it underfits; regularize if many features make it overfit.",
+  "why_wrong": [
+   "",
+   "That describes very flexible models such as deep, unpruned trees.",
+   "With many features compared with rows they can overfit, which is why regularization (such as a smaller `C`) exists.",
+   "Assuming a straight-line relationship is itself a source of bias, however exactly the line is fitted."
+  ],
+  "source": "Syllabus 4.2.3",
+  "difficulty": 2,
+  "tags": [
+   "bias-variance",
+   "linear-regression"
   ]
  }
 ]

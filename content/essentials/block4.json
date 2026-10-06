@@ -6,7 +6,7 @@
       {"cue": "What does `dropna()` with no arguments drop?", "fact": "Every row with at least one missing value; use `subset=` for specific columns, `how=\"all\"` for fully empty rows, `thresh=n` to keep rows with at least n values, and `axis=1` for columns.", "why": "Items ask for the shape after dropna."},
       {"cue": "How do you fill missing values with a different value per column?", "fact": "Pass a dict: `df.fillna({\"city\": \"Unknown\", \"sales\": 0})`; use `ffill()` / `bfill()` to carry values forward or back.", "why": "Expect to predict the column after filling."},
       {"cue": "What does `drop_duplicates()` compare?", "fact": "Whole rows by default, keeping the first occurrence; `subset=` compares only some columns and `keep=\"last\"` or `keep=False` changes which copies stay.", "why": "Row counts after de-duplication are common items."},
-      {"cue": "What does a pandas method return when called with `inplace=True`?", "fact": "None: it modifies the DataFrame in place, so `df = df.dropna(inplace=True)` sets `df` to None.", "why": "A favourite trap in code items."},
+      {"cue": "What does a pandas method return when called with `inplace=True`?", "fact": "None: it modifies the DataFrame in place, so `df = df.dropna(inplace=True)` sets `df` to None.", "why": "`df = df.method(inplace=True)` leaves you holding None instead of a DataFrame."},
       {"cue": "How do you change values that match a condition?", "fact": "`df.loc[mask, \"col\"] = value`; chained indexing like `df[mask][\"col\"] = value` modifies a temporary copy (and never `df` under pandas 3 copy-on-write).", "why": "Items show both and ask which updates the DataFrame."}
     ],
     "traps": [
@@ -37,7 +37,7 @@
     "objective": "4.1.3",
     "oneLine": "A Series is one labeled column; a DataFrame is a table of Series sharing an index; operations align on labels and run vectorized.",
     "know": [
-      {"cue": "What is the difference between `df[\"a\"]` and `df[[\"a\"]]`?", "fact": "`df[\"a\"]` returns a Series; `df[[\"a\"]]` (a list of column names) returns a one-column DataFrame.", "why": "Type-of-result items test this constantly."},
+      {"cue": "What is the difference between `df[\"a\"]` and `df[[\"a\"]]`?", "fact": "`df[\"a\"]` returns a Series; `df[[\"a\"]]` (a list of column names) returns a one-column DataFrame.", "why": "One pair of brackets gives a Series, two give a DataFrame."},
       {"cue": "How does arithmetic between two Series work?", "fact": "It aligns on index labels, not positions; labels present in only one Series produce NaN.", "why": "Output items add two Series with different indexes."},
       {"cue": "Why prefer vectorized operations over loops?", "fact": "Vectorized operations (`s * 2`, `.str.upper()`, `np.log(s)`) run in optimized compiled code over the whole column, far faster than Python loops or row-wise `apply`.", "why": "Performance items reward the vectorized option."},
       {"cue": "What do `axis=0` and `axis=1` mean in a DataFrame aggregation?", "fact": "`axis=0` aggregates down the rows, giving one result per column; `axis=1` aggregates across columns, giving one result per row.", "why": "Expect to predict the length of `df.sum(axis=1)`."},
@@ -53,7 +53,7 @@
     "objective": "4.1.4",
     "oneLine": ".loc selects by label with inclusive slices, .iloc selects by position with exclusive slices, and masks select by condition.",
     "know": [
-      {"cue": "How do `.loc` and `.iloc` slices differ at the end?", "fact": "`.loc[\"b\":\"d\"]` includes the end label d; `.iloc[1:3]` excludes position 3, like a Python slice.", "why": "The most tested pandas detail on the exam."},
+      {"cue": "How do `.loc` and `.iloc` slices differ at the end?", "fact": "`.loc[\"b\":\"d\"]` includes the end label d; `.iloc[1:3]` excludes position 3, like a Python slice.", "why": "Inclusive vs exclusive slice ends decide how many rows you get."},
       {"cue": "With a default integer index, how many rows does `df.loc[0:2]` return, and `df.iloc[0:2]`?", "fact": "`df.loc[0:2]` returns 3 rows (labels 0, 1, 2); `df.iloc[0:2]` returns 2 rows (positions 0 and 1).", "why": "Expect exactly this comparison."},
       {"cue": "How do you select a column's values for rows meeting a condition?", "fact": "`df.loc[df[\"qty\"] > 2, \"price\"]`: a boolean mask for rows, a label for the column; the same form assigns values.", "why": "Filter-and-update items use this pattern."},
       {"cue": "What do `df.iloc[0]`, `df.iloc[:, 0]` and `df.iloc[-1]` return?", "fact": "The first row as a Series, the first column as a Series, and the last row as a Series.", "why": "Position-based recall items."},
@@ -72,7 +72,7 @@
     "know": [
       {"cue": "What is the broadcasting rule?", "fact": "Compare shapes from the right; dimensions are compatible if they are equal or one is 1. `(2, 3) + (3,)` works, `(3, 1) + (1, 4)` gives `(3, 4)`, and `(2, 3) + (2,)` raises ValueError.", "why": "Items ask for the result shape or whether an operation fails."},
       {"cue": "What does `a.sum(axis=0)` return for a 2-D array?", "fact": "One sum per column (it collapses the rows); `axis=1` gives one per row; no axis gives the grand total.", "why": "Expect to compute one of these."},
-      {"cue": "How do lists and arrays differ under `*` and `+`?", "fact": "`[1, 2] * 2` repeats the list to `[1, 2, 1, 2]`; `np.array([1, 2]) * 2` multiplies element-wise to `[2, 4]`; `+` concatenates lists but adds arrays.", "why": "A frequent output trap."},
+      {"cue": "How do lists and arrays differ under `*` and `+`?", "fact": "`[1, 2] * 2` repeats the list to `[1, 2, 1, 2]`; `np.array([1, 2]) * 2` multiplies element-wise to `[2, 4]`; `+` concatenates lists but adds arrays.", "why": "The same operator does different things to lists and arrays."},
       {"cue": "What happens when you mix types in one NumPy array?", "fact": "Everything is upcast to one dtype: ints and floats become float, and anything mixed with a string becomes a string array.", "why": "Items ask for an array's dtype."},
       {"cue": "When do you choose an ndarray, a Series or a DataFrame?", "fact": "An ndarray for fast numeric math on one type; a Series for one labeled column; a DataFrame for a labeled table whose columns can have different types.", "why": "The syllabus asks you to evaluate each structure's use case."}
     ],
@@ -121,7 +121,7 @@
       {"cue": "What is the test set for?", "fact": "An unbiased estimate of how the model performs on new, unseen data (generalization), used once after all training and tuning is finished.", "why": "Items ask why scoring on training data is misleading."},
       {"cue": "How do training, validation and test sets differ?", "fact": "Training data fits the model; validation data (or cross-validation) chooses models and settings; test data gives the final estimate.", "why": "Expect to match each set to its role."},
       {"cue": "How do you make a test set representative?", "fact": "Random shuffling for independent rows, `stratify=y` to keep class proportions, and a time-based split for time series (train on the past, test on the future).", "why": "Imbalanced and time-series scenarios each have a specific answer."},
-      {"cue": "What is data leakage?", "fact": "Information from the test set or from the future reaches training: preprocessing fitted on all data, duplicates in both sets, or features that encode the answer; it inflates scores.", "why": "Leakage scenarios are frequent."},
+      {"cue": "What is data leakage?", "fact": "Information from the test set or from the future reaches training: preprocessing fitted on all data, duplicates in both sets, or features that encode the answer; it inflates scores.", "why": "Look for any step that lets test data influence training."},
       {"cue": "What does k-fold cross-validation do?", "fact": "It splits data into k folds and trains k times, each time holding out a different fold, giving a more stable estimate for model selection when data are limited.", "why": "Items ask how to evaluate reliably with little data."}
     ],
     "traps": [

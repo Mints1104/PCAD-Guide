@@ -541,7 +541,7 @@
    "",
    "The 5th and 95th percentiles give a 90% interval.",
    "The extremes cover 100% and are driven by chance resamples.",
-   "±1 standard deviation covers about 68%, and adding a list to a number doesn't work as written."
+   "±1 standard deviation covers only about 68%. As written it doesn't even run: `[-1, 1] * np.std(boot)` multiplies a Python list by a float, which raises a TypeError."
   ],
   "source": "Syllabus 3.2.1",
   "difficulty": 2,
@@ -633,6 +633,38 @@
    "continuous-data",
    "discrete-data"
   ]
+ },
+ {
+  "id": "b3-026",
+  "objective": "3.2.1",
+  "type": "single",
+  "stem": "`children` (children per household) is discrete data. What does this bootstrap of the median print?",
+  "options": [
+   "`[0.0, 0.5, 1.0, 1.5, 2.0, 2.5]`: only a handful of medians are possible, so the bootstrap distribution is lumpy",
+   "Around 2,000 different values, one per resample",
+   "`[1.5]`: every resample has the same median",
+   "A smooth range of decimals between 0 and 3"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "With discrete data (counts) a statistic such as the median can only take a few values, so the bootstrap distribution comes in steps and percentile intervals jump between them. Continuous data give a smoother distribution.",
+  "why_wrong": [
+   "",
+   "Medians of 10 whole numbers can only be whole numbers or halves, so values repeat constantly.",
+   "Resampling with replacement changes the data each time, so the median does vary.",
+   "With discrete values the median can only take a few values, not a smooth range."
+  ],
+  "source": "Syllabus 3.2.1 · NumPy: Generator.choice",
+  "difficulty": 3,
+  "tags": [
+   "bootstrapping",
+   "discrete-data"
+  ],
+  "code": "import numpy as np\n\nrng = np.random.default_rng(0)\nchildren = np.array([0, 1, 1, 2, 2, 2, 3, 0, 1, 2])\nmeds = [float(np.median(rng.choice(children, size=len(children), replace=True)))\n        for _ in range(2000)]\nprint(sorted(set(meds)))",
+  "verify": {
+   "py": "assert run_py(code) == '[0.0, 0.5, 1.0, 1.5, 2.0, 2.5]'\nassert opt(0).startswith('`' + run_py(code) + '`')"
+  }
  },
  {
   "id": "b3-030",

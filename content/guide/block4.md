@@ -573,20 +573,22 @@ x
 ```python
 import numpy as np
 
-a = np.array([[1, 2, 3],
-              [4, 5, 6]])
+a = np.array([[1.5, 2.0, 3.0],
+              [4.0, 5.0, 6.5]])
 print(a.shape)     # 2 rows, 3 columns
 print(a.ndim)
-print(a.dtype)
+print(a.dtype)     # float64: 64-bit decimal numbers
 print(a.size)
 ```
 
 ```text
 (2, 3)
 2
-int64
+float64
 6
 ```
+
+An array of whole numbers shows `int64` instead. (On Windows with NumPy versions before 2.0 it shows `int32`; both mean whole numbers.)
 
 **Maths happens element by element.** An operation on an array applies to every element separately, with no loop needed:
 

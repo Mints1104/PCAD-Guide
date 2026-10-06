@@ -248,7 +248,7 @@ QUESTIONS = [
       0,
       {1: "The 5th and 95th percentiles give a 90% interval.",
        2: "The extremes cover 100% and are driven by chance resamples.",
-       3: "±1 standard deviation covers about 68%, and adding a list to a number doesn't work as written."},
+       3: "±1 standard deviation covers only about 68%. As written it doesn't even run: `[-1, 1] * np.std(boot)` multiplies a Python list by a float, which raises a TypeError."},
       "A 95% percentile interval cuts 2.5% from each tail of the bootstrap distribution.",
       "Syllabus 3.2.1", ["bootstrapping", "percentile-interval"]),
 
@@ -287,6 +287,29 @@ QUESTIONS = [
        3: "Counts of children are discrete."},
       "Continuous data can take any value within a range; counts are discrete.",
       "Syllabus 3.2.1", ["continuous-data", "discrete-data"]),
+
+    Q("b3-026", "3.2.1", 3,
+      "`children` (children per household) is discrete data. What does this bootstrap of the median print?",
+      ["`[0.0, 0.5, 1.0, 1.5, 2.0, 2.5]`: only a handful of medians are possible, so the bootstrap distribution is lumpy",
+       "Around 2,000 different values, one per resample",
+       "`[1.5]`: every resample has the same median",
+       "A smooth range of decimals between 0 and 3"],
+      0,
+      {1: "Medians of 10 whole numbers can only be whole numbers or halves, so values repeat constantly.",
+       2: "Resampling with replacement changes the data each time, so the median does vary.",
+       3: "With discrete values the median can only take a few values, not a smooth range."},
+      "With discrete data (counts) a statistic such as the median can only take a few values, so the bootstrap distribution comes in steps and percentile intervals jump between them. Continuous data give a smoother distribution.",
+      "Syllabus 3.2.1 · NumPy: Generator.choice", ["bootstrapping", "discrete-data"],
+      code="""
+      import numpy as np
+
+      rng = np.random.default_rng(0)
+      children = np.array([0, 1, 1, 2, 2, 2, 3, 0, 1, 2])
+      meds = [float(np.median(rng.choice(children, size=len(children), replace=True)))
+              for _ in range(2000)]
+      print(sorted(set(meds)))
+      """,
+      verify={"py": "assert run_py(code) == '[0.0, 0.5, 1.0, 1.5, 2.0, 2.5]'\nassert opt(0).startswith('`' + run_py(code) + '`')"}),
 
     # ---------- 3.2.2 Regression ----------
     Q("b3-030", "3.2.2", 1,

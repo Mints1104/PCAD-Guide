@@ -491,7 +491,7 @@ QUESTIONS = [
       ["79 characters", "72 characters", "100 characters", "120 characters"],
       0,
       {1: "72 is the limit for comments and docstrings.",
-       2: "Some teams choose 100, but PEP 8 says 79.",
+       2: "PEP 8 lets a team agree on up to 99 characters, but its standard limit is 79.",
        3: "120 is a common editor setting, not PEP 8."},
       "PEP 8 limits code lines to 79 characters (72 for docstrings and comments).",
       "Syllabus 2.1.5 · PEP 8", ["pep8", "line-length"]),
@@ -1240,6 +1240,22 @@ QUESTIONS = [
       """, lang="sql", setup=SHOP, tables=["customers", "orders"],
       verify={"py": "assert run_sql(setup, code) == [('Cara',), ('Ben',)]"}),
 
+    Q("b2-109", "2.4.1", 2,
+      "How many rows does this query return?",
+      ["6", "5", "4", "9"],
+      0,
+      {1: "A LEFT or RIGHT JOIN would give 5; a FULL OUTER JOIN keeps both Dev and order 14.",
+       2: "4 is the INNER JOIN: matching pairs only.",
+       3: "Rows aren't created for every customer-order combination; only matching pairs join, and each unmatched row appears once."},
+      "The 4 matching pairs (Ana ×2, Ben, Cara), plus Dev with no orders (order columns NULL), plus order 14 whose customer 5 doesn't exist (customer columns NULL): 6 rows.",
+      "Syllabus 2.4.1 · SQLite: FULL OUTER JOIN", ["sql", "full-outer-join"],
+      code="""
+      SELECT c.name, o.id
+      FROM customers AS c
+      FULL OUTER JOIN orders AS o ON o.customer_id = c.id;
+      """, lang="sql", setup=SHOP, tables=["customers", "orders"],
+      verify={"py": "assert len(run_sql(setup, code)) == 6"}),
+
     # ---------- 2.4.2 CRUD ----------
     Q("b2-110", "2.4.2", 1,
       "Which SQL statement performs the \"Update\" in CRUD?",
@@ -1513,17 +1529,36 @@ QUESTIONS = [
        "`con.execute(\"SELECT * FROM t WHERE region = $r AND total > $m\", r=\"EU\", m=100)`"],
       0,
       {1: "Braces are Python format fields, not SQL placeholders; the query has no parameters.",
-       2: "Named placeholders need a dict (mapping), not a tuple.",
+       2: "Named placeholders take a dict. A tuple is matched by position and the names are ignored: Python 3.12 and 3.13 warn that this is deprecated, and Python 3.14 raises a ProgrammingError.",
        3: "`execute` doesn't take keyword arguments for parameters."},
       "sqlite3's named style uses `:name` in the SQL and a dict of values.",
       "Syllabus 2.4.4 · Python docs: sqlite3 placeholders", ["sql", "named-parameters"],
       verify={"py": """
       import sqlite3
-      con = sqlite3.connect(":memory:")
-      con.execute("CREATE TABLE t (region TEXT, total REAL)")
-      con.execute("INSERT INTO t VALUES ('EU', 150)")
-      rows = con.execute("SELECT * FROM t WHERE region = :r AND total > :m", {"r": "EU", "m": 100}).fetchall()
-      assert rows == [('EU', 150.0)]
+      import sys
+      import warnings
+
+      def run(i):
+          con = sqlite3.connect(":memory:")
+          con.execute("CREATE TABLE t (region TEXT, total REAL)")
+          con.execute("INSERT INTO t VALUES ('EU', 150)")
+          with warnings.catch_warnings():
+              warnings.simplefilter("error")          # a deprecation counts as incorrect use
+              return eval(opt(i), {"con": con}).fetchall()
+
+      assert run(0) == [('EU', 150.0)]
+      for i in (1, 3):
+          try:
+              run(i)
+              raise AssertionError(f"option {i} should fail")
+          except (sqlite3.Error, TypeError):
+              pass
+      if sys.version_info >= (3, 12):                # earlier versions accept a tuple silently
+          try:
+              run(2)
+              raise AssertionError("option 2 should warn or fail")
+          except (DeprecationWarning, sqlite3.ProgrammingError):
+              pass
       """}),
 
     Q("b2-135", "2.4.4", 3,

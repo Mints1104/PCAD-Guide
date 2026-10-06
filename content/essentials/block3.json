@@ -54,7 +54,7 @@
     "objective": "3.2.2",
     "oneLine": "Linear regression predicts a number, logistic regression predicts the probability of a class; know each one's assumptions, outputs and limits.",
     "know": [
-      {"cue": "When do you choose linear vs logistic regression?", "fact": "Linear regression for a continuous target (price, demand); logistic regression for a binary target (churn yes/no, fraud or not).", "why": "The most direct item type in this objective."},
+      {"cue": "When do you choose linear vs logistic regression?", "fact": "Linear regression for a continuous target (price, demand); logistic regression for a binary target (churn yes/no, fraud or not).", "why": "The type of target (a number or a yes/no) decides the model."},
       {"cue": "What does a linear regression coefficient mean?", "fact": "The expected change in y for a one-unit increase in that predictor, holding the others constant; the intercept is the prediction when all predictors are 0.", "why": "Items ask you to interpret a fitted coefficient."},
       {"cue": "What are the assumptions of linear regression?", "fact": "LINE: Linearity, Independent errors, Normally distributed residuals, Equal variance of residuals (homoscedasticity), plus no strong multicollinearity.", "why": "Expect to spot which assumption a residual plot violates."},
       {"cue": "What does logistic regression output, and how is it fitted?", "fact": "A probability between 0 and 1 from the sigmoid of a linear score (it models the log-odds), fitted by maximum likelihood; a threshold (0.5 by default) turns it into a class.", "why": "`predict_proba` vs `predict` items."},

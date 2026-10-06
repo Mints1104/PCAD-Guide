@@ -173,9 +173,16 @@ QUESTIONS = [
       import matplotlib.pyplot as plt
       fig, ax = plt.subplots()
       ax.plot([1, 2], [1, 2], label="a")
-      leg = eval(opt(0), {"ax": ax})
+      leg = eval(opt(0), {"ax": ax, "plt": plt})
       assert leg._loc == 2          # 2 == "upper left"
       assert leg.get_texts()[0].get_fontsize() == 8
+      assert leg.get_frame().get_facecolor()[:3] == (1.0, 1.0, 1.0)
+      for i in (1, 2, 3):           # the other calls don't exist or take no such arguments
+          try:
+              eval(opt(i), {"ax": ax, "plt": plt})
+              raise AssertionError(f"option {i} should fail")
+          except (TypeError, AttributeError):
+              pass
       """}),
 
     Q("b5-022", "5.1.3", 2,

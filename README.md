@@ -26,10 +26,17 @@ None of the questions are real exam questions: all were written from the officia
 python scripts/compile_questions.py   # question sources -> JSON
 python scripts/verify.py              # run every code question and check its keyed answer
 python scripts/verify_guide.py        # run guide examples and compare with their printed output
+python scripts/verify_cards.py        # run every syntax flashcard's answer against sample data
 node scripts/build.mjs                # validate all content and write dist/index.html
 ```
 
-Run `npm install` once before the first build. Verification needs Python with pandas, NumPy, scikit-learn, Matplotlib, Seaborn and BeautifulSoup.
+Run `npm install` once before the first build. Verification needs Python with pandas, NumPy, scikit-learn, Matplotlib, Seaborn, BeautifulSoup and requests.
+
+## How answers are checked
+
+- **Code questions** carry a `verify` spec, and `verify.py` runs the real code: the keyed option must match the output (and no wrong option may match it), or the named exception must be raised, or a custom check must pass. SQL questions run against SQLite.
+- **Concept questions** were reviewed against the official PCAD-31-02 syllabus and primary sources: the Python, pandas, NumPy, scikit-learn, Matplotlib, Seaborn and SQLite documentation, PEP 8 and PEP 257, and the relevant standards (for example HTTP 429 in RFC 6585, robots.txt in RFC 9309).
+- **Version independence:** the three checkers pass on Python 3.11 with pandas 2.2 / NumPy 1.26 / scikit-learn 1.5, on Python 3.13 with pandas 2.3 / NumPy 2.3 / scikit-learn 1.7, and on Python 3.13 with pandas 3.0 / NumPy 2.5 / scikit-learn 1.9 (last full audit: October 2026). Questions whose behaviour differs between versions say which version they mean.
 
 ## Adding a question
 

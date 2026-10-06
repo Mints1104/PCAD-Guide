@@ -227,7 +227,7 @@
     "leaves": {
       "l_type": {"title": "TypeError", "detail": "Wrong type for the operation, or a function called with the wrong arguments.", "objective": "2.2.2"},
       "l_value": {"title": "ValueError", "detail": "Right type, inappropriate value. `pd.to_numeric(errors=\"coerce\")` avoids it by producing NaN.", "objective": "2.2.2"},
-      "l_zero": {"title": "ZeroDivisionError", "detail": "Division or modulo by zero with Python numbers. (NumPy and pandas return inf or NaN with a warning instead.)", "objective": "2.2.2"},
+      "l_zero": {"title": "ZeroDivisionError", "detail": "Division or modulo by zero with Python numbers. (NumPy and pandas don't raise: they return inf or NaN, and NumPy also prints a RuntimeWarning.)", "objective": "2.2.2"},
       "l_module": {"title": "ModuleNotFoundError", "detail": "A subclass of ImportError; fix with `pip install` in the right environment.", "objective": "2.2.1"},
       "l_key": {"title": "KeyError", "detail": "Missing dict key or DataFrame column; `dict.get()` or checking `in` avoids it.", "objective": "2.2.2"},
       "l_index": {"title": "IndexError", "detail": "Position out of range; valid indexes run from 0 to len − 1 (or −len to −1).", "objective": "2.2.2"},

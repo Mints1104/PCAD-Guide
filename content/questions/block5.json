@@ -396,7 +396,7 @@
    "matplotlib"
   ],
   "verify": {
-   "py": "import matplotlib\nmatplotlib.use(\"Agg\")\nimport matplotlib.pyplot as plt\nfig, ax = plt.subplots()\nax.plot([1, 2], [1, 2], label=\"a\")\nleg = eval(opt(0), {\"ax\": ax})\nassert leg._loc == 2          # 2 == \"upper left\"\nassert leg.get_texts()[0].get_fontsize() == 8"
+   "py": "import matplotlib\nmatplotlib.use(\"Agg\")\nimport matplotlib.pyplot as plt\nfig, ax = plt.subplots()\nax.plot([1, 2], [1, 2], label=\"a\")\nleg = eval(opt(0), {\"ax\": ax, \"plt\": plt})\nassert leg._loc == 2          # 2 == \"upper left\"\nassert leg.get_texts()[0].get_fontsize() == 8\nassert leg.get_frame().get_facecolor()[:3] == (1.0, 1.0, 1.0)\nfor i in (1, 2, 3):           # the other calls don't exist or take no such arguments\n    try:\n        eval(opt(i), {\"ax\": ax, \"plt\": plt})\n        raise AssertionError(f\"option {i} should fail\")\n    except (TypeError, AttributeError):\n        pass"
   }
  },
  {

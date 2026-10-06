@@ -81,13 +81,39 @@ QUESTIONS = [
       "When responders systematically differ from non-responders (managers with lighter workloads answer; busy staff don't), the results are skewed by non-response bias no matter how many answers arrive.",
       "Syllabus 1.1.1", ["sampling", "bias"]),
 
+    Q("b1-007", "1.1.1", 2,
+      "A retailer plans where to open new stores using an online survey that only existing app users can answer. How does this collection choice affect the decision?",
+      ["The answers reflect current app users, so demand in areas without app users is understated and the plan may target the wrong places",
+       "It has no effect, as long as thousands of people respond",
+       "It makes the results more accurate, because app users are the most loyal customers",
+       "It only matters for qualitative research, not for planning decisions"],
+      0,
+      {1: "Size doesn't fix who is missing: people without the app can never answer.",
+       2: "Loyal users are exactly who you would expect to hear from; the decision is about new areas and new customers.",
+       3: "A biased sample distorts any decision built on it, whatever kind of data it produces."},
+      "Who can take part shapes the answers. A sample limited to existing app users can't speak for potential customers elsewhere, so market sizing, strategy and risk estimates built on it inherit that blind spot.",
+      "Syllabus 1.1.1", ["collection-methods", "business-impact"]),
+
+    Q("b1-008", "1.1.1", 1,
+      "A researcher will interview 15 store managers and wants answers that can be compared directly across managers. Which approach fits?",
+      ["A structured interview: the same questions, in the same order, for every manager",
+       "An unstructured conversation that follows whatever each manager raises",
+       "A survey posted on social media",
+       "Scraping the managers' social-media profiles"],
+      0,
+      {1: "Free-flowing conversations give depth, but the answers can't be lined up across managers.",
+       2: "That reaches the public, not these 15 managers.",
+       3: "Scraping collects published content; it doesn't ask the managers anything."},
+      "Structured interviews fix the questions and their order so every answer can be compared; semi-structured and unstructured interviews trade comparability for flexibility.",
+      "Syllabus 1.1.1", ["interviews", "survey-design"]),
+
     # ---------- 1.1.2 Aggregating sources ----------
     Q("b1-010", "1.1.2", 2,
       "The CRM exports customer IDs as zero-padded text; the web shop stores them as integers. What does this code print?",
       ["`2`", "`3`", "`0`", "`1`"],
       0,
       {1: "Customer 4 exists only in `web` and customer 3 only in `crm`; an inner merge keeps matches only.",
-       2: "Zero would be the result without the `astype(int)` step, when the key types don't match.",
+       2: "Without the `astype(int)` step there would be no result at all: pandas refuses to merge a text key with an integer key and raises a ValueError.",
        3: "Both 1 and 2 match once the keys are integers."},
       "After `astype(int)`, \"001\" becomes 1 and \"002\" becomes 2, so the inner merge matches customers 1 and 2: two rows.",
       "Syllabus 1.1.2 · pandas: DataFrame.merge", ["merge", "data-types"],
@@ -398,6 +424,24 @@ QUESTIONS = [
       "Outliers that are genuine are information. Keep them, document the decision, and use methods (median, separate segment) that stop them dominating typical-case analysis.",
       "Syllabus 1.2.2", ["outliers", "judgement"]),
 
+    Q("b1-049", "1.2.2", 3,
+      "Two of these delivery times were typed in hours instead of minutes (0.75 and 0.5). What does this IQR outlier check print?",
+      ["`[]`", "`[0.75, 0.5]`", "`[0.5]`", "`[50.0]`"],
+      0,
+      {1: "The two tiny values pull Q1 down to about 22.7, which drops the lower fence below zero, so they sit inside the \"normal\" range.",
+       2: "0.5 is above the lower fence of about −5.2, so it isn't flagged either.",
+       3: "50 is well inside the upper fence of about 69.1."},
+      "The data errors distort the quartiles the rule is built from: Q1 falls to about 22.7 and the lower fence to about −5.2, so the mis-entered values hide. Outlier detection is only as good as the data: fix units and entry errors first, then look for outliers.",
+      "Syllabus 1.2.2 · pandas: Series.quantile", ["outliers", "data-quality"],
+      code="""
+      import pandas as pd
+
+      minutes = pd.Series([30, 45, 40, 0.75, 35, 0.5, 50, 38])
+      q1, q3 = minutes.quantile([0.25, 0.75])
+      iqr = q3 - q1
+      print(minutes[(minutes < q1 - 1.5 * iqr) | (minutes > q3 + 1.5 * iqr)].tolist())
+      """, verify="stdout"),
+
     # ---------- 1.2.3 Normalization, scaling, encoding ----------
     Q("b1-050", "1.2.3", 2,
       "What does this min-max scaling print?",
@@ -449,7 +493,7 @@ QUESTIONS = [
       "Syllabus 1.2.3", ["ordinal", "encoding"]),
 
     Q("b1-054", "1.2.3", 3,
-      "An `income` feature contains one extreme outlier. What happens if it is min-max scaled?",
+      "An `income` feature contains one extremely high outlier. What happens if it is min-max scaled?",
       ["Most values are squeezed into a narrow band near 0",
        "All values are bounded to the range [−1, 1]",
        "Min-max scaling is unaffected by outliers",
@@ -671,6 +715,19 @@ QUESTIONS = [
       rows = [{"age": 42}, {"age": "42"}, {"age": 130}, {"age": True}]
       print([validate(r) for r in rows])
       """, verify="stdout"),
+
+    Q("b1-075", "1.3.1", 2,
+      "A new CSV arrives every day. The team wants one place that declares each column's type, allowed range and whether it may be empty, checked automatically on every file. Which approach fits?",
+      ["A schema check: declare the rules once (for example with a schema library such as pandera) and validate every file against them",
+       "Look through each file by eye before loading it",
+       "Write a new set of `if` statements for each day's file",
+       "Skip validation and fix errors when the reports look wrong"],
+      0,
+      {1: "Manual inspection doesn't scale and misses problems.",
+       2: "Rewriting the logic for every file is slow and error-prone; rules should be declared once and reused.",
+       3: "By then the bad data has spread into results; validation should fail fast at the start."},
+      "Simple rules can be checked with plain Python logic (`isinstance`, comparisons, `between`). When the same rules apply to every incoming file, a schema declares them once and checks each dataset against it.",
+      "Syllabus 1.3.1", ["validation", "schema"]),
 
     # ---------- 1.3.2 Integrity ----------
     Q("b1-080", "1.3.2", 1,
@@ -1152,4 +1209,24 @@ QUESTIONS = [
        3: "Scaling may not even be needed for a dashboard."},
       "Preparation follows the objective: the definition of churn and the decision it supports determine which columns, filters and periods matter.",
       "Syllabus 1.4.5", ["stakeholders", "preparation"]),
+
+    Q("b1-137", "1.4.5", 2,
+      "A logging error put 10,000 among readings that are normally 10 to 30. What does this mean imputation print?",
+      ["`[12.0, 18.0, 2513.8, 25.0, 10000.0, 2513.8]`",
+       "`[12.0, 18.0, 21.5, 25.0, 10000.0, 21.5]`",
+       "`[12.0, 18.0, 18.3, 25.0, 10000.0, 18.3]`",
+       "`[12.0, 18.0, 0.0, 25.0, 10000.0, 0.0]`"],
+      0,
+      {1: "21.5 would be the median of the four readings; `mean()` includes the 10,000.",
+       2: "18.3 is the mean without the error, but the error is still in the column.",
+       3: "`fillna` uses the value it is given, the mean, not zero."},
+      "The uncorrected outlier drags the mean to 2513.75, so both gaps are filled with an impossible reading. Deal with outliers (fix or remove the error) before imputing or scaling, or use a robust statistic such as the median.",
+      "Syllabus 1.4.5, 1.2.2 · pandas: Series.fillna", ["outliers", "imputation"],
+      code="""
+      import numpy as np
+      import pandas as pd
+
+      s = pd.Series([12, 18, np.nan, 25, 10_000, np.nan])
+      print(s.fillna(s.mean()).round(1).tolist())
+      """, verify="stdout"),
 ]
