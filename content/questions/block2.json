@@ -1961,7 +1961,7 @@
   "id": "b2-100",
   "objective": "2.4.1",
   "type": "single",
-  "stem": "How many rows does this query return? Tables: customers(id, name, region) = (1 Ana EU), (2 Ben US), (3 Cara EU), (4 Dev APAC). orders(id, customer_id, total, status) = (10, 1, 120, paid), (11, 1, 80, paid), (12, 2, 200, refunded), (13, 3, 50, paid), (14, 5, 70, paid).",
+  "stem": "How many rows does this query return?",
   "options": [
    "5",
    "4",
@@ -1987,6 +1987,79 @@
   "code": "SELECT c.name, o.total\nFROM customers AS c\nLEFT JOIN orders AS o ON o.customer_id = c.id;",
   "lang": "sql",
   "setup": "CREATE TABLE customers (id INTEGER PRIMARY KEY, name TEXT, region TEXT);\nINSERT INTO customers VALUES (1, 'Ana', 'EU'), (2, 'Ben', 'US'), (3, 'Cara', 'EU'), (4, 'Dev', 'APAC');\nCREATE TABLE orders (id INTEGER PRIMARY KEY, customer_id INTEGER, total REAL, status TEXT);\nINSERT INTO orders VALUES (10, 1, 120, 'paid'), (11, 1, 80, 'paid'), (12, 2, 200, 'refunded'),\n                          (13, 3, 50, 'paid'), (14, 5, 70, 'paid');",
+  "tables": [
+   {
+    "name": "customers",
+    "columns": [
+     "id",
+     "name",
+     "region"
+    ],
+    "rows": [
+     [
+      1,
+      "Ana",
+      "EU"
+     ],
+     [
+      2,
+      "Ben",
+      "US"
+     ],
+     [
+      3,
+      "Cara",
+      "EU"
+     ],
+     [
+      4,
+      "Dev",
+      "APAC"
+     ]
+    ]
+   },
+   {
+    "name": "orders",
+    "columns": [
+     "id",
+     "customer_id",
+     "total",
+     "status"
+    ],
+    "rows": [
+     [
+      10,
+      1,
+      120.0,
+      "paid"
+     ],
+     [
+      11,
+      1,
+      80.0,
+      "paid"
+     ],
+     [
+      12,
+      2,
+      200.0,
+      "refunded"
+     ],
+     [
+      13,
+      3,
+      50.0,
+      "paid"
+     ],
+     [
+      14,
+      5,
+      70.0,
+      "paid"
+     ]
+    ]
+   }
+  ],
   "verify": {
    "py": "assert len(run_sql(setup, code)) == 5"
   }
@@ -1995,7 +2068,7 @@
   "id": "b2-101",
   "objective": "2.4.1",
   "type": "single",
-  "stem": "How many rows does this query return? Tables: customers(id, name, region) = (1 Ana EU), (2 Ben US), (3 Cara EU), (4 Dev APAC). orders(id, customer_id, total, status) = (10, 1, 120, paid), (11, 1, 80, paid), (12, 2, 200, refunded), (13, 3, 50, paid), (14, 5, 70, paid).",
+  "stem": "How many rows does this query return?",
   "options": [
    "4",
    "5",
@@ -2021,6 +2094,79 @@
   "code": "SELECT o.id, c.name\nFROM orders AS o\nJOIN customers AS c ON c.id = o.customer_id;",
   "lang": "sql",
   "setup": "CREATE TABLE customers (id INTEGER PRIMARY KEY, name TEXT, region TEXT);\nINSERT INTO customers VALUES (1, 'Ana', 'EU'), (2, 'Ben', 'US'), (3, 'Cara', 'EU'), (4, 'Dev', 'APAC');\nCREATE TABLE orders (id INTEGER PRIMARY KEY, customer_id INTEGER, total REAL, status TEXT);\nINSERT INTO orders VALUES (10, 1, 120, 'paid'), (11, 1, 80, 'paid'), (12, 2, 200, 'refunded'),\n                          (13, 3, 50, 'paid'), (14, 5, 70, 'paid');",
+  "tables": [
+   {
+    "name": "customers",
+    "columns": [
+     "id",
+     "name",
+     "region"
+    ],
+    "rows": [
+     [
+      1,
+      "Ana",
+      "EU"
+     ],
+     [
+      2,
+      "Ben",
+      "US"
+     ],
+     [
+      3,
+      "Cara",
+      "EU"
+     ],
+     [
+      4,
+      "Dev",
+      "APAC"
+     ]
+    ]
+   },
+   {
+    "name": "orders",
+    "columns": [
+     "id",
+     "customer_id",
+     "total",
+     "status"
+    ],
+    "rows": [
+     [
+      10,
+      1,
+      120.0,
+      "paid"
+     ],
+     [
+      11,
+      1,
+      80.0,
+      "paid"
+     ],
+     [
+      12,
+      2,
+      200.0,
+      "refunded"
+     ],
+     [
+      13,
+      3,
+      50.0,
+      "paid"
+     ],
+     [
+      14,
+      5,
+      70.0,
+      "paid"
+     ]
+    ]
+   }
+  ],
   "verify": {
    "py": "assert len(run_sql(setup, code)) == 4"
   }
@@ -2029,7 +2175,7 @@
   "id": "b2-102",
   "objective": "2.4.1",
   "type": "single",
-  "stem": "What does this query return? Tables: customers(id, name, region) = (1 Ana EU), (2 Ben US), (3 Cara EU), (4 Dev APAC). orders(id, customer_id, total, status) = (10, 1, 120, paid), (11, 1, 80, paid), (12, 2, 200, refunded), (13, 3, 50, paid), (14, 5, 70, paid).",
+  "stem": "What does this query return?",
   "options": [
    "One row: `('EU', 250.0)`",
    "Two rows: `('EU', 250.0)` and `('US', 200.0)`",
@@ -2055,6 +2201,79 @@
   "code": "SELECT c.region, SUM(o.total) AS revenue\nFROM orders AS o\nJOIN customers AS c ON c.id = o.customer_id\nWHERE o.status = 'paid'\nGROUP BY c.region\nHAVING SUM(o.total) > 100;",
   "lang": "sql",
   "setup": "CREATE TABLE customers (id INTEGER PRIMARY KEY, name TEXT, region TEXT);\nINSERT INTO customers VALUES (1, 'Ana', 'EU'), (2, 'Ben', 'US'), (3, 'Cara', 'EU'), (4, 'Dev', 'APAC');\nCREATE TABLE orders (id INTEGER PRIMARY KEY, customer_id INTEGER, total REAL, status TEXT);\nINSERT INTO orders VALUES (10, 1, 120, 'paid'), (11, 1, 80, 'paid'), (12, 2, 200, 'refunded'),\n                          (13, 3, 50, 'paid'), (14, 5, 70, 'paid');",
+  "tables": [
+   {
+    "name": "customers",
+    "columns": [
+     "id",
+     "name",
+     "region"
+    ],
+    "rows": [
+     [
+      1,
+      "Ana",
+      "EU"
+     ],
+     [
+      2,
+      "Ben",
+      "US"
+     ],
+     [
+      3,
+      "Cara",
+      "EU"
+     ],
+     [
+      4,
+      "Dev",
+      "APAC"
+     ]
+    ]
+   },
+   {
+    "name": "orders",
+    "columns": [
+     "id",
+     "customer_id",
+     "total",
+     "status"
+    ],
+    "rows": [
+     [
+      10,
+      1,
+      120.0,
+      "paid"
+     ],
+     [
+      11,
+      1,
+      80.0,
+      "paid"
+     ],
+     [
+      12,
+      2,
+      200.0,
+      "refunded"
+     ],
+     [
+      13,
+      3,
+      50.0,
+      "paid"
+     ],
+     [
+      14,
+      5,
+      70.0,
+      "paid"
+     ]
+    ]
+   }
+  ],
   "verify": {
    "py": "assert run_sql(setup, code) == [('EU', 250.0)]"
   }
@@ -2088,6 +2307,79 @@
   ],
   "lang": "sql",
   "setup": "CREATE TABLE customers (id INTEGER PRIMARY KEY, name TEXT, region TEXT);\nINSERT INTO customers VALUES (1, 'Ana', 'EU'), (2, 'Ben', 'US'), (3, 'Cara', 'EU'), (4, 'Dev', 'APAC');\nCREATE TABLE orders (id INTEGER PRIMARY KEY, customer_id INTEGER, total REAL, status TEXT);\nINSERT INTO orders VALUES (10, 1, 120, 'paid'), (11, 1, 80, 'paid'), (12, 2, 200, 'refunded'),\n                          (13, 3, 50, 'paid'), (14, 5, 70, 'paid');",
+  "tables": [
+   {
+    "name": "customers",
+    "columns": [
+     "id",
+     "name",
+     "region"
+    ],
+    "rows": [
+     [
+      1,
+      "Ana",
+      "EU"
+     ],
+     [
+      2,
+      "Ben",
+      "US"
+     ],
+     [
+      3,
+      "Cara",
+      "EU"
+     ],
+     [
+      4,
+      "Dev",
+      "APAC"
+     ]
+    ]
+   },
+   {
+    "name": "orders",
+    "columns": [
+     "id",
+     "customer_id",
+     "total",
+     "status"
+    ],
+    "rows": [
+     [
+      10,
+      1,
+      120.0,
+      "paid"
+     ],
+     [
+      11,
+      1,
+      80.0,
+      "paid"
+     ],
+     [
+      12,
+      2,
+      200.0,
+      "refunded"
+     ],
+     [
+      13,
+      3,
+      50.0,
+      "paid"
+     ],
+     [
+      14,
+      5,
+      70.0,
+      "paid"
+     ]
+    ]
+   }
+  ],
   "verify": {
    "py": "bad = []\nfor i in range(4):\n    try:\n        run_sql(setup, opt(i))\n    except Exception:\n        bad.append(i)\nassert bad == q[\"answer\"], bad"
   }
@@ -2193,7 +2485,7 @@
   "id": "b2-107",
   "objective": "2.4.1",
   "type": "single",
-  "stem": "Which query lists customers who have never placed an order? Tables: customers(id, name, region) = (1 Ana EU), (2 Ben US), (3 Cara EU), (4 Dev APAC). orders(id, customer_id, total, status) = (10, 1, 120, paid), (11, 1, 80, paid), (12, 2, 200, refunded), (13, 3, 50, paid), (14, 5, 70, paid).",
+  "stem": "Which query lists customers who have never placed an order?",
   "options": [
    "SELECT c.name\nFROM customers AS c\nLEFT JOIN orders AS o ON o.customer_id = c.id\nWHERE o.id IS NULL;",
    "SELECT c.name\nFROM customers AS c\nJOIN orders AS o ON o.customer_id = c.id\nWHERE o.id IS NULL;",
@@ -2218,6 +2510,79 @@
   ],
   "lang": "sql",
   "setup": "CREATE TABLE customers (id INTEGER PRIMARY KEY, name TEXT, region TEXT);\nINSERT INTO customers VALUES (1, 'Ana', 'EU'), (2, 'Ben', 'US'), (3, 'Cara', 'EU'), (4, 'Dev', 'APAC');\nCREATE TABLE orders (id INTEGER PRIMARY KEY, customer_id INTEGER, total REAL, status TEXT);\nINSERT INTO orders VALUES (10, 1, 120, 'paid'), (11, 1, 80, 'paid'), (12, 2, 200, 'refunded'),\n                          (13, 3, 50, 'paid'), (14, 5, 70, 'paid');",
+  "tables": [
+   {
+    "name": "customers",
+    "columns": [
+     "id",
+     "name",
+     "region"
+    ],
+    "rows": [
+     [
+      1,
+      "Ana",
+      "EU"
+     ],
+     [
+      2,
+      "Ben",
+      "US"
+     ],
+     [
+      3,
+      "Cara",
+      "EU"
+     ],
+     [
+      4,
+      "Dev",
+      "APAC"
+     ]
+    ]
+   },
+   {
+    "name": "orders",
+    "columns": [
+     "id",
+     "customer_id",
+     "total",
+     "status"
+    ],
+    "rows": [
+     [
+      10,
+      1,
+      120.0,
+      "paid"
+     ],
+     [
+      11,
+      1,
+      80.0,
+      "paid"
+     ],
+     [
+      12,
+      2,
+      200.0,
+      "refunded"
+     ],
+     [
+      13,
+      3,
+      50.0,
+      "paid"
+     ],
+     [
+      14,
+      5,
+      70.0,
+      "paid"
+     ]
+    ]
+   }
+  ],
   "verify": {
    "py": "results = [run_sql(setup, opt(i)) for i in range(4)]\nassert results[0] == [('Dev',)], results[0]\nassert all(r != [('Dev',)] for i, r in enumerate(results) if i != 0), results"
   }
@@ -2226,7 +2591,7 @@
   "id": "b2-108",
   "objective": "2.4.1",
   "type": "single",
-  "stem": "Which names does this query return, in order? Tables: customers(id, name, region) = (1 Ana EU), (2 Ben US), (3 Cara EU), (4 Dev APAC). orders(id, customer_id, total, status) = (10, 1, 120, paid), (11, 1, 80, paid), (12, 2, 200, refunded), (13, 3, 50, paid), (14, 5, 70, paid).",
+  "stem": "Which names does this query return, in order?",
   "options": [
    "Cara, Ben",
    "Dev, Cara",
@@ -2252,6 +2617,79 @@
   "code": "SELECT name FROM customers ORDER BY name DESC LIMIT 2 OFFSET 1;",
   "lang": "sql",
   "setup": "CREATE TABLE customers (id INTEGER PRIMARY KEY, name TEXT, region TEXT);\nINSERT INTO customers VALUES (1, 'Ana', 'EU'), (2, 'Ben', 'US'), (3, 'Cara', 'EU'), (4, 'Dev', 'APAC');\nCREATE TABLE orders (id INTEGER PRIMARY KEY, customer_id INTEGER, total REAL, status TEXT);\nINSERT INTO orders VALUES (10, 1, 120, 'paid'), (11, 1, 80, 'paid'), (12, 2, 200, 'refunded'),\n                          (13, 3, 50, 'paid'), (14, 5, 70, 'paid');",
+  "tables": [
+   {
+    "name": "customers",
+    "columns": [
+     "id",
+     "name",
+     "region"
+    ],
+    "rows": [
+     [
+      1,
+      "Ana",
+      "EU"
+     ],
+     [
+      2,
+      "Ben",
+      "US"
+     ],
+     [
+      3,
+      "Cara",
+      "EU"
+     ],
+     [
+      4,
+      "Dev",
+      "APAC"
+     ]
+    ]
+   },
+   {
+    "name": "orders",
+    "columns": [
+     "id",
+     "customer_id",
+     "total",
+     "status"
+    ],
+    "rows": [
+     [
+      10,
+      1,
+      120.0,
+      "paid"
+     ],
+     [
+      11,
+      1,
+      80.0,
+      "paid"
+     ],
+     [
+      12,
+      2,
+      200.0,
+      "refunded"
+     ],
+     [
+      13,
+      3,
+      50.0,
+      "paid"
+     ],
+     [
+      14,
+      5,
+      70.0,
+      "paid"
+     ]
+    ]
+   }
+  ],
   "verify": {
    "py": "assert run_sql(setup, code) == [('Cara',), ('Ben',)]"
   }

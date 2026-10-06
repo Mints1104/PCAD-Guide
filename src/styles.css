@@ -693,6 +693,42 @@ p {
   line-height: 1.45;
   font-weight: 600;
 }
+.q-tables {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 12px 20px;
+  margin-bottom: 16px;
+}
+.q-table {
+  border-collapse: collapse;
+  font-family: var(--mono);
+  font-size: 0.82rem;
+}
+.q-table caption {
+  margin-bottom: 4px;
+  font-family: var(--font);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  text-align: left;
+  color: var(--text-muted);
+}
+.q-table th,
+.q-table td {
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  text-align: left;
+}
+.q-table th {
+  background: var(--bg-sunk);
+}
+.q-table td {
+  background: var(--bg-elevated);
+}
+.q-table td.q-null {
+  color: var(--text-muted);
+  font-style: italic;
+}
 .select-hint {
   font-size: var(--fs-sm);
   font-weight: 400;

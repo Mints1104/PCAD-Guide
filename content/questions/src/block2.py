@@ -8,7 +8,6 @@ INSERT INTO orders VALUES (10, 1, 120, 'paid'), (11, 1, 80, 'paid'), (12, 2, 200
                           (13, 3, 50, 'paid'), (14, 5, 70, 'paid');
 """
 
-SHOP_NOTE = "Tables: customers(id, name, region) = (1 Ana EU), (2 Ben US), (3 Cara EU), (4 Dev APAC). orders(id, customer_id, total, status) = (10, 1, 120, paid), (11, 1, 80, paid), (12, 2, 200, refunded), (13, 3, 50, paid), (14, 5, 70, paid)."
 
 QUESTIONS = [
     # ---------- 2.1.1 Syntax, scope, control flow ----------
@@ -1094,7 +1093,7 @@ QUESTIONS = [
 
     # ---------- 2.4.1 SQL queries ----------
     Q("b2-100", "2.4.1", 2,
-      "How many rows does this query return? " + SHOP_NOTE,
+      "How many rows does this query return?",
       ["5", "4", "6", "3"],
       0,
       {1: "Dev has no orders but still appears once, with NULL totals.",
@@ -1106,11 +1105,11 @@ QUESTIONS = [
       SELECT c.name, o.total
       FROM customers AS c
       LEFT JOIN orders AS o ON o.customer_id = c.id;
-      """, lang="sql", setup=SHOP,
+      """, lang="sql", setup=SHOP, tables=["customers", "orders"],
       verify={"py": "assert len(run_sql(setup, code)) == 5"}),
 
     Q("b2-101", "2.4.1", 2,
-      "How many rows does this query return? " + SHOP_NOTE,
+      "How many rows does this query return?",
       ["4", "5", "3", "6"],
       0,
       {1: "Order 14 references customer 5, who doesn't exist, so the inner join drops it.",
@@ -1122,11 +1121,11 @@ QUESTIONS = [
       SELECT o.id, c.name
       FROM orders AS o
       JOIN customers AS c ON c.id = o.customer_id;
-      """, lang="sql", setup=SHOP,
+      """, lang="sql", setup=SHOP, tables=["customers", "orders"],
       verify={"py": "assert len(run_sql(setup, code)) == 4"}),
 
     Q("b2-102", "2.4.1", 3,
-      "What does this query return? " + SHOP_NOTE,
+      "What does this query return?",
       ["One row: `('EU', 250.0)`", "Two rows: `('EU', 250.0)` and `('US', 200.0)`", "One row: `('EU', 200.0)`", "No rows"],
       0,
       {1: "Ben's order is refunded, so WHERE removes it before grouping.",
@@ -1141,7 +1140,7 @@ QUESTIONS = [
       WHERE o.status = 'paid'
       GROUP BY c.region
       HAVING SUM(o.total) > 100;
-      """, lang="sql", setup=SHOP,
+      """, lang="sql", setup=SHOP, tables=["customers", "orders"],
       verify={"py": "assert run_sql(setup, code) == [('EU', 250.0)]"}),
 
     Q("b2-103", "2.4.1", 2,
@@ -1155,7 +1154,7 @@ QUESTIONS = [
        2: "ORDER BY can use a SELECT alias: valid.",
        3: "DISTINCT with a LIKE filter is valid."},
       "WHERE runs before grouping, so it can't use an aggregate such as COUNT(*). Move the condition to HAVING.",
-      "Syllabus 2.4.1", ["sql", "where-vs-having"], lang="sql", setup=SHOP,
+      "Syllabus 2.4.1", ["sql", "where-vs-having"], lang="sql", setup=SHOP, tables=["customers", "orders"],
       verify={"py": """
       bad = []
       for i in range(4):
@@ -1210,7 +1209,7 @@ QUESTIONS = [
       verify={"py": "assert run_sql(setup, code) == [(0,)]"}),
 
     Q("b2-107", "2.4.1", 3,
-      "Which query lists customers who have never placed an order? " + SHOP_NOTE,
+      "Which query lists customers who have never placed an order?",
       ["SELECT c.name\nFROM customers AS c\nLEFT JOIN orders AS o ON o.customer_id = c.id\nWHERE o.id IS NULL;",
        "SELECT c.name\nFROM customers AS c\nJOIN orders AS o ON o.customer_id = c.id\nWHERE o.id IS NULL;",
        "SELECT c.name\nFROM customers AS c\nLEFT JOIN orders AS o ON o.customer_id = c.id\nWHERE o.id = NULL;",
@@ -1220,7 +1219,7 @@ QUESTIONS = [
        2: "`= NULL` is never true; use `IS NULL`.",
        3: "This finds orders without a customer (order 14), and returns a NULL name."},
       "A LEFT JOIN keeps customers without orders, whose order columns are NULL; `WHERE o.id IS NULL` keeps just those (Dev).",
-      "Syllabus 2.4.1", ["sql", "anti-join"], lang="sql", setup=SHOP,
+      "Syllabus 2.4.1", ["sql", "anti-join"], lang="sql", setup=SHOP, tables=["customers", "orders"],
       verify={"py": """
       results = [run_sql(setup, opt(i)) for i in range(4)]
       assert results[0] == [('Dev',)], results[0]
@@ -1228,7 +1227,7 @@ QUESTIONS = [
       """}),
 
     Q("b2-108", "2.4.1", 2,
-      "Which names does this query return, in order? " + SHOP_NOTE,
+      "Which names does this query return, in order?",
       ["Cara, Ben", "Dev, Cara", "Ben, Ana", "Ana, Ben"],
       0,
       {1: "OFFSET 1 skips the first row (Dev).",
@@ -1238,7 +1237,7 @@ QUESTIONS = [
       "Syllabus 2.4.1", ["sql", "limit"],
       code="""
       SELECT name FROM customers ORDER BY name DESC LIMIT 2 OFFSET 1;
-      """, lang="sql", setup=SHOP,
+      """, lang="sql", setup=SHOP, tables=["customers", "orders"],
       verify={"py": "assert run_sql(setup, code) == [('Cara',), ('Ben',)]"}),
 
     # ---------- 2.4.2 CRUD ----------

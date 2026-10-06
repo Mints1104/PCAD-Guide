@@ -18,6 +18,39 @@ function selectHint(q) {
   return `Select ${['', 'one', 'two', 'three', 'four'][q.answer.length] ?? q.answer.length}.`;
 }
 
+// The tables a SQL question runs against, shown as real tables rather than inline text.
+function DataTables({ tables }) {
+  return (
+    <div class="q-tables">
+      {tables.map((t) => (
+        <div class="table-wrap" key={t.name}>
+          <table class="q-table">
+            <caption>{t.name}</caption>
+            <thead>
+              <tr>
+                {t.columns.map((c) => (
+                  <th key={c}>{c}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {t.rows.map((r, i) => (
+                <tr key={i}>
+                  {r.map((v, j) => (
+                    <td key={j} class={v === null ? 'q-null' : undefined}>
+                      {v === null ? 'NULL' : String(v)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function QuestionBody({ q }) {
   return (
     <>
@@ -28,6 +61,7 @@ export function QuestionBody({ q }) {
         <Rich text={q.stem} />
         {q.type === 'multi' && <span class="select-hint"> {selectHint(q)}</span>}
       </h2>
+      {q.tables && <DataTables tables={q.tables} />}
       {q.code && <CodeBlock code={q.code} lang={q.lang ?? 'python'} label={q.lang === 'sql' ? 'SQL' : q.lang === 'text' ? 'Data' : 'Python'} />}
     </>
   );
