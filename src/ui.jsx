@@ -1,5 +1,5 @@
 import { Marked } from 'marked';
-import { BLOCK_NAMES } from './constants.js';
+import { BLOCK_NAMES, OBJECTIVES } from './constants.js';
 import { escapeHtml, highlight } from './highlight.js';
 
 const STROKE = 1.75;
@@ -145,8 +145,25 @@ function glossaryToDl(md) {
   return out.join('\n');
 }
 
+// Cross-references such as "section 2.4.3" or "see 1.2.3", and the objective column of the
+// overview table, become links to that objective in the guide. Code fences are left alone.
+function linkObjectives(md) {
+  const href = (id) => `#/guide/b${id[0]}/${id.replaceAll('.', '-')}`;
+  let inFence = false;
+  return md
+    .split('\n')
+    .map((line) => {
+      if (/^\s*```/.test(line)) inFence = !inFence;
+      if (inFence) return line;
+      return line
+        .replace(/\b(sections?|see|objective)\s+(\d\.\d\.\d)\b/gi, (m, word, id) => (OBJECTIVES[id] ? `${word} [${id}](${href(id)})` : m))
+        .replace(/^\|\s*(\d\.\d\.\d)\s*\|/, (m, id) => (OBJECTIVES[id] ? `| [${id}](${href(id)}) |` : m));
+    })
+    .join('\n');
+}
+
 export function renderMarkdown(md, { dropTitle = false } = {}) {
-  let source = /^# Glossary/m.test(md) ? glossaryToDl(md) : md;
+  let source = linkObjectives(/^# Glossary/m.test(md) ? glossaryToDl(md) : md);
   // The page already shows the document title as its own heading.
   if (dropTitle) source = source.replace(/^#\s+.+\r?\n/, '');
   const seen = new Map();
