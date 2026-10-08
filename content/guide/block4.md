@@ -827,7 +827,7 @@ print(df.groupby("region")["amount"].count().to_dict())
 
 EU has 2 rows, but only 1 of them has an amount.
 
-**Grouping by two columns.** Pass a list of columns to group by every combination. The result has a two-level index (a **MultiIndex**); `as_index=False` gives ordinary columns instead, which are easier to work with.
+**Grouping by two columns.** Pass a list of columns to group by every combination of them. Here is the result **without** any extra option:
 
 ```python
 import pandas as pd
@@ -836,7 +836,47 @@ df = pd.DataFrame({"region": ["EU", "EU", "US", "US", "US"],
                    "channel": ["web", "shop", "web", "web", "shop"],
                    "amount": [100, 40, 70, 30, 60]})
 
-print(df.groupby(["region", "channel"], as_index=False)["amount"].sum())
+totals = df.groupby(["region", "channel"])["amount"].sum()
+print(totals)
+```
+
+```text
+region  channel
+EU      shop        40
+        web        100
+US      shop        60
+        web        100
+Name: amount, dtype: int64
+```
+
+This is a **Series**, not a table. `region` and `channel` aren't columns: together they form the row labels, a two-level index called a **MultiIndex**. That's why each region is printed only once, with a blank below it. To read one value you give both labels as a pair:
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"region": ["EU", "EU", "US", "US", "US"],
+                   "channel": ["web", "shop", "web", "web", "shop"],
+                   "amount": [100, 40, 70, 30, 60]})
+
+totals = df.groupby(["region", "channel"])["amount"].sum()
+print(totals.loc[("EU", "web")])
+```
+
+```text
+100
+```
+
+**The same grouping with `as_index=False`.** Now the group keys stay as ordinary columns, and you get a normal DataFrame with row numbers 0, 1, 2…:
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"region": ["EU", "EU", "US", "US", "US"],
+                   "channel": ["web", "shop", "web", "web", "shop"],
+                   "amount": [100, 40, 70, 30, 60]})
+
+flat = df.groupby(["region", "channel"], as_index=False)["amount"].sum()
+print(flat)
 ```
 
 ```text
@@ -846,6 +886,8 @@ print(df.groupby(["region", "channel"], as_index=False)["amount"].sum())
 2     US    shop      60
 3     US     web     100
 ```
+
+The totals are identical; only the layout differs. Every row now shows its region, and you can filter and merge it like any other table, for example `flat[flat["region"] == "EU"]`. Calling `.reset_index()` on the first result gives the same flat table.
 
 **`crosstab`: counting combinations.** `pd.crosstab(a, b)` counts how many rows have each combination of two columns. `margins=True` adds row and column totals; `normalize="index"` turns each row into shares that add up to 1.
 
