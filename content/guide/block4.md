@@ -215,7 +215,26 @@ print(orders.merge(custs, on="cust", how="outer"))    # everything from both
 
 Now customer `c` appears too, with `NaN` for the order columns, because it has no orders. The order numbers and amounts now show as `1.0`, `50.0` and so on: a number column that contains `NaN` is stored as decimals (floats).
 
-**Stacking with `concat`.** `pd.concat` doesn't match anything. It puts tables one under the other (rows stacked). `ignore_index=True` numbers the rows 0, 1, 2… again.
+**Stacking with `concat`.** `pd.concat` doesn't match anything. It puts tables one under the other (rows stacked):
+
+```python
+import pandas as pd
+
+custs = pd.DataFrame({"cust": ["a", "b", "c"], "region": ["EU", "US", "EU"]})
+more = pd.DataFrame({"cust": ["d"], "region": ["US"]})
+
+print(pd.concat([custs, more]))
+```
+
+```text
+  cust region
+0    a     EU
+1    b     US
+2    c     EU
+0    d     US
+```
+
+The row labels come from the original tables, so `d` keeps its label 0 and there are now two rows labelled 0. `ignore_index=True` numbers the rows 0, 1, 2… again:
 
 ```python
 import pandas as pd
@@ -249,7 +268,7 @@ If a key appears several times on **both** sides, the merge produces every combi
 - **Long**: one row per measurement, such as one row per region per quarter.
 - **Wide**: one row per item, with a column for each category, such as one row per region with a column per quarter.
 
-**Long to wide: `pivot_table`.** `pivot_table` picks a column for the rows (`index`), a column whose values become new columns (`columns`), and the values to fill in (`values`). If several rows land in the same cell, `aggfunc` combines them.
+**Long to wide: `pivot_table`.** `pivot_table` picks a column for the rows (`index`), a column whose values become new columns (`columns`), and the values to fill in (`values`). If several rows land in the same cell, they are combined. By default they are **averaged**:
 
 ```python
 import pandas as pd
@@ -257,24 +276,35 @@ import pandas as pd
 sales = pd.DataFrame({"region": ["EU", "EU", "US", "US", "EU"],
                       "quarter": ["Q1", "Q2", "Q1", "Q2", "Q1"],
                       "revenue": [10, 12, 8, 9, 4]})
-print(sales)
+print(sales.pivot_table(values="revenue", index="region", columns="quarter"))
+```
+
+```text
+quarter   Q1    Q2
+region
+EU       7.0  12.0
+US       8.0   9.0
+```
+
+EU has two Q1 rows (10 and 4), so its Q1 cell is their mean, 7.0. For totals, pass `aggfunc="sum"`:
+
+```python
+import pandas as pd
+
+sales = pd.DataFrame({"region": ["EU", "EU", "US", "US", "EU"],
+                      "quarter": ["Q1", "Q2", "Q1", "Q2", "Q1"],
+                      "revenue": [10, 12, 8, 9, 4]})
 print(sales.pivot_table(values="revenue", index="region", columns="quarter", aggfunc="sum"))
 ```
 
 ```text
-  region quarter  revenue
-0     EU      Q1       10
-1     EU      Q2       12
-2     US      Q1        8
-3     US      Q2        9
-4     EU      Q1        4
 quarter  Q1  Q2
 region
 EU       14  12
 US        8   9
 ```
 
-EU has two Q1 rows (10 and 4), so its Q1 cell is their sum, 14. `pivot` (without `_table`) does the same reshaping but raises an error when two rows would land in the same cell.
+Now EU's Q1 cell is 10 + 4 = 14. `pivot` (without `_table`) does the same reshaping but raises an error when two rows would land in the same cell.
 
 **Wide to long: `melt`.** `melt` goes the other way: it turns the quarter columns back into rows.
 
@@ -889,7 +919,25 @@ print(flat)
 
 The totals are identical; only the layout differs. Every row now shows its region, and you can filter and merge it like any other table, for example `flat[flat["region"] == "EU"]`. Calling `.reset_index()` on the first result gives the same flat table.
 
-**`crosstab`: counting combinations.** `pd.crosstab(a, b)` counts how many rows have each combination of two columns. `margins=True` adds row and column totals; `normalize="index"` turns each row into shares that add up to 1.
+**`crosstab`: counting combinations.** `pd.crosstab(a, b)` counts how many rows have each combination of two columns:
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"region": ["EU", "EU", "US", "US", "US"],
+                   "channel": ["web", "shop", "web", "web", "shop"]})
+
+print(pd.crosstab(df["region"], df["channel"]))
+```
+
+```text
+channel  shop  web
+region
+EU          1    1
+US          1    2
+```
+
+`margins=True` adds an `All` row and column with the totals:
 
 ```python
 import pandas as pd
@@ -898,7 +946,6 @@ df = pd.DataFrame({"region": ["EU", "EU", "US", "US", "US"],
                    "channel": ["web", "shop", "web", "web", "shop"]})
 
 print(pd.crosstab(df["region"], df["channel"], margins=True))
-print(pd.crosstab(df["region"], df["channel"], normalize="index").round(2))
 ```
 
 ```text
@@ -907,6 +954,20 @@ region
 EU          1    1    2
 US          1    2    3
 All         2    3    5
+```
+
+`normalize="index"` replaces the counts with shares of each row, so every row adds up to 1:
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"region": ["EU", "EU", "US", "US", "US"],
+                   "channel": ["web", "shop", "web", "web", "shop"]})
+
+print(pd.crosstab(df["region"], df["channel"], normalize="index").round(2))
+```
+
+```text
 channel  shop   web
 region
 EU       0.50  0.50
@@ -1165,9 +1226,11 @@ print(len(X_train), len(X_test))
 
 **A representative test set.** The test set should look like the data the model will meet in real life.
 
-- **Imbalanced classes:** pass `stratify=y` so the test set keeps the same class proportions. Without it, a rare class might barely appear, or not appear at all.
+- **Imbalanced classes:** pass `stratify=y` so the test set keeps the same class proportions.
 - **Independent rows:** a random shuffle is fine.
 - **Time series:** don't shuffle. Train on the past and test on the later period, or the model gets to "see the future".
+
+Here 20% of the rows are class 1. A plain random split doesn't keep that share:
 
 ```python
 from sklearn.model_selection import train_test_split
@@ -1175,16 +1238,32 @@ from sklearn.model_selection import train_test_split
 X = list(range(50))
 y = [0] * 40 + [1] * 10                   # 20% of rows are class 1
 
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, stratify=y, random_state=0)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=8)
 print(len(y_test), sum(y_test))           # test rows, and how many are class 1
+```
+
+```text
+10 4
+```
+
+This split happened to put 4 class-1 rows into a 10-row test set: 40% instead of 20%. With another `random_state` it could just as easily be 1 or 0. The same split with `stratify=y`:
+
+```python
+from sklearn.model_selection import train_test_split
+
+X = list(range(50))
+y = [0] * 40 + [1] * 10
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=8, stratify=y)
+print(len(y_test), sum(y_test))
 ```
 
 ```text
 10 2
 ```
 
-The 10 test rows keep the 20% share: 2 of them are class 1.
+Stratifying keeps the 20% share: 2 of the 10 test rows are class 1, whatever the `random_state`.
 
 **Cross-validation.** With little data, a single split can be lucky or unlucky. **k-fold cross-validation** splits the data into k parts (folds), then trains k times, each time testing on a different fold. The average of the k scores is a steadier estimate. It is used to compare and tune models; if you can, still keep a final test set aside.
 

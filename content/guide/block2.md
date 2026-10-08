@@ -133,7 +133,21 @@ nothing over 6
 
 If the list had contained 8, the loop would have hit `break` and the `else` would have been skipped.
 
-**`enumerate`: a counter alongside each item.** `enumerate(items)` gives you each item together with its position, counting from 0. `start=1` counts from 1 instead.
+**`enumerate`: a counter alongside each item.** `enumerate(items)` gives you each item together with its position. By default it counts from 0, like list positions:
+
+```python
+items = ["tea", "jam", "bread"]
+for number, item in enumerate(items):
+    print(number, item)
+```
+
+```text
+0 tea
+1 jam
+2 bread
+```
+
+`start=1` counts from 1 instead, which suits numbered lists for people:
 
 ```python
 items = ["tea", "jam", "bread"]
@@ -597,6 +611,30 @@ None [1, 2, 3]
 ```
 
 This is why `nums = nums.sort()` is a classic mistake: it replaces your list with `None`.
+
+**Sorting by something else: `key=`.** By default, sorting compares the items themselves. Sorting a dict sorts its keys, so names come out in alphabetical order:
+
+```python
+scores = {"ana": 81, "ben": 67, "cara": 92}
+print(sorted(scores))
+```
+
+```text
+['ana', 'ben', 'cara']
+```
+
+`key=` gives a function that is applied to each item first, and sorting uses its results instead. With `key=scores.get`, each name is replaced by its score for the comparison, so the names come out from lowest score to highest:
+
+```python
+scores = {"ana": 81, "ben": 67, "cara": 92}
+print(sorted(scores, key=scores.get))
+print(sorted(scores, key=scores.get, reverse=True))   # highest score first
+```
+
+```text
+['ben', 'ana', 'cara']
+['cara', 'ana', 'ben']
+```
 
 **Reading from a dict: `[]` versus `.get()`.** Square brackets raise a `KeyError` if the key isn't there. `.get(key, default)` returns the default instead (or `None` if you don't give one).
 
@@ -1925,7 +1963,26 @@ print(con.execute("SELECT name FROM products WHERE price IS NULL").fetchall())
 [('Milk',)]
 ```
 
-**Sorting, removing duplicates and paging.** `ORDER BY col` sorts (add `DESC` for largest first). `SELECT DISTINCT` drops repeated rows. `LIMIT n` keeps only the first n rows, and `OFFSET m` skips m rows before that.
+**Sorting: `ORDER BY`.** `ORDER BY col` sorts the result from smallest to largest (or A to Z). That is the default, also written `ASC`:
+
+```python
+import sqlite3
+
+con = sqlite3.connect(":memory:")
+con.executescript("""
+CREATE TABLE products (name TEXT, category TEXT, price REAL);
+INSERT INTO products VALUES ('Apple', 'fruit', 1.2), ('Avocado', 'fruit', 2.5),
+                            ('Bread', 'bakery', 3.0), ('Cake', 'bakery', 12.0);
+""")
+
+print(con.execute("SELECT name FROM products ORDER BY price").fetchall())
+```
+
+```text
+[('Apple',), ('Avocado',), ('Bread',), ('Cake',)]
+```
+
+Add `DESC` for largest first:
 
 ```python
 import sqlite3
@@ -1938,17 +1995,57 @@ INSERT INTO products VALUES ('Apple', 'fruit', 1.2), ('Avocado', 'fruit', 2.5),
 """)
 
 print(con.execute("SELECT name FROM products ORDER BY price DESC").fetchall())
-print(con.execute("SELECT name FROM products ORDER BY price DESC LIMIT 2 OFFSET 1").fetchall())
-print(con.execute("SELECT DISTINCT category FROM products").fetchall())
 ```
 
 ```text
 [('Cake',), ('Bread',), ('Avocado',), ('Apple',)]
+```
+
+**Paging: `LIMIT` and `OFFSET`.** `LIMIT n` keeps only the first n rows, and `OFFSET m` skips m rows before that:
+
+```python
+import sqlite3
+
+con = sqlite3.connect(":memory:")
+con.executescript("""
+CREATE TABLE products (name TEXT, category TEXT, price REAL);
+INSERT INTO products VALUES ('Apple', 'fruit', 1.2), ('Avocado', 'fruit', 2.5),
+                            ('Bread', 'bakery', 3.0), ('Cake', 'bakery', 12.0);
+""")
+
+print(con.execute("SELECT name FROM products ORDER BY price DESC LIMIT 2").fetchall())
+print(con.execute("SELECT name FROM products ORDER BY price DESC LIMIT 2 OFFSET 1").fetchall())
+```
+
+```text
+[('Cake',), ('Bread',)]
 [('Bread',), ('Avocado',)]
+```
+
+`LIMIT 2` gives the two most expensive items. Adding `OFFSET 1` skips Cake first, then keeps the next two.
+
+**Removing duplicates: `DISTINCT`.** A plain `SELECT` returns one row per row in the table, repeats included:
+
+```python
+import sqlite3
+
+con = sqlite3.connect(":memory:")
+con.executescript("""
+CREATE TABLE products (name TEXT, category TEXT, price REAL);
+INSERT INTO products VALUES ('Apple', 'fruit', 1.2), ('Avocado', 'fruit', 2.5),
+                            ('Bread', 'bakery', 3.0), ('Cake', 'bakery', 12.0);
+""")
+
+print(con.execute("SELECT category FROM products").fetchall())
+print(con.execute("SELECT DISTINCT category FROM products").fetchall())
+```
+
+```text
+[('fruit',), ('fruit',), ('bakery',), ('bakery',)]
 [('fruit',), ('bakery',)]
 ```
 
-`OFFSET 1` skipped the most expensive item (Cake), then `LIMIT 2` kept the next two.
+`SELECT DISTINCT` keeps each different row once, so the four rows collapse to two categories.
 
 **`CASE`: a column built from conditions.** `CASE WHEN condition THEN value ELSE other END` works like an if/else for each row.
 

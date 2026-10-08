@@ -327,6 +327,36 @@ print(np.median(delivery_days), low, high)
 
 `scipy.stats.bootstrap((data,), np.median, confidence_level=0.95)` does the same with better interval methods.
 
+**Why with replacement?** Compare the two settings on the same small sample. Without replacement (`replace=False`), drawing all n values just shuffles the original data, so every resample has the same mean:
+
+```python
+import numpy as np
+
+rng = np.random.default_rng(7)
+data = np.array([2, 4, 6, 9, 14])
+means = {float(rng.choice(data, size=5, replace=False).mean()) for _ in range(1000)}
+print(means)
+```
+
+```text
+{7.0}
+```
+
+With replacement (`replace=True`), some values are drawn twice and others not at all, so the means vary, which is the variation the bootstrap measures:
+
+```python
+import numpy as np
+
+rng = np.random.default_rng(7)
+data = np.array([2, 4, 6, 9, 14])
+means = [float(rng.choice(data, size=5, replace=True).mean()) for _ in range(1000)]
+print(len(set(means)), "different means, from", min(means), "to", max(means))
+```
+
+```text
+45 different means, from 2.4 to 13.0
+```
+
 **When it fits.** The sample is representative and the observations are independent; the statistic is smooth (mean, median, proportion, correlation); the data are not normal or n is moderate. **When it doesn't.** Tiny samples (the resamples can only recombine a handful of values); extreme statistics such as the maximum; biased samples (bootstrapping reproduces the bias); dependent data such as time series (plain resampling breaks the order; block bootstrap exists for that).
 
 **Discrete vs continuous data.** Discrete data take countable values (number of purchases, defects per batch); continuous data can take any value in a range (weight, time). Bootstrapping works with both, but with discrete data or small samples the bootstrap distribution is "lumpy": the median of 10 integer values can only land on a few values, so percentile intervals are coarse, as in the example.

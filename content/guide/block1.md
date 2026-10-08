@@ -97,7 +97,7 @@ print(combined)
 2        3       42.0     NaN  left_only
 ```
 
-**Stacking with `concat`.** Use `pd.concat` when several tables have the **same columns** and you want one longer table, for example one file per month. The rows of the second table go underneath the first.
+**Stacking with `concat`.** Use `pd.concat` when several tables have the **same columns** and you want one longer table, for example one file per month. The rows of the second table go underneath the first:
 
 ```python
 import pandas as pd
@@ -105,8 +105,25 @@ import pandas as pd
 jan = pd.DataFrame({"order": [1, 2], "amount": [50, 20]})
 feb = pd.DataFrame({"order": [3], "amount": [35]})
 
-both = pd.concat([jan, feb], ignore_index=True)   # ignore_index numbers the rows 0, 1, 2
-print(both)
+print(pd.concat([jan, feb]))
+```
+
+```text
+   order  amount
+0      1      50
+1      2      20
+0      3      35
+```
+
+Each table keeps its own row labels, so January's 0 and 1 are followed by February's 0: the label 0 now appears twice. `ignore_index=True` throws the old labels away and numbers the rows again:
+
+```python
+import pandas as pd
+
+jan = pd.DataFrame({"order": [1, 2], "amount": [50, 20]})
+feb = pd.DataFrame({"order": [3], "amount": [35]})
+
+print(pd.concat([jan, feb], ignore_index=True))
 ```
 
 ```text
@@ -303,7 +320,7 @@ import pandas as pd
 
 s = pd.Series([10, 20, 30, 40, 50])
 print(((s - s.min()) / (s.max() - s.min())).tolist())
-print(((s - s.mean()) / s.std(ddof=0)).round(2).tolist())
+print(((s - s.mean()) / s.std(ddof=0)).round(2).tolist())   # ddof=0: population std (see 3.1.1)
 ```
 
 ```text
@@ -708,7 +725,26 @@ print(df.head(2))                # the first 2 rows
 
 **Keep it organized.** Keep data **tidy**: each variable in its own column, each observation in its own row, and each kind of observation in its own table. Never change the raw file; save cleaned versions separately. Use consistent, lowercase column names.
 
-**Sorting.** `sort_values` sorts by a column; `ascending=False` puts the largest first. Give a list of columns to sort by one and then the next.
+**Sorting.** `sort_values` sorts by a column. By default it goes from smallest to largest:
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"region": ["EU", "US", "EU", "UK"],
+                   "total": [120, 80, 150, 60]})
+
+print(df.sort_values("total"))
+```
+
+```text
+  region  total
+3     UK     60
+1     US     80
+0     EU    120
+2     EU    150
+```
+
+`ascending=False` reverses the order, so the largest comes first:
 
 ```python
 import pandas as pd
@@ -717,7 +753,6 @@ df = pd.DataFrame({"region": ["EU", "US", "EU", "UK"],
                    "total": [120, 80, 150, 60]})
 
 print(df.sort_values("total", ascending=False))
-print(df.sort_values(["region", "total"], ascending=[True, False]))
 ```
 
 ```text
@@ -726,6 +761,20 @@ print(df.sort_values(["region", "total"], ascending=[True, False]))
 0     EU    120
 1     US     80
 3     UK     60
+```
+
+To sort by one column and then another, give a list of columns, and a list of directions to match:
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"region": ["EU", "US", "EU", "UK"],
+                   "total": [120, 80, 150, 60]})
+
+print(df.sort_values(["region", "total"], ascending=[True, False]))
+```
+
+```text
   region  total
 2     EU    150
 0     EU    120
@@ -733,7 +782,7 @@ print(df.sort_values(["region", "total"], ascending=[True, False]))
 1     US     80
 ```
 
-The second sort puts the regions in A–Z order, and within EU puts the larger total first. `sort_values` returns a new DataFrame; `df` itself is unchanged unless you assign the result back.
+The regions are in A–Z order, and within EU the larger total comes first. Notice the row labels on the left move with their rows. `sort_values` returns a new DataFrame; `df` itself is unchanged unless you assign the result back.
 
 **Filtering with a condition.** Put a condition in square brackets to keep only the rows where it is true. This is called a **boolean mask**: `df["total"] > 100` is a True/False for every row.
 
@@ -970,13 +1019,37 @@ In pandas: `pd.read_excel("file.xlsx", sheet_name="Sales")` and `df.to_excel("ou
 
 **Start from the question.** Clarify the objective and the decision it supports, who the stakeholders are, and what granularity and time frame they need. That decides which columns to keep, how to filter, and what counts as an outlier.
 
-**Dates.** Parse once, in one format and time zone, then use the `.dt` accessor.
+**Dates.** `pd.to_datetime` turns date text into real dates. By default, a single value it can't read stops the whole conversion with an error:
 
 ```python
-df["order_date"] = pd.to_datetime(df["order_date"], format="%Y-%m-%d", errors="coerce")
-df["month"] = df["order_date"].dt.to_period("M")
-df["weekday"] = df["order_date"].dt.day_name()
+import pandas as pd
+
+s = pd.Series(["2025-07-15", "2025-07-16", "not a date"])
+try:
+    pd.to_datetime(s)
+except ValueError:
+    print("ValueError: the whole conversion failed")
 ```
+
+```text
+ValueError: the whole conversion failed
+```
+
+With `errors="coerce"`, the bad value becomes `NaT` ("not a time", the date version of NaN) and the others convert. After that, the `.dt` accessor reads parts of each date:
+
+```python
+import pandas as pd
+
+s = pd.Series(["2025-07-15", "2025-07-16", "not a date"])
+dates = pd.to_datetime(s, errors="coerce")
+print(dates.dt.day_name().tolist())
+```
+
+```text
+['Tuesday', 'Wednesday', nan]
+```
+
+Parse dates once, in one format and one time zone, before you analyze them. `format="%Y-%m-%d"` tells pandas the exact layout, which is faster and avoids guessing.
 
 **Wide vs long.**
 
@@ -1003,14 +1076,7 @@ B        9    7
 
 Wide: one row per subject, repeated measurements in separate columns (easy to read). Long (tidy): one row per subject-measurement pair (easy to group, filter and plot; Seaborn expects it). `melt` goes wide → long; `pivot` goes long → wide.
 
-**Train/test split.**
-
-```python
-from sklearn.model_selection import train_test_split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
-```
-
-`random_state` makes the split reproducible; `stratify=y` keeps class proportions equal in both parts. Split **before** fitting scalers, imputers or encoders, and fit them on the training part only. For time series, split by time (train on the past, test on the future) instead of shuffling.
+**Train/test split.** Before fitting any model, set part of the data aside for testing with `train_test_split`. Split **before** fitting scalers, imputers or encoders, and fit them on the training part only. `stratify=y` keeps the class proportions the same in both parts: [section 4.2.2](#/guide/b4/4-2-2) shows a split with and without it. For time series, split by time (train on the past, test on the future) instead of shuffling.
 
 **Outliers and preprocessing.** Outliers pull the mean and standard deviation, compress min-max scaling, and can dominate a regression line. Decide how to treat them before scaling and modeling, and apply the rule learned on training data to test data too.
 
