@@ -620,6 +620,30 @@ float64
 
 An array of whole numbers shows `int64` instead. (On Windows with NumPy versions before 2.0 it shows `int32`; both mean whole numbers.)
 
+**Making arrays.** `np.array` turns a list into an array. A few functions build common arrays without typing every value:
+
+- `np.zeros(shape)` and `np.ones(shape)`: an array of that shape filled with `0.` or `1.`. They are floats by default. Pass the shape as a tuple, such as `(2, 3)`.
+- `np.arange(stop)`: whole numbers from 0 up to, but **not** including, `stop`, like `range`. `np.arange(start, stop, step)` also works.
+- `.reshape(rows, columns)`: the same values arranged in a new shape. The total number of elements must stay the same.
+
+```python
+import numpy as np
+
+print(np.zeros(3))
+print(np.ones((2, 3)))
+print(np.arange(4))
+print(np.arange(6).reshape(2, 3))
+```
+
+```text
+[0. 0. 0.]
+[[1. 1. 1.]
+ [1. 1. 1.]]
+[0 1 2 3]
+[[0 1 2]
+ [3 4 5]]
+```
+
 **Maths happens element by element.** An operation on an array applies to every element separately, with no loop needed:
 
 ```python
@@ -701,7 +725,27 @@ print(a + np.array([10, 20, 30]))
  [14 25 36]]
 ```
 
-The rule: compare the shapes from the **right**. Two sizes fit if they are equal or one of them is 1. Here the shapes are (2, 3) and (3,): the 3s match on the right, so the row is reused for both rows. Shapes that don't fit raise an error:
+The rule: compare the shapes from the **right**. Two sizes fit if they are equal or one of them is 1. A missing size counts as 1. Here the shapes are (2, 3) and (3,): the 3s match on the right, so the row is reused for both rows.
+
+Both arrays can stretch at once. A column of shape (3, 1) plus a row of shape (4,) gives a 3 × 4 result: the column is copied across 4 columns, and the row is copied down 3 rows.
+
+```python
+import numpy as np
+
+col = np.array([[0], [10], [20]])    # shape (3, 1)
+row = np.arange(4)                   # shape (4,), treated as (1, 4)
+print(col + row)
+print((col + row).shape)
+```
+
+```text
+[[ 0  1  2  3]
+ [10 11 12 13]
+ [20 21 22 23]]
+(3, 4)
+```
+
+Shapes that don't fit raise an error:
 
 ```python
 import numpy as np
