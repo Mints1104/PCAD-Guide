@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "marked": "15.0.12",
-    "preact": "10.26.9"
+    "preact": "10.29.8"
   },
   "devDependencies": {
     "esbuild": "0.25.5"
