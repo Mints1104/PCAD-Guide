@@ -356,6 +356,8 @@ print(scaler.transform(test).ravel())
 
 `StandardScaler` works the same way for z-scores. It uses the population standard deviation (`ddof=0`).
 
+`fit_transform(X)` is a shortcut that runs `fit(X)` and then `transform(X)` in one call. Use it on the training data only. Calling it on the full dataset before splitting lets the scaler learn from the test rows, which is the leak described above.
+
 **Encoding categories.**
 
 | Encoding | What it produces | Use for |

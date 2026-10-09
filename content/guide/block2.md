@@ -14,6 +14,21 @@ Block 2 is the largest block: 16 items, 33.3% of the exam. It covers core Python
 
 **Truthiness.** `0`, `0.0`, `""`, `[]`, `{}`, `set()`, `None` and `False` are falsy; everything else is truthy.
 
+**`print` options.** By default `print` puts a space between its arguments and starts a new line at the end. `sep=` changes what goes between the arguments, and `end=` changes what goes at the end, so the next `print` can continue on the same line:
+
+```python
+print("a", "b")
+print("a", "b", sep="-")
+print("no newline", end=" | ")
+print("same line")
+```
+
+```text
+a b
+a-b
+no newline | same line
+```
+
 **Scope (LEGB).** Python looks a name up in the **L**ocal function, then **E**nclosing functions, then **G**lobal (module), then **B**uilt-ins. Assigning to a name anywhere inside a function makes it local to that function for the whole function body, unless declared `global` (module level) or `nonlocal` (enclosing function).
 
 ```python
@@ -671,6 +686,21 @@ tea 4
 jam 0
 ```
 
+`.keys()` gives just the keys and `.values()` just the values. Wrap them in `list()` or `sorted()` to get a list:
+
+```python
+stock = {"tea": 4, "jam": 0, "oat": 7}
+print(list(stock.keys()))
+print(sorted(stock.values()))
+print(sum(stock.values()))
+```
+
+```text
+['tea', 'jam', 'oat']
+[0, 4, 7]
+11
+```
+
 **What can be a dict key.** A key must be **hashable**, which in practice means it can't change. Strings, numbers and tuples work; lists don't, because a list can be changed after it is created.
 
 ```python
@@ -816,12 +846,16 @@ def median(values):
 ```python
 import math
 
-print(math.sqrt(16))
+print(math.sqrt(16))     # square root, always a float
+print(math.floor(2.7))   # round down to a whole number (an int)
+print(math.ceil(2.1))    # round up
 print(math.pi)
 ```
 
 ```text
 4.0
+2
+3
 3.141592653589793
 ```
 
@@ -2300,7 +2334,7 @@ con.close()
 (1,)
 ```
 
-**Reading columns by name.** Set `con.row_factory = sqlite3.Row` and each row can be read like a dict, by column name, instead of by position.
+**Reading columns by name.** Set `con.row_factory = sqlite3.Row` and each row can be read like a dict, by column name. Reading by position still works too, and `.keys()` lists the column names.
 
 ```python
 import sqlite3
@@ -2312,10 +2346,12 @@ con.execute("INSERT INTO sales VALUES ('EU', 120.0)")
 
 row = con.execute("SELECT region, amount FROM sales").fetchone()
 print(row["region"], row["amount"])
+print(row[0], row.keys())
 ```
 
 ```text
 EU 120.0
+EU ['region', 'amount']
 ```
 
 **Straight into pandas.** `pd.read_sql_query(sql, con)` runs a query and returns the result as a DataFrame. Going the other way, `df.to_sql("table", con, if_exists="append", index=False)` writes a DataFrame into a table.
@@ -2437,7 +2473,24 @@ for name in ["ben", "x' OR '1'='1"]:
 
 The normal name still works. The attack now just looks for a user literally called `x' OR '1'='1`, finds nobody, and returns nothing.
 
-**The one-item tuple.** The values go in a tuple, even when there is only one. `(name,)` with a comma is a tuple; `(name)` without one is just `name`, and the call fails. A list, `[name]`, also works.
+**The one-item tuple.** The values go in a tuple, even when there is only one. `(name,)` with a comma is a tuple; `(name)` without one is just `name`, and the call raises `sqlite3.ProgrammingError`. A list, `[name]`, also works.
+
+```python
+import sqlite3
+
+con = sqlite3.connect(":memory:")
+con.execute("CREATE TABLE t (id INTEGER)")
+print(con.execute("SELECT * FROM t WHERE id = ?", (5,)).fetchall())
+try:
+    con.execute("SELECT * FROM t WHERE id = ?", (5))     # (5) is just the integer 5
+except sqlite3.ProgrammingError as e:
+    print("ProgrammingError:", e)
+```
+
+```text
+[]
+ProgrammingError: parameters are of unsupported type
+```
 
 **Named placeholders.** Instead of `?`, you can write `:name` in the SQL and pass a dict. This is easier to read when there are several values.
 
@@ -2546,6 +2599,20 @@ except TypeError as e:
 ```text
 2025-07-16
 TypeError: can only concatenate str (not "datetime.timedelta") to str
+```
+
+Subtracting one date from another gives a `timedelta`, and its `.days` attribute is the gap as a whole number:
+
+```python
+import datetime
+
+placed = datetime.date.fromisoformat("2025-07-01")
+gap = datetime.date(2025, 7, 15) - placed
+print(gap.days)
+```
+
+```text
+14
 ```
 
 In pandas, `pd.read_sql_query(..., parse_dates=["day"])` or `pd.to_datetime` does the conversion.

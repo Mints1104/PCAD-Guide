@@ -105,7 +105,7 @@ A chart is effective when it answers one question, the takeaway is visible withi
 
 The example below draws a line chart of monthly online and in-store sales, then adds everything that makes a chart readable. Charts produce an image rather than printed output. Here is what each line adds:
 
-- `ax.plot(..., label="Online")` draws a line with a dot at each month (`marker="o"`). The `label` is the name the legend will show.
+- `ax.plot(..., label="Online")` draws a line with a dot at each month (`marker="o"`). The `label` is the name the legend will show. A line drawn without a `label` is left out of the legend.
 - `ax.set_title` adds a title that states the **finding** ("Online sales overtook in-store sales in May"), not just the topic.
 - `ax.set_xlabel` and `ax.set_ylabel` name both axes, with units.
 - `ax.annotate` writes "Spring campaign" with an arrow pointing at the May value. `xy` is the point being pointed at; `xytext` is where the text sits.

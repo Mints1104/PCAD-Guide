@@ -77,6 +77,24 @@ print(len(df.dropna(subset=["sales"])))     # only row 2 is missing sales
 2
 ```
 
+**Filling gaps instead of dropping them.** `fillna(value)` puts one value in every gap. `ffill()` copies the last known value forward into the gap. `interpolate()` fills the gap evenly between the values on either side.
+
+```python
+import numpy as np
+import pandas as pd
+
+s = pd.Series([10, np.nan, np.nan, 13])
+print(s.fillna(0).tolist())
+print(s.ffill().tolist())
+print(s.interpolate().tolist())     # 10 to 13 in equal steps
+```
+
+```text
+[10.0, 0.0, 0.0, 13.0]
+[10.0, 10.0, 10.0, 13.0]
+[10.0, 11.0, 12.0, 13.0]
+```
+
 **`drop_duplicates()` compares whole rows.** Two rows count as duplicates only if **every** column matches. `subset=` compares only the columns you name.
 
 ```python
@@ -109,6 +127,21 @@ print(df["sales"].tolist())
 ```
 
 Don't write it as two separate selections, `df[df["sales"] < 0]["sales"] = 0`. The first part makes a temporary copy, so the change is made to the copy, not to `df`. Under pandas 3 it never changes `df`.
+
+**Messy text hides repeats.** `nunique()` counts the distinct values in a column. Stray spaces and different capitals make the same city count more than once until you clean the text:
+
+```python
+import pandas as pd
+
+city = pd.Series(["Oslo", " oslo", "OSLO ", "Rome"])
+print(city.nunique())
+print(city.str.strip().str.title().nunique())
+```
+
+```text
+4
+2
+```
 
 **Putting it together.** A small messy table cleaned step by step. `.shape` gives (rows, columns).
 
@@ -769,12 +802,16 @@ import numpy as np
 
 print(np.array([1, 2.5]))
 print(np.array([1, "a"]))
+print(np.array([1, "a"]).dtype.kind)
 ```
 
 ```text
 [1.  2.5]
 ['1' 'a']
+U
 ```
+
+`dtype.kind` is a one-letter code for the type: `i` for whole numbers, `f` for floats, `U` for text (Unicode strings), `b` for booleans and `O` for general Python objects.
 
 **Choosing a structure.**
 
