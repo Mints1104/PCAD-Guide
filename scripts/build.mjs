@@ -25,7 +25,20 @@ const guide = {
   cheat: read('content/guide/cheat-sheet.md'),
 };
 
-const questionFiles = readdirSync(join(root, 'content/questions')).filter((f) => f.endsWith('.json')).sort();
+// Chart images (rendered by scripts/render_charts.py) are inlined so the page stays one file.
+for (const [key, md] of Object.entries(guide)) {
+  guide[key] = md.replace(/\]\(images\/([\w.-]+\.png)\)/g, (m, file) => {
+    const path = join(root, 'content/guide/images', file);
+    try {
+      return `](data:image/png;base64,${readFileSync(path).toString('base64')})`;
+    } catch {
+      err(`guide ${key}: missing image images/${file} (run python scripts/render_charts.py)`);
+      return m;
+    }
+  });
+}
+
+const questionFiles =readdirSync(join(root, 'content/questions')).filter((f) => f.endsWith('.json')).sort();
 const questions = questionFiles.flatMap((f) => readJson(`content/questions/${f}`).map((q) => ({ ...q, _file: f })));
 const essentials = readdirSync(join(root, 'content/essentials'))
   .filter((f) => f.endsWith('.json'))

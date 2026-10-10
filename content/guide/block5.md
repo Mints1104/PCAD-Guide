@@ -8,7 +8,7 @@ Block 5 is 5 items, 10.4% of the exam: building charts with Matplotlib and Seabo
 
 ### Core facts
 
-The example below builds a small sales table, then draws four different charts in one figure, arranged as a 2 × 2 grid. Charts are drawn on screen or saved as images, so there is no printed output. Here is what each part does:
+The example below builds a small sales table, then draws four different charts in one figure, arranged as a 2 × 2 grid. Charts are drawn on screen or saved as images rather than printed; the image the code draws is shown below it. Here is what each part does:
 
 - `plt.subplots(2, 2)` creates the **figure** (the whole image) and a 2 × 2 grid of **Axes** (the individual chart areas). `axes[0, 0]` is the top-left chart, `axes[1, 1]` the bottom-right.
 - Top left: a **histogram** of sales, drawn with Matplotlib's `ax.hist`.
@@ -38,6 +38,8 @@ sns.heatmap(df[["sales", "visits", "month"]].corr(), annot=True, fmt=".2f",
 fig.tight_layout()
 fig.savefig("dashboard.png", dpi=150)
 ```
+
+![A 2 × 2 grid: a histogram of sales, a scatter plot of visits against sales, box plots of sales for stores A and B, and a correlation heatmap of sales, visits and month](images/dashboard.png)
 
 | Chart | Matplotlib | Seaborn |
 |---|---|---|
@@ -103,7 +105,7 @@ A chart is effective when it answers one question, the takeaway is visible withi
 
 ### Core facts
 
-The example below draws a line chart of monthly online and in-store sales, then adds everything that makes a chart readable. Charts produce an image rather than printed output. Here is what each line adds:
+The example below draws a line chart of monthly online and in-store sales, then adds everything that makes a chart readable. Charts produce an image rather than printed output; the chart is shown below the code. Here is what each line adds:
 
 - `ax.plot(..., label="Online")` draws a line with a dot at each month (`marker="o"`). The `label` is the name the legend will show. A line drawn without a `label` is left out of the legend.
 - `ax.set_title` adds a title that states the **finding** ("Online sales overtook in-store sales in May"), not just the topic.
@@ -133,6 +135,8 @@ ax.legend(loc="lower right", fontsize=9, facecolor="whitesmoke", framealpha=1, t
 ax.set_ylim(0, 240)
 fig.tight_layout()
 ```
+
+![A line chart of online and in-store revenue from January to June: online rises past in-store in May, with a "Spring campaign" arrow at May, a dashed target line at 180 and a legend at the lower right](images/annotated-line.png)
 
 | Element | Call |
 |---|---|

@@ -1277,6 +1277,17 @@ pre {
 .guide p {
   max-width: 68ch;
 }
+.guide p:has(> img) {
+  max-width: none;
+}
+.guide img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #fff; /* charts are drawn on white; keep them readable in dark mode */
+}
 .guide ul:not([class]),
 .guide ol:not([class]) {
   padding-left: 22px;

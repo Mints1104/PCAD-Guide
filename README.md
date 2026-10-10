@@ -27,6 +27,7 @@ python scripts/compile_questions.py   # question sources -> JSON
 python scripts/verify.py              # run every code question and check its keyed answer
 python scripts/verify_guide.py        # run guide examples and compare with their printed output
 python scripts/verify_cards.py        # run every syntax flashcard's answer against sample data
+python scripts/render_charts.py       # run guide chart examples and save their images to content/guide/images/
 node scripts/build.mjs                # validate all content and write dist/index.html
 ```
 
