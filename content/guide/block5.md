@@ -8,7 +8,7 @@ Block 5 is 5 items, 10.4% of the exam: building charts with Matplotlib and Seabo
 
 ### Core facts
 
-The example below builds a small sales table, then draws four different charts in one figure, arranged as a 2 × 2 grid. Charts are drawn on screen or saved as images rather than printed; the image the code draws is shown below it. Here is what each part does:
+The example below builds a small sales table, then draws four different charts in one figure, arranged as a 2 × 2 grid. Here is what each part does:
 
 - `plt.subplots(2, 2)` creates the **figure** (the whole image) and a 2 × 2 grid of **Axes** (the individual chart areas). `axes[0, 0]` is the top-left chart, `axes[1, 1]` the bottom-right.
 - Top left: a **histogram** of sales, drawn with Matplotlib's `ax.hist`.
@@ -105,7 +105,7 @@ A chart is effective when it answers one question, the takeaway is visible withi
 
 ### Core facts
 
-The example below draws a line chart of monthly online and in-store sales, then adds everything that makes a chart readable. Charts produce an image rather than printed output; the chart is shown below the code. Here is what each line adds:
+The example below draws a line chart of monthly online and in-store sales, then adds everything that makes a chart readable. Here is what each line adds:
 
 - `ax.plot(..., label="Online")` draws a line with a dot at each month (`marker="o"`). The `label` is the name the legend will show. A line drawn without a `label` is left out of the legend.
 - `ax.set_title` adds a title that states the **finding** ("Online sales overtook in-store sales in May"), not just the topic.
