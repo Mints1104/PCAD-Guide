@@ -165,6 +165,68 @@ export function readiness(progress, questions, byId) {
   return { pct: Math.round(score * 10) / 10, coverage: questions.length === 0 ? 0 : seen / questions.length };
 }
 
+// ---------- trends over time ----------
+
+// A topic is 'all', a block ('b1'..'b5') or an objective id ('1.2.3').
+export function matchesTopic(q, topic) {
+  if (topic === 'all') return true;
+  if (topic.startsWith('b')) return q.block === Number(topic.slice(1));
+  return q.objective === topic;
+}
+
+function dayKey(ts) {
+  const d = new Date(ts);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+export const TREND_WINDOW = 3;
+
+// Score over time for one topic, rebuilt from the attempt log: every answer from one
+// finished session is stamped with the same time, so equal timestamps form a session.
+// by: 'session' (one point per session that had questions on the topic) or 'day'.
+// mode: 'all', 'practice' or 'mock'.
+export function trendPoints(attempts, byId, { topic = 'all', by = 'session', mode = 'all' } = {}) {
+  const groups = new Map();
+  for (const a of attempts) {
+    if (mode !== 'all' && a.mode !== mode) continue;
+    const q = byId.get(a.questionId);
+    if (!q || !matchesTopic(q, topic)) continue;
+    const key = by === 'day' ? dayKey(a.at) : `${a.at}|${a.mode}`;
+    let g = groups.get(key);
+    if (!g) {
+      g = { key, at: a.at, modes: new Set(), total: 0, correct: 0 };
+      groups.set(key, g);
+    }
+    g.total += 1;
+    if (a.correct) g.correct += 1;
+    g.modes.add(a.mode);
+    if (a.at < g.at) g.at = a.at;
+  }
+  const points = [...groups.values()]
+    .sort((x, y) => x.at - y.at)
+    .map(({ modes, ...g }) => ({ ...g, mode: modes.size === 1 ? [...modes][0] : 'mixed', pct: pct(g.correct, g.total) }));
+  // Rolling average over this point and the two before it, weighted by question count,
+  // so one short, unlucky session doesn't hide the direction.
+  return points.map((p, i) => {
+    const win = points.slice(Math.max(0, i - TREND_WINDOW + 1), i + 1);
+    return { ...p, avg: pct(win.reduce((s, w) => s + w.correct, 0), win.reduce((s, w) => s + w.total, 0)) };
+  });
+}
+
+// Compare the first few points with the last few, weighting each by its question count.
+export function trendSummary(points) {
+  if (points.length < 2) return null;
+  const k = Math.min(3, Math.floor(points.length / 2));
+  const avg = (list) => {
+    const t = list.reduce((s, p) => s + p.total, 0);
+    return t === 0 ? 0 : (list.reduce((s, p) => s + p.correct, 0) / t) * 100;
+  };
+  const first = avg(points.slice(0, k));
+  const last = avg(points.slice(-k));
+  const questions = points.reduce((sum, p) => sum + p.total, 0);
+  return { k, first: Math.round(first), last: Math.round(last), change: Math.round(last - first), questions };
+}
+
 export function wrongIds(progress, questions) {
   const ids = new Set(questions.map((q) => q.id));
   return Object.entries(progress.stats)

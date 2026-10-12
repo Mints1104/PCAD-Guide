@@ -1085,6 +1085,134 @@ pre {
 .stats-gap {
   margin-top: 20px;
 }
+
+/* ---------- progress over time (Stats) ---------- */
+.trend-topic {
+  margin: 8px 0;
+}
+.trend-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 16px;
+}
+.trend-summary {
+  margin: 4px 0 8px;
+}
+.trend-empty {
+  margin: 12px 0 4px;
+}
+.trend-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-bottom: 4px;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+.trend-key span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.trend-plot {
+  position: relative;
+  width: 100%;
+}
+.trend-plot svg {
+  display: block;
+  overflow: visible;
+  touch-action: pan-y;
+}
+.trend-grid {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+.trend-pass {
+  stroke: var(--text-muted);
+  stroke-width: 1;
+}
+.trend-axis {
+  fill: var(--text-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+/* Each session's own score sits back; the rolling average carries the direction. */
+.trend-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1;
+  stroke-opacity: 0.35;
+  stroke-linejoin: round;
+}
+.trend-avg {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.trend-dot {
+  fill: color-mix(in srgb, var(--accent) 55%, var(--bg-elevated));
+  stroke: var(--bg-elevated);
+  stroke-width: 2;
+}
+.trend-dot-active {
+  fill: var(--accent);
+}
+.trend-key .trend-dot {
+  stroke: none;
+}
+.trend-crosshair {
+  stroke: var(--text-muted);
+  stroke-width: 1;
+  opacity: 0.6;
+}
+.trend-tip {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-elevated);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  font-size: var(--fs-sm);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.trend-tip strong {
+  font-size: var(--fs-lg);
+}
+.trend-tip .muted {
+  margin: 0;
+}
+.trend-table {
+  margin-top: 12px;
+}
+.trend-table summary {
+  cursor: pointer;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+.trend-table .results-table {
+  margin: 8px 0 0;
+}
+.sparkline {
+  display: inline-block;
+  vertical-align: middle;
+}
+.sparkline path {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.sparkline circle {
+  fill: var(--accent);
+}
 .objective-results {
   margin-bottom: 20px;
   padding: 10px 14px;

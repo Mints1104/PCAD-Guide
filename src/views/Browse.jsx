@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'preact/hooks';
 import { BLOCKS, BLOCK_NAMES, DIFFICULTY_LABELS, EXAM, OBJECTIVES, OBJECTIVE_IDS, blockOf } from '../constants.js';
 import { QUESTIONS, QUESTION_BY_ID, guideHref, optionLang } from '../data.js';
-import { blockAccuracy, difficultyAccuracy, objectiveAccuracy, toggleBookmark, wrongIds } from '../score.js';
+import { blockAccuracy, difficultyAccuracy, objectiveAccuracy, toggleBookmark, trendPoints, wrongIds } from '../score.js';
 import { formatClock } from '../select.js';
 import { BlockBadge, Icon, Rich, barStyle } from '../ui.jsx';
 import { QuestionBody } from './Test.jsx';
 import { startPractice } from './Setup.jsx';
+import { Sparkline, TrendSection } from './Trend.jsx';
 
 const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 
@@ -171,6 +172,12 @@ export function Stats({ store }) {
     .sort((a, b) => objs[a].pct - objs[b].pct)
     .slice(0, 3);
   const mocks = progress.mocks.slice().reverse();
+  const [topic, setTopic] = useState('all');
+  const sparks = useMemo(() => new Map(attempted.map((o) => [o, trendPoints(progress.attempts, QUESTION_BY_ID, { topic: o })])), [progress.attempts, objs]);
+  const showTopic = (o) => {
+    setTopic(o);
+    document.getElementById('trend')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   return (
     <main class="page">
@@ -178,6 +185,8 @@ export function Stats({ store }) {
         ← Home
       </a>
       <h1>Stats</h1>
+      <TrendSection topic={topic} setTopic={setTopic} attempts={progress.attempts} />
+
       <section class="card">
         <h2>Mock history</h2>
         {mocks.length === 0 ? (
@@ -273,11 +282,13 @@ export function Stats({ store }) {
 
       <section class="card">
         <h2>Objective accuracy</h2>
+        <p class="muted">Trend is your average over the last 3 sessions that included the objective, for up to 12 sessions. Pick a row to see it in the chart above.</p>
         <div class="table-wrap">
           <table class="results-table">
             <thead>
               <tr>
                 <th>Objective</th>
+                <th>Trend</th>
                 <th>Correct</th>
                 <th>%</th>
               </tr>
@@ -287,9 +298,12 @@ export function Stats({ store }) {
                 .slice()
                 .sort((a, b) => objs[a].pct - objs[b].pct)
                 .map((o) => (
-                  <tr key={o}>
+                  <tr key={o} class="row-clickable" tabIndex={0} onClick={() => showTopic(o)} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), showTopic(o))}>
                     <td>
                       <BlockBadge block={blockOf(o)} /> {o} {OBJECTIVES[o]}
+                    </td>
+                    <td>
+                      <Sparkline points={sparks.get(o) ?? []} />
                     </td>
                     <td>
                       {objs[o].correct} / {objs[o].total}
@@ -299,7 +313,7 @@ export function Stats({ store }) {
                 ))}
               {untouched.length > 0 && (
                 <tr class="stats-divider">
-                  <td colSpan={3}>Not yet attempted ({untouched.length})</td>
+                  <td colSpan={4}>Not yet attempted ({untouched.length})</td>
                 </tr>
               )}
               {untouched.map((o) => (
@@ -307,6 +321,7 @@ export function Stats({ store }) {
                   <td class="muted">
                     {o} {OBJECTIVES[o]}
                   </td>
+                  <td class="muted">—</td>
                   <td class="muted">—</td>
                   <td class="muted">—</td>
                 </tr>
