@@ -160,6 +160,69 @@ function when(ts) {
   return new Date(ts).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 }
 
+// What a practice session covered: one objective, one block, or the blocks it mixed.
+function practiceTopic(entry) {
+  const qs = entry.questions.map((x) => QUESTION_BY_ID.get(x.questionId)).filter(Boolean);
+  const objectives = new Set(qs.map((q) => q.objective));
+  const blocks = [...new Set(qs.map((q) => q.block))].sort();
+  if (objectives.size === 1) {
+    const [o] = objectives;
+    return { blocks, label: `${o} ${OBJECTIVES[o] ?? ''}` };
+  }
+  if (blocks.length === 1) return { blocks, label: BLOCK_NAMES[blocks[0]] };
+  return { blocks, label: 'Mixed' };
+}
+
+function PracticeHistory({ history }) {
+  const sessions = history.filter((h) => h.mode === 'practice').reverse();
+  return (
+    <section class="card">
+      <h2>Practice history</h2>
+      {sessions.length === 0 ? (
+        <p class="muted">No practice sessions finished yet.</p>
+      ) : (
+        <div class="table-wrap">
+          <table class="results-table">
+            <thead>
+              <tr>
+                <th>When</th>
+                <th>Topic</th>
+                <th>Score</th>
+                <th>Correct</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sessions.map((h) => {
+                const open = () => (window.location.hash = `#/results/${h.id}`);
+                const topic = practiceTopic(h);
+                return (
+                  <tr key={h.id} class="row-clickable" tabIndex={0} role="link" onClick={open} onKeyDown={(e) => e.key === 'Enter' && open()}>
+                    <td>{when(h.at)}</td>
+                    <td>
+                      <span class="badge-row">
+                        {topic.blocks.map((b) => (
+                          <BlockBadge key={b} block={b} />
+                        ))}
+                      </span>
+                      {topic.label}
+                    </td>
+                    <td>{Math.round(h.score.pct)}%</td>
+                    <td>
+                      {h.score.correct} / {h.score.total}
+                    </td>
+                    <td>{formatClock(h.durationSec)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
+  );
+}
+
 export function Stats({ store }) {
   const { progress } = store;
   const blocks = blockAccuracy(progress, QUESTION_BY_ID);
@@ -227,6 +290,8 @@ export function Stats({ store }) {
           </div>
         )}
       </section>
+
+      <PracticeHistory history={progress.history} />
 
       <section class="card">
         <h2>Block readiness</h2>

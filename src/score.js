@@ -1,7 +1,7 @@
 import { BLOCKS, BLOCK_WEIGHTS, DIFFICULTY_MIX, EXAM } from './constants.js';
 
 export const MAX_ATTEMPTS = 5000;
-export const MAX_HISTORY = 20;
+export const MAX_HISTORY = 20; // per mode
 const DIFFICULTIES = [1, 2, 3];
 
 export function emptyProgress() {
@@ -89,9 +89,16 @@ export function recordSession(progress, session, score, byId, now) {
     score,
     durationSec,
   };
-  let history = [...progress.history, entry];
-  if (history.length > MAX_HISTORY) history = history.slice(history.length - MAX_HISTORY);
-  return { ...progress, stats, attempts, mocks, bookmarks, history };
+  return { ...progress, stats, attempts, mocks, bookmarks, history: trimHistory([...progress.history, entry]) };
+}
+
+// Keep the newest MAX_HISTORY sessions of each mode, so practice runs never push mocks out.
+export function trimHistory(history) {
+  const keep = new Set();
+  for (const mode of new Set(history.map((h) => h.mode))) {
+    for (const h of history.filter((x) => x.mode === mode).slice(-MAX_HISTORY)) keep.add(h);
+  }
+  return history.filter((h) => keep.has(h));
 }
 
 export function pausedMs(session, now) {

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'preact/hooks';
 import { STORAGE_PREFIX } from './constants.js';
-import { MAX_ATTEMPTS, MAX_HISTORY, emptyProgress } from './score.js';
+import { MAX_ATTEMPTS, emptyProgress, trimHistory } from './score.js';
 
 const PROGRESS_KEY = `${STORAGE_PREFIX}:v1`;
 const SESSION_KEY = `${STORAGE_PREFIX}:session:v1`;
@@ -113,8 +113,7 @@ export function mergeProgress(a, b) {
     stats[id] = { seen: most.seen, correct: most.correct, lastAt: latest.lastAt, lastCorrect: latest.lastCorrect };
   }
   const mocks = unionBy(a.mocks, b.mocks, (m) => m.id);
-  let history = unionBy(a.history, b.history, (h) => h.id);
-  if (history.length > MAX_HISTORY) history = history.slice(history.length - MAX_HISTORY);
+  const history = trimHistory(unionBy(a.history, b.history, (h) => h.id));
   const bookmarks = [...new Set([...a.bookmarks, ...b.bookmarks])];
   const revised = [...new Set([...a.revised, ...b.revised])];
   return { version: 1, stats, mocks, bookmarks, attempts, revised, history };

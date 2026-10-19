@@ -438,6 +438,13 @@ p {
   letter-spacing: 0.02em;
   white-space: nowrap;
 }
+.badge-row {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
 .kind-tag {
   font-family: var(--mono);
   font-size: 0.72rem;
