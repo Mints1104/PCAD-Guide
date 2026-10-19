@@ -1,0 +1,87 @@
+{
+ "id": "stats",
+ "title": "Descriptive statistics with NumPy and pandas",
+ "level": 2,
+ "objectives": [
+  "3.1.1",
+  "3.1.2",
+  "4.1.5",
+  "4.2.1"
+ ],
+ "summary": "Center and spread, IQR and z-score outliers, correlation, broadcasting and binned summaries.",
+ "intro": "`times` holds ten task times in minutes, one of them suspiciously long. `df` records study hours, exam score and absences for ten students.",
+ "setup": "import numpy as np\nimport pandas as pd\n\ntimes = np.array([12.0, 15.5, 11.2, 14.8, 13.1, 45.0, 12.7, 14.2, 13.9, 12.4])\ndf = pd.DataFrame({\n    \"hours\": [1, 2, 2, 3, 4, 5, 6, 6, 7, 8],\n    \"score\": [52, 55, 61, 60, 68, 70, 75, 79, 80, 88],\n    \"absences\": [9, 8, 8, 6, 5, 5, 3, 2, 2, 1],\n})",
+ "tasks": [
+  {
+   "id": "center-spread",
+   "title": "Mean, median and sample standard deviation",
+   "prompt": "Compute `mean_t`, `median_t` and `sd_t` for `times`, where `sd_t` is the **sample** standard deviation (divide by n − 1).\nNotice how far the mean is pulled from the median by the one long time.",
+   "starter": "mean_t = times.mean()\nmedian_t = None\nsd_t = times.std()",
+   "solution": "mean_t = times.mean()\nmedian_t = np.median(times)\nsd_t = times.std(ddof=1)",
+   "check": "assert mean_t is not None and np.isclose(mean_t, 16.48), f\"mean_t should be 16.48, got {mean_t}\"\nassert median_t is not None and np.isclose(median_t, 13.5), f\"median_t should be 13.5, got {median_t}\"\nassert not np.isclose(sd_t, np.std(times)), \"that is the population standard deviation (NumPy's default ddof=0); a sample uses ddof=1\"\nassert np.isclose(sd_t, np.std(times, ddof=1)), f\"sd_t should be the sample standard deviation, got {sd_t}\"",
+   "hints": [
+    "NumPy arrays have `.mean()` and `.std()`; the median is `np.median(arr)`.",
+    "`np.std` divides by n by default (`ddof=0`). pandas' `.std()` divides by n − 1 by default."
+   ]
+  },
+  {
+   "id": "iqr",
+   "title": "Outliers by the IQR rule",
+   "prompt": "Using `np.percentile`, find the first and third quartiles of `times`, then store in `outliers` every value\nbelow Q1 − 1.5 × IQR or above Q3 + 1.5 × IQR, as an array.",
+   "starter": "q1, q3 = 0, 0\noutliers = times",
+   "solution": "q1, q3 = np.percentile(times, [25, 75])\niqr = q3 - q1\noutliers = times[(times < q1 - 1.5 * iqr) | (times > q3 + 1.5 * iqr)]",
+   "check": "assert list(outliers) == [45.0], f\"outliers should be [45.0], got {list(outliers)}\"",
+   "hints": [
+    "`np.percentile(arr, [25, 75])` returns both quartiles at once.",
+    "Combine the two conditions with `|` and index the array with the mask."
+   ]
+  },
+  {
+   "id": "zscore",
+   "title": "z-scores with broadcasting",
+   "prompt": "Compute `z`, the z-score of every value in `times` (subtract the mean, divide by the standard deviation with the default `ddof=0`),\nwithout a loop. Then store the values whose z-score is above 2 in absolute value in `far`.",
+   "starter": "z = times\nfar = times",
+   "solution": "z = (times - times.mean()) / times.std()\nfar = times[np.abs(z) > 2]",
+   "check": "assert np.shape(z) == times.shape, \"z should have one value per time\"\nassert np.allclose(z, (times - times.mean()) / times.std()), \"z should be (times - mean) / std, with std using ddof=0\"\nassert list(far) == [45.0], f\"far should be [45.0], got {list(far)}\"",
+   "hints": [
+    "`times - times.mean()` subtracts one number from every element: that is broadcasting.",
+    "`np.abs(z) > 2` is a boolean mask."
+   ]
+  },
+  {
+   "id": "correlation",
+   "title": "Correlation",
+   "prompt": "Store the Pearson correlation between `hours` and `score` in `r_hours`, and the **name** of the column\nmost negatively correlated with `score` in `most_negative`.",
+   "starter": "r_hours = 0\nmost_negative = \"\"",
+   "solution": "r_hours = df[\"hours\"].corr(df[\"score\"])\nmost_negative = df.corr()[\"score\"].drop(\"score\").idxmin()",
+   "check": "assert np.isclose(r_hours, np.corrcoef(df[\"hours\"], df[\"score\"])[0, 1]), f\"r_hours should be the Pearson correlation of hours and score, got {r_hours}\"\nassert most_negative == \"absences\", f\"most_negative should be 'absences', got {most_negative!r}\"",
+   "hints": [
+    "`s1.corr(s2)` gives Pearson's r by default; `df.corr()` gives every pair at once.",
+    "`.idxmin()` returns the label of the smallest value."
+   ]
+  },
+  {
+   "id": "standardize",
+   "title": "Standardize every column at once",
+   "prompt": "`X = df.to_numpy(dtype=float)` is a 10 × 3 array. Make `X_std`, where every **column** has mean 0 and standard deviation 1\n(`ddof=0`), using `axis=0` and broadcasting instead of a loop.",
+   "starter": "X = df.to_numpy(dtype=float)\nX_std = X",
+   "solution": "X = df.to_numpy(dtype=float)\nX_std = (X - X.mean(axis=0)) / X.std(axis=0)",
+   "check": "assert np.shape(X_std) == (10, 3), f\"X_std should keep the 10 x 3 shape, got {np.shape(X_std)}\"\nassert np.allclose(X_std.mean(axis=0), 0), \"every column should have mean 0 (use axis=0: down the rows)\"\nassert np.allclose(X_std.std(axis=0), 1), \"every column should have standard deviation 1\"",
+   "hints": [
+    "`X.mean(axis=0)` has shape `(3,)`: one mean per column. Subtracting it from a `(10, 3)` array broadcasts across the rows."
+   ]
+  },
+  {
+   "id": "binned",
+   "title": "Summaries by band",
+   "prompt": "Cut `hours` into the bands (0, 3], (3, 6] and (6, 9] labelled `\"low\"`, `\"mid\"` and `\"high\"`,\nand store the mean `score` per band in the Series `by_band`.",
+   "starter": "bands = pd.cut(df[\"hours\"], bins=[0, 3, 6, 9])\nby_band = df[\"score\"]",
+   "solution": "bands = pd.cut(df[\"hours\"], bins=[0, 3, 6, 9], labels=[\"low\", \"mid\", \"high\"])\nby_band = df.groupby(bands, observed=True)[\"score\"].mean()",
+   "check": "assert isinstance(by_band, pd.Series), \"by_band should be a Series\"\nassert [str(i) for i in by_band.index] == [\"low\", \"mid\", \"high\"], f\"the index should be low, mid, high, got {list(by_band.index)}\"\nassert by_band.tolist() == [57.0, 73.0, 84.0], f\"got {by_band.tolist()}\"",
+   "hints": [
+    "`pd.cut(values, bins=[...], labels=[...])`: bins are right-inclusive by default, so 3 falls in (0, 3].",
+    "You can group by a Series that is not a column: `df.groupby(bands)`."
+   ]
+  }
+ ]
+}

@@ -1,0 +1,87 @@
+{
+ "id": "cleaning",
+ "title": "Cleaning a messy customer table",
+ "level": 2,
+ "objectives": [
+  "1.2.2",
+  "1.2.4",
+  "1.3.1",
+  "4.1.1"
+ ],
+ "summary": "Strings, inconsistent categories, numbers stored as text, impossible dates, duplicates and validation rules.",
+ "intro": "`raw` is a customer export with the usual problems: stray spaces and mixed case in names, three spellings of one country,\nages stored as text (one of them negative), an impossible date, a duplicated row and a missing name.\nEach task fixes one problem and stores the result in a new variable, so `raw` itself never changes.",
+ "setup": "import numpy as np\nimport pandas as pd\n\nraw = pd.DataFrame({\n    \"customer\": [\" Ana Silva\", \"ben ong\", \"Cara  Diaz\", \"ben ong\", \"Dev Rao \", None],\n    \"country\": [\"UK\", \"uk\", \"U.K.\", \"uk\", \"India\", \"France\"],\n    \"age\": [\"34\", \"29\", \"n/a\", \"29\", \"-5\", \"41\"],\n    \"spend\": [120.5, 80.0, np.nan, 80.0, 310.0, 55.25],\n    \"signup\": [\"2024-01-15\", \"2024-02-03\", \"2024-02-30\", \"2024-02-03\", \"2024-03-12\", \"2024-04-01\"],\n})",
+ "tasks": [
+  {
+   "id": "names",
+   "title": "Standardize the names",
+   "prompt": "Make a Series `names` from `raw[\"customer\"]` with surrounding spaces removed, runs of internal spaces\ncollapsed to one, and title case (`\"Cara  Diaz\"` → `\"Cara Diaz\"`, `\"ben ong\"` → `\"Ben Ong\"`). The missing name stays missing.",
+   "starter": "names = raw[\"customer\"]",
+   "solution": "names = raw[\"customer\"].str.strip().str.replace(r\"\\s+\", \" \", regex=True).str.title()",
+   "check": "assert isinstance(names, pd.Series), \"names should be a Series\"\nassert len(names) == 6, \"keep all six rows\"\nassert names.iloc[:5].tolist() == [\"Ana Silva\", \"Ben Ong\", \"Cara Diaz\", \"Ben Ong\", \"Dev Rao\"], f\"got {names.iloc[:5].tolist()}\"\nassert pd.isna(names.iloc[5]), \"the missing name should still be missing (the .str methods pass missing values through)\"",
+   "hints": [
+    "The `.str` accessor applies string methods to every value: `.str.strip()`, `.str.title()`.",
+    "`.str.replace(r'\\s+', ' ', regex=True)` turns any run of whitespace into one space."
+   ]
+  },
+  {
+   "id": "country",
+   "title": "One spelling per country",
+   "prompt": "Make a Series `country` where every spelling of the United Kingdom becomes `\"UK\"`. Other countries stay as they are.",
+   "starter": "country = raw[\"country\"]",
+   "solution": "country = raw[\"country\"].replace({\"uk\": \"UK\", \"U.K.\": \"UK\"})",
+   "check": "assert isinstance(country, pd.Series), \"country should be a Series\"\nassert country.tolist() == [\"UK\", \"UK\", \"UK\", \"UK\", \"India\", \"France\"], f\"got {country.tolist()}\"",
+   "hints": [
+    "`Series.replace({old: new, ...})` swaps whole values using a dictionary.",
+    "Upper-casing everything would also change `India` to `INDIA`, which the task does not want."
+   ]
+  },
+  {
+   "id": "age",
+   "title": "Ages as numbers, invalid ones missing",
+   "prompt": "Make a numeric Series `age` from `raw[\"age\"]`. Text that is not a number becomes missing (`NaN`),\nand so does any negative age, since it cannot be right.",
+   "starter": "age = raw[\"age\"].astype(int)",
+   "solution": "age = pd.to_numeric(raw[\"age\"], errors=\"coerce\")\nage = age.where(age >= 0)",
+   "check": "assert isinstance(age, pd.Series), \"age should be a Series\"\nassert pd.api.types.is_numeric_dtype(age), f\"age should be numeric, got dtype {age.dtype}\"\ngot = [None if pd.isna(a) else a for a in age]\nassert got[2] is None, \"'n/a' should become missing\"\nassert got[4] is None, \"the negative age (-5) should become missing\"\nassert got == [34, 29, None, 29, None, 41], f\"got {got}\"",
+   "hints": [
+    "`pd.to_numeric(s, errors='coerce')` turns unparseable text into NaN instead of raising.",
+    "`s.where(condition)` keeps values where the condition is True and puts NaN elsewhere."
+   ]
+  },
+  {
+   "id": "dates",
+   "title": "Parse dates, flag impossible ones",
+   "prompt": "Make a datetime Series `signup` from `raw[\"signup\"]`. 30 February does not exist, so that value should become `NaT`.",
+   "starter": "signup = raw[\"signup\"]",
+   "solution": "signup = pd.to_datetime(raw[\"signup\"], errors=\"coerce\")",
+   "check": "assert isinstance(signup, pd.Series), \"signup should be a Series\"\nassert pd.api.types.is_datetime64_any_dtype(signup), f\"signup should have a datetime dtype, got {signup.dtype}\"\nassert signup.isna().tolist() == [False, False, True, False, False, False], \"only 2024-02-30 should be missing\"\nassert signup.iloc[0] == pd.Timestamp(\"2024-01-15\"), \"the first date should be 15 January 2024\"",
+   "hints": [
+    "`pd.to_datetime` takes `errors='coerce'` too, giving NaT (not a time) for impossible dates."
+   ]
+  },
+  {
+   "id": "dedupe",
+   "title": "Drop duplicates and nameless rows",
+   "prompt": "Make `clean`: `raw` without exact duplicate rows and without rows where `customer` is missing, with a fresh\nindex `0, 1, 2, ...`. Do not fix the strings here; this task is only about which rows survive.",
+   "starter": "clean = raw.copy()",
+   "solution": "clean = raw.drop_duplicates().dropna(subset=[\"customer\"]).reset_index(drop=True)",
+   "check": "assert isinstance(clean, pd.DataFrame), \"clean should be a DataFrame\"\nassert len(clean) == 4, f\"clean should have 4 rows, got {len(clean)}\"\nassert list(clean.index) == [0, 1, 2, 3], f\"reset the index (drop=True), got {list(clean.index)}\"\nassert clean[\"customer\"].tolist() == [\" Ana Silva\", \"ben ong\", \"Cara  Diaz\", \"Dev Rao \"], f\"got {clean['customer'].tolist()}\"\nassert list(clean.columns) == list(raw.columns), \"keep every column (reset_index(drop=True) does not add an index column)\"",
+   "hints": [
+    "`drop_duplicates()` compares whole rows; `dropna(subset=[...])` looks only at the columns you name.",
+    "`reset_index(drop=True)` renumbers the rows without keeping the old index as a column."
+   ]
+  },
+  {
+   "id": "validate",
+   "title": "A reusable validation rule",
+   "prompt": "Write `validate(df)` that returns a **list of index labels** for rows that break a rule:\n\n- `spend` is missing or negative, or\n- `age` (converted as in task 3) is missing or outside 0 to 120.\n\n`validate(raw)` should return `[2, 4]`.",
+   "starter": "def validate(df):\n    return []",
+   "solution": "def validate(df):\n    age = pd.to_numeric(df[\"age\"], errors=\"coerce\")\n    bad_age = age.isna() | (age < 0) | (age > 120)\n    bad_spend = df[\"spend\"].isna() | (df[\"spend\"] < 0)\n    return df.index[bad_age | bad_spend].tolist()",
+   "check": "got = validate(raw)\nassert isinstance(got, list), f\"validate should return a list, got {type(got).__name__} (an Index has .tolist())\"\nassert got == [2, 4], f\"validate(raw) returned {got}, expected [2, 4]\"\ntest = pd.DataFrame({\"age\": [\"10\", \"200\", \"x\", \"50\"], \"spend\": [5.0, 1.0, 3.0, -2.0]}, index=[7, 8, 9, 10])\nassert validate(test) == [8, 9, 10], f\"on another table validate returned {validate(test)}, expected [8, 9, 10]: return labels, not positions, and check age > 120 and negative spend\"",
+   "hints": [
+    "Build one boolean Series per rule, then combine them with `|`.",
+    "`df.index[mask]` picks the labels where the mask is True."
+   ]
+  }
+ ]
+}

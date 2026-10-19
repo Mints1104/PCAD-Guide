@@ -8,6 +8,7 @@ import { Guide } from './views/Guide.jsx';
 import { Maps } from './views/Maps.jsx';
 import { Cards } from './views/Cards.jsx';
 import { Browse, Stats } from './views/Browse.jsx';
+import { Notebooks } from './views/Notebooks.jsx';
 
 function useHash() {
   const [hash, setHash] = useState(() => window.location.hash || '#/');
@@ -43,13 +44,15 @@ function route(hash, store) {
       return <Maps store={store} id={a} />;
     case 'cards':
       return <Cards store={store} id={a} />;
+    case 'notebooks':
+      return <Notebooks id={a} />;
     case 'browse':
       return <Browse store={store} id={a} />;
     case 'stats':
       return <Stats store={store} />;
     default:
       // A bare anchor from a shared link (e.g. #stats) maps to its page.
-      if (['help', 'mock', 'practice', 'guide', 'maps', 'cards', 'browse', 'stats'].includes(hash.slice(1))) {
+      if (['help', 'mock', 'practice', 'guide', 'maps', 'cards', 'notebooks', 'browse', 'stats'].includes(hash.slice(1))) {
         window.location.hash = `#/${hash.slice(1)}`;
         return null;
       }

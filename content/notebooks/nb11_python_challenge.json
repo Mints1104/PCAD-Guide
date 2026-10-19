@@ -1,0 +1,89 @@
+{
+ "id": "python-challenge",
+ "title": "Python challenge: functions and errors",
+ "level": 3,
+ "objectives": [
+  "2.1.1",
+  "2.1.2",
+  "2.1.4",
+  "2.2.2"
+ ],
+ "summary": "Edge cases, recursion, functions as arguments, closures, custom exceptions and generators.",
+ "intro": "Each task asks for a small, general-purpose function. The checks try edge cases, so think about empty input and bad arguments.",
+ "setup": "records = [\n    {\"city\": \"Leeds\", \"kind\": \"cafe\", \"rating\": 4.5},\n    {\"city\": \"York\", \"kind\": \"pub\", \"rating\": 3.9},\n    {\"city\": \"Leeds\", \"kind\": \"pub\", \"rating\": 4.1},\n    {\"city\": \"Hull\", \"kind\": \"cafe\", \"rating\": 4.8},\n]",
+ "tasks": [
+  {
+   "id": "chunk",
+   "title": "Split a list into chunks",
+   "prompt": "Write `chunk(items, size)` that returns a list of consecutive lists of at most `size` items:\n`chunk([1, 2, 3, 4, 5], 2)` gives `[[1, 2], [3, 4], [5]]`. Raise `ValueError` when `size` is less than 1.",
+   "starter": "def chunk(items, size):\n    pass",
+   "solution": "def chunk(items, size):\n    if size < 1:\n        raise ValueError(\"size must be at least 1\")\n    return [list(items[i:i + size]) for i in range(0, len(items), size)]",
+   "check": "assert chunk([1, 2, 3, 4, 5], 2) == [[1, 2], [3, 4], [5]], f\"chunk([1, 2, 3, 4, 5], 2) gave {chunk([1, 2, 3, 4, 5], 2)}\"\nassert chunk([1, 2, 3], 3) == [[1, 2, 3]], \"a size equal to the length gives one chunk\"\nassert chunk([1, 2], 5) == [[1, 2]], \"a size larger than the length gives one chunk\"\nassert chunk([], 2) == [], \"an empty list gives no chunks\"\nfor bad in (0, -1):\n    try:\n        chunk([1, 2], bad)\n    except ValueError:\n        pass\n    else:\n        raise AssertionError(f\"chunk([1, 2], {bad}) should raise ValueError\")",
+   "hints": [
+    "`range(0, len(items), size)` gives the start of every chunk.",
+    "Slicing past the end of a list is safe: `[1, 2][0:5]` is `[1, 2]`."
+   ]
+  },
+  {
+   "id": "flatten",
+   "title": "Flatten any depth",
+   "prompt": "Write `flatten(nested)` that returns a flat list of every non-list, non-tuple value, at any depth:\n`flatten([1, [2, (3, [4])], 5])` gives `[1, 2, 3, 4, 5]`. Strings count as single values.",
+   "starter": "def flatten(nested):\n    return [x for x in nested]",
+   "solution": "def flatten(nested):\n    out = []\n    for x in nested:\n        if isinstance(x, (list, tuple)):\n            out.extend(flatten(x))\n        else:\n            out.append(x)\n    return out",
+   "check": "assert flatten([1, [2, (3, [4])], 5]) == [1, 2, 3, 4, 5], f\"got {flatten([1, [2, (3, [4])], 5])}\"\nassert flatten([]) == [] and flatten([[], [[]]]) == [], \"empty lists contribute nothing\"\nassert flatten([\"ab\", [\"cd\"]]) == [\"ab\", \"cd\"], \"strings are values, not sequences to split\"\nassert flatten([[[[[7]]]]]) == [7], \"handle any depth (recursion)\"",
+   "hints": [
+    "A recursive function calls itself on each nested list or tuple.",
+    "`isinstance(x, (list, tuple))` tests for either type."
+   ]
+  },
+  {
+   "id": "group-by",
+   "title": "Group with a key name or a function",
+   "prompt": "Write `group_by(items, key)` that returns a dict mapping each key to the list of items with that key, in their original order.\n`key` is either a dictionary key name (a string) or a function applied to each item.\n\n`group_by(records, \"city\")[\"Leeds\"]` is the two Leeds records; `group_by([1, 2, 3, 4], lambda n: n % 2)` is `{1: [1, 3], 0: [2, 4]}`.",
+   "starter": "def group_by(items, key):\n    groups = {}\n    return groups",
+   "solution": "def group_by(items, key):\n    get = key if callable(key) else (lambda item: item[key])\n    groups = {}\n    for item in items:\n        groups.setdefault(get(item), []).append(item)\n    return groups",
+   "check": "by_city = group_by(records, \"city\")\nassert sorted(by_city) == [\"Hull\", \"Leeds\", \"York\"], f\"keys are {sorted(by_city)}\"\nassert [r[\"kind\"] for r in by_city[\"Leeds\"]] == [\"cafe\", \"pub\"], \"keep each group's items in their original order\"\nassert group_by([1, 2, 3, 4], lambda n: n % 2) == {1: [1, 3], 0: [2, 4]}, \"key can also be a function\"\nhigh = group_by(records, lambda r: r[\"rating\"] >= 4.5)\nassert [r[\"city\"] for r in high[True]] == [\"Leeds\", \"Hull\"], \"a function key can return any hashable value\"\nassert group_by([], \"city\") == {}, \"no items give an empty dict\"",
+   "hints": [
+    "`callable(key)` tells a function from a string.",
+    "`d.setdefault(k, []).append(x)` creates the list the first time a key appears."
+   ]
+  },
+  {
+   "id": "counter",
+   "title": "A closure that remembers",
+   "prompt": "Write `make_counter(start=0)` that returns a function. Each call of that function returns the next number:\n`c = make_counter(); c(), c()` gives `1, 2`. Separate counters must count separately. Do not use a global variable.",
+   "starter": "count = 0\n\ndef make_counter(start=0):\n    def step():\n        global count\n        count += 1\n        return count\n    return step",
+   "solution": "def make_counter(start=0):\n    count = start\n\n    def step():\n        nonlocal count\n        count += 1\n        return count\n\n    return step",
+   "check": "a = make_counter()\nb = make_counter(10)\nassert callable(a), \"make_counter should return a function\"\nassert [a(), a(), a()] == [1, 2, 3], \"each call should return the next number\"\nassert [b(), b()] == [11, 12], \"make_counter(10) should continue from 10, and not share a's count\"\nassert a() == 4, \"a should keep its own count\"",
+   "hints": [
+    "An inner function can read the outer function's variables; to **rebind** one it needs `nonlocal`.",
+    "Each call of `make_counter` creates a new `count`, so counters are independent."
+   ]
+  },
+  {
+   "id": "exceptions",
+   "title": "A custom exception",
+   "prompt": "Define `class RecordError(ValueError)` and write:\n\n- `parse_line(line)` that turns `\"name,age\"` into `(name, int(age))`, with the name stripped. It raises `RecordError`\n  when the line does not have exactly two fields, or when the age is not a whole number (chain the original error with `from`).\n- `parse_all(lines)` that returns `(good, bad)`: the parsed tuples, and the **1-based line numbers** that failed.",
+   "starter": "class RecordError(ValueError):\n    pass\n\n\ndef parse_line(line):\n    name, age = line.split(\",\")\n    return name, int(age)\n\n\ndef parse_all(lines):\n    return [parse_line(l) for l in lines], []",
+   "solution": "class RecordError(ValueError):\n    pass\n\n\ndef parse_line(line):\n    parts = line.split(\",\")\n    if len(parts) != 2:\n        raise RecordError(f\"expected 2 fields, got {len(parts)}\")\n    name, age = parts\n    try:\n        return name.strip(), int(age)\n    except ValueError as exc:\n        raise RecordError(f\"bad age {age!r}\") from exc\n\n\ndef parse_all(lines):\n    good, bad = [], []\n    for number, line in enumerate(lines, start=1):\n        try:\n            good.append(parse_line(line))\n        except RecordError:\n            bad.append(number)\n    return good, bad",
+   "check": "assert issubclass(RecordError, ValueError), \"RecordError should subclass ValueError\"\nassert parse_line(\" Ana ,34\") == (\"Ana\", 34), f\"parse_line(' Ana ,34') gave {parse_line(' Ana ,34')!r}\"\nfor bad_line in (\"Ben\", \"Ben,30,x\", \"Ben,thirty\"):\n    try:\n        parse_line(bad_line)\n    except RecordError:\n        pass\n    except Exception as exc:\n        raise AssertionError(f\"parse_line({bad_line!r}) raised {type(exc).__name__}; it should raise RecordError\")\n    else:\n        raise AssertionError(f\"parse_line({bad_line!r}) should raise RecordError\")\ntry:\n    parse_line(\"Ben,thirty\")\nexcept RecordError as exc:\n    assert isinstance(exc.__cause__, ValueError), \"chain the int() error: raise RecordError(...) from exc\"\ngood, bad = parse_all([\"Ana,34\", \"oops\", \"Cara, 29\", \"Dev,x\"])\nassert good == [(\"Ana\", 34), (\"Cara\", 29)], f\"good is {good}\"\nassert bad == [2, 4], f\"bad is {bad}; use 1-based line numbers (enumerate(lines, start=1))\"",
+   "hints": [
+    "`int(' 29')` ignores surrounding spaces, so only the name needs stripping.",
+    "`raise NewError(...) from exc` keeps the original error as `__cause__`.",
+    "Catch `RecordError` (not every exception) in `parse_all`, so real bugs still surface."
+   ]
+  },
+  {
+   "id": "generator",
+   "title": "A running mean generator",
+   "prompt": "Write a **generator function** `running_mean(values)` that yields the mean of the values seen so far:\n`list(running_mean([2, 4, 9]))` gives `[2.0, 3.0, 5.0]`. It should work on any iterable, including another generator,\nwithout building a list of the values.",
+   "starter": "def running_mean(values):\n    values = list(values)\n    return [sum(values[:i + 1]) / (i + 1) for i in range(len(values))]",
+   "solution": "def running_mean(values):\n    total = 0\n    for n, value in enumerate(values, start=1):\n        total += value\n        yield total / n",
+   "check": "import inspect\nimport itertools\nassert inspect.isgeneratorfunction(running_mean), \"running_mean should be a generator function (use yield)\"\nassert list(running_mean([2, 4, 9])) == [2.0, 3.0, 5.0], f\"got {list(running_mean([2, 4, 9]))}\"\nassert list(running_mean([])) == [], \"no values give no means\"\nassert list(itertools.islice(running_mean(itertools.count(1)), 3)) == [1.0, 1.5, 2.0], \"it should work on an endless iterator, one value at a time\"",
+   "hints": [
+    "`yield` hands back one value and pauses the function until the next value is requested.",
+    "Keep a running total and count instead of storing every value."
+   ]
+  }
+ ]
+}

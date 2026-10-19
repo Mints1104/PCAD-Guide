@@ -1,0 +1,94 @@
+{
+ "id": "group-merge",
+ "title": "Group, merge and reshape",
+ "level": 2,
+ "objectives": [
+  "4.1.2",
+  "4.1.6"
+ ],
+ "summary": "groupby with named aggregation, inner, left and anti joins, pivot_table and melt.",
+ "intro": "Orders and customers that do not line up perfectly: customer 13 placed an order but is not in `customers`,\nand customer 14 (Eli) never ordered. `wide` is a small table in wide format for the reshaping task.",
+ "setup": "import pandas as pd\n\norders = pd.DataFrame({\n    \"order_id\": [1, 2, 3, 4, 5, 6, 7],\n    \"customer_id\": [10, 11, 10, 12, 13, 11, 10],\n    \"month\": [\"Jan\", \"Jan\", \"Feb\", \"Feb\", \"Feb\", \"Mar\", \"Mar\"],\n    \"amount\": [50.0, 20.0, 35.0, 80.0, 15.0, 40.0, 25.0],\n})\ncustomers = pd.DataFrame({\n    \"customer_id\": [10, 11, 12, 14],\n    \"name\": [\"Ana\", \"Ben\", \"Cara\", \"Eli\"],\n    \"segment\": [\"retail\", \"business\", \"retail\", \"business\"],\n})\nwide = pd.DataFrame({\"store\": [\"A\", \"B\"], \"Q1\": [100, 80], \"Q2\": [120, 90]})",
+ "tasks": [
+  {
+   "id": "per-customer",
+   "title": "Total per customer",
+   "prompt": "Store the total `amount` per `customer_id` in `per_customer`, as a Series indexed by `customer_id`.",
+   "starter": "per_customer = orders[\"amount\"]",
+   "solution": "per_customer = orders.groupby(\"customer_id\")[\"amount\"].sum()",
+   "check": "assert isinstance(per_customer, pd.Series), f\"per_customer should be a Series, got {type(per_customer).__name__} (select one column after groupby)\"\nassert per_customer.to_dict() == {10: 110.0, 11: 60.0, 12: 80.0, 13: 15.0}, f\"got {per_customer.to_dict()}\"",
+   "hints": [
+    "`df.groupby(key)[column].sum()` gives one total per key."
+   ]
+  },
+  {
+   "id": "inner",
+   "title": "An inner join",
+   "prompt": "Store `orders` merged with `customers` on `customer_id` in `joined`, keeping **only** orders whose customer is known.",
+   "starter": "joined = orders",
+   "solution": "joined = orders.merge(customers, on=\"customer_id\", how=\"inner\")",
+   "check": "assert isinstance(joined, pd.DataFrame), \"joined should be a DataFrame\"\nassert {\"name\", \"segment\"} <= set(joined.columns), \"joined should include the customer columns\"\nassert len(joined) == 6, f\"joined should have 6 rows (order 5 has no matching customer), got {len(joined)}\"\nassert 13 not in joined[\"customer_id\"].tolist(), \"customer 13 is not in customers, so an inner join drops that order\"",
+   "hints": [
+    "`orders.merge(customers, on='customer_id', how='inner')`; inner is the default `how`."
+   ]
+  },
+  {
+   "id": "left",
+   "title": "A left join keeps every order",
+   "prompt": "Store a merge that keeps **every** order in `all_orders`. The order from customer 13 should have a missing `name`.",
+   "starter": "all_orders = orders.merge(customers, on=\"customer_id\")",
+   "solution": "all_orders = orders.merge(customers, on=\"customer_id\", how=\"left\")",
+   "check": "assert isinstance(all_orders, pd.DataFrame), \"all_orders should be a DataFrame\"\nassert len(all_orders) == 7, f\"all_orders should keep all 7 orders, got {len(all_orders)}\"\nrow = all_orders[all_orders[\"customer_id\"] == 13]\nassert len(row) == 1 and pd.isna(row[\"name\"].iloc[0]), \"the order from customer 13 should have a missing name\"\nassert \"Eli\" not in all_orders[\"name\"].tolist(), \"a left join on orders does not add customers without orders\"",
+   "hints": [
+    "`how='left'` keeps every row of the left table and fills unmatched right-hand columns with NaN."
+   ]
+  },
+  {
+   "id": "anti",
+   "title": "Customers who never ordered",
+   "prompt": "Store the **names** of customers with no orders in the list `no_orders`.",
+   "starter": "no_orders = []",
+   "solution": "no_orders = customers.loc[~customers[\"customer_id\"].isin(orders[\"customer_id\"]), \"name\"].tolist()",
+   "check": "assert isinstance(no_orders, list), \"no_orders should be a list (Series have .tolist())\"\nassert no_orders == [\"Eli\"], f\"expected ['Eli'], got {no_orders}\"",
+   "hints": [
+    "`isin` tests membership; `~` negates the mask.",
+    "Alternatively, merge with `how='left', indicator=True` and keep the rows marked `left_only`."
+   ]
+  },
+  {
+   "id": "named-agg",
+   "title": "Several summaries per group",
+   "prompt": "From the inner join of `orders` and `customers`, make `by_segment`: one row per `segment` with two columns,\n`total` (sum of `amount`) and `orders` (number of orders).",
+   "starter": "joined = orders.merge(customers, on=\"customer_id\")\nby_segment = joined",
+   "solution": "joined = orders.merge(customers, on=\"customer_id\")\nby_segment = joined.groupby(\"segment\").agg(total=(\"amount\", \"sum\"), orders=(\"order_id\", \"count\"))",
+   "check": "assert isinstance(by_segment, pd.DataFrame), \"by_segment should be a DataFrame\"\nassert sorted(by_segment.columns) == [\"orders\", \"total\"], f\"columns should be total and orders, got {list(by_segment.columns)}\"\nassert sorted(by_segment.index) == [\"business\", \"retail\"], \"the index should be the two segments\"\nassert by_segment.loc[\"retail\", \"total\"] == 190.0, f\"retail total should be 190.0, got {by_segment.loc['retail', 'total']}\"\nassert by_segment.loc[\"business\", \"orders\"] == 2, f\"business should have 2 orders, got {by_segment.loc['business', 'orders']}\"",
+   "hints": [
+    "Named aggregation: `.agg(new_name=(column, function), ...)`."
+   ]
+  },
+  {
+   "id": "pivot",
+   "title": "A pivot table",
+   "prompt": "Store a pivot table of `orders` in `pivot`: one row per `customer_id`, one column per month **in the order Jan, Feb, Mar**,\nvalues the summed `amount`, and `0` where a customer had no orders that month.",
+   "starter": "pivot = orders.pivot_table(index=\"customer_id\", columns=\"month\", values=\"amount\", aggfunc=\"sum\")",
+   "solution": "pivot = orders.pivot_table(index=\"customer_id\", columns=\"month\", values=\"amount\", aggfunc=\"sum\", fill_value=0)\npivot = pivot[[\"Jan\", \"Feb\", \"Mar\"]]",
+   "check": "assert isinstance(pivot, pd.DataFrame), \"pivot should be a DataFrame\"\nassert list(pivot.columns) == [\"Jan\", \"Feb\", \"Mar\"], f\"columns should be Jan, Feb, Mar in that order, got {list(pivot.columns)} (pivot_table sorts them alphabetically)\"\nassert not pivot.isna().any().any(), \"fill the gaps with 0 (fill_value=0)\"\nassert pivot.loc[10].tolist() == [50, 35, 25], f\"customer 10 should be [50, 35, 25], got {pivot.loc[10].tolist()}\"\nassert pivot.loc[11, \"Feb\"] == 0, \"customer 11 had no orders in February\"",
+   "hints": [
+    "`pivot_table(..., fill_value=0)` replaces empty cells.",
+    "Select the columns in the order you want: `pivot[['Jan', 'Feb', 'Mar']]`."
+   ]
+  },
+  {
+   "id": "melt",
+   "title": "Wide to long",
+   "prompt": "Reshape `wide` into `long`, with one row per store and quarter and the columns `store`, `quarter` and `sales`.",
+   "starter": "long = wide",
+   "solution": "long = wide.melt(id_vars=\"store\", var_name=\"quarter\", value_name=\"sales\")",
+   "check": "assert isinstance(long, pd.DataFrame), \"long should be a DataFrame\"\nassert list(long.columns) == [\"store\", \"quarter\", \"sales\"], f\"columns should be store, quarter, sales, got {list(long.columns)}\"\nassert len(long) == 4, f\"2 stores x 2 quarters = 4 rows, got {len(long)}\"\ngot = sorted(zip(long[\"store\"], long[\"quarter\"], long[\"sales\"]))\nassert got == [(\"A\", \"Q1\", 100), (\"A\", \"Q2\", 120), (\"B\", \"Q1\", 80), (\"B\", \"Q2\", 90)], f\"got {got}\"",
+   "hints": [
+    "`melt` is the reverse of pivot: `id_vars` stay as columns, every other column becomes rows.",
+    "`var_name` and `value_name` name the two new columns."
+   ]
+  }
+ ]
+}

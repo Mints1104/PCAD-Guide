@@ -1,0 +1,78 @@
+{
+ "id": "capstone",
+ "title": "Capstone: from raw export to finding",
+ "level": 3,
+ "objectives": [
+  "1.2.4",
+  "1.3.2",
+  "4.1.2",
+  "4.1.6",
+  "5.2.2"
+ ],
+ "summary": "Clean a messy transactions file, aggregate by month and store, normalize by store size and state the finding.",
+ "intro": "A shop chain's transaction export and a table of its stores. The export has a repeated transaction, inconsistent store\nand product spellings, a missing quantity and a refund recorded as a negative quantity.\n\nThe tasks build on each other: running a task first runs your code for the tasks before it.",
+ "setup": "import io\nimport numpy as np\nimport pandas as pd\n\ntransactions_csv = \"\"\"txn_id,store,date,product,qty,unit_price\n1001,S1,2024-01-05,Widget,2,9.99\n1002,S2,2024-01-05,Gadget,1,24.50\n1003,s1 ,2024-01-06,widget ,3,9.99\n1004,S3,2024-01-07,Gizmo,,14.00\n1005,S2,2024-01-07,Gadget,2,24.50\n1005,S2,2024-01-07,Gadget,2,24.50\n1006,S1,2024-02-02,Gizmo,1,14.00\n1007,S3,2024-02-03,Widget,5,9.99\n1008,S2,2024-02-10,Widget,-1,9.99\n1009,S1,2024-02-11,Gadget,1,24.50\n1010,S3,2024-02-15,Gadget,2,24.50\n\"\"\"\n\nstores = pd.DataFrame({\"store\": [\"S1\", \"S2\", \"S3\"], \"city\": [\"Leeds\", \"York\", \"Hull\"], \"sq_m\": [120, 80, 150]})",
+ "tasks": [
+  {
+   "id": "clean",
+   "title": "Clean the export",
+   "prompt": "Read `transactions_csv` into `tx` and clean it:\n\n- `store` codes upper-case without spaces, `product` names stripped and in title case;\n- one row per `txn_id` (drop the repeat);\n- drop rows with a missing or non-positive `qty`, then make `qty` an integer column;\n- `date` as datetime; a fresh index.",
+   "starter": "tx = pd.read_csv(io.StringIO(transactions_csv))",
+   "solution": "tx = pd.read_csv(io.StringIO(transactions_csv))\ntx[\"store\"] = tx[\"store\"].str.strip().str.upper()\ntx[\"product\"] = tx[\"product\"].str.strip().str.title()\ntx = tx.drop_duplicates(subset=\"txn_id\")\ntx = tx[tx[\"qty\"] > 0].copy()\ntx[\"qty\"] = tx[\"qty\"].astype(int)\ntx[\"date\"] = pd.to_datetime(tx[\"date\"])\ntx = tx.reset_index(drop=True)",
+   "check": "assert isinstance(tx, pd.DataFrame), \"tx should be a DataFrame\"\nassert sorted(tx[\"txn_id\"]) == [1001, 1002, 1003, 1005, 1006, 1007, 1009, 1010], f\"txn_ids left: {sorted(tx['txn_id'])} (drop the repeated 1005, the missing quantity and the refund)\"\nassert tx[\"txn_id\"].is_unique, \"each txn_id should appear once\"\nassert sorted(set(tx[\"store\"])) == [\"S1\", \"S2\", \"S3\"], f\"stores are {sorted(set(tx['store']))}\"\nassert sorted(set(tx[\"product\"])) == [\"Gadget\", \"Gizmo\", \"Widget\"], f\"products are {sorted(set(tx['product']))}\"\nassert pd.api.types.is_integer_dtype(tx[\"qty\"]), f\"qty should be integers, got {tx['qty'].dtype}\"\nassert pd.api.types.is_datetime64_any_dtype(tx[\"date\"]), \"date should be a datetime column\"\nassert list(tx.index) == list(range(len(tx))), \"reset the index\"",
+   "hints": [
+    "A missing `qty` makes the column float with NaN; `tx[tx['qty'] > 0]` drops NaN as well as negatives, because NaN > 0 is False.",
+    "Convert `qty` to `int` only after the missing value is gone.",
+    "`drop_duplicates(subset='txn_id')` keeps the first row of each id."
+   ]
+  },
+  {
+   "id": "monthly",
+   "title": "Revenue by month",
+   "prompt": "Add a `revenue` column (`qty * unit_price`) to `tx`, then store total revenue per month in the Series `monthly`,\nindexed by month labels such as `\"2024-01\"`.",
+   "starter": "monthly = None",
+   "solution": "tx[\"revenue\"] = tx[\"qty\"] * tx[\"unit_price\"]\nmonthly = tx.groupby(tx[\"date\"].dt.strftime(\"%Y-%m\"))[\"revenue\"].sum()",
+   "check": "assert \"revenue\" in tx.columns, \"add a revenue column to tx\"\nassert np.allclose(tx[\"revenue\"], tx[\"qty\"] * tx[\"unit_price\"]), \"revenue should be qty * unit_price\"\nassert isinstance(monthly, pd.Series), \"monthly should be a Series\"\nassert [str(m) for m in monthly.index] == [\"2024-01\", \"2024-02\"], f\"index is {[str(m) for m in monthly.index]}\"\nassert [round(v, 2) for v in monthly] == [123.45, 137.45], f\"monthly revenue is {[round(v, 2) for v in monthly]}\"",
+   "hints": [
+    "`tx['date'].dt.strftime('%Y-%m')` or `.dt.to_period('M')` gives a month key to group by."
+   ]
+  },
+  {
+   "id": "stores",
+   "title": "Performance per store",
+   "prompt": "Join `tx` with `stores` and build `store_perf`, indexed by `city`, with the columns `revenue` (total), `orders`\n(number of transactions) and `revenue_per_sqm` (revenue ÷ `sq_m`), sorted by `revenue_per_sqm`, highest first.",
+   "starter": "store_perf = stores",
+   "solution": "merged = tx.merge(stores, on=\"store\", how=\"left\")\nstore_perf = merged.groupby(\"city\").agg(revenue=(\"revenue\", \"sum\"), orders=(\"txn_id\", \"count\"), sq_m=(\"sq_m\", \"first\"))\nstore_perf[\"revenue_per_sqm\"] = store_perf[\"revenue\"] / store_perf[\"sq_m\"]\nstore_perf = store_perf.drop(columns=\"sq_m\").sort_values(\"revenue_per_sqm\", ascending=False)",
+   "check": "assert isinstance(store_perf, pd.DataFrame), \"store_perf should be a DataFrame\"\nassert {\"revenue\", \"orders\", \"revenue_per_sqm\"} <= set(store_perf.columns), f\"columns are {list(store_perf.columns)}\"\nassert list(store_perf.index) == [\"York\", \"Leeds\", \"Hull\"], f\"order is {list(store_perf.index)}; index by city and sort by revenue_per_sqm, highest first\"\nassert [round(v, 2) for v in store_perf[\"revenue\"]] == [73.5, 88.45, 98.95], f\"revenue is {store_perf['revenue'].round(2).tolist()}\"\nassert store_perf[\"orders\"].tolist() == [2, 4, 2], f\"orders is {store_perf['orders'].tolist()}\"\nassert np.allclose(store_perf[\"revenue_per_sqm\"], [73.5 / 80, 88.45 / 120, 98.95 / 150]), f\"revenue_per_sqm is {store_perf['revenue_per_sqm'].round(4).tolist()}; divide revenue by sq_m\"",
+   "hints": [
+    "Merge on `store`, group by `city`, and use named aggregation for revenue and orders.",
+    "`sq_m` is one value per store: take it with `('sq_m', 'first')`, or merge `stores` in again after grouping."
+   ]
+  },
+  {
+   "id": "mix",
+   "title": "Product mix per store",
+   "prompt": "Store in `share` a cross-tabulation of `store` (rows) by `product` (columns) giving the **share of each store's units**\nper product, so every row sums to 1.",
+   "starter": "share = pd.crosstab(tx[\"store\"], tx[\"product\"])",
+   "solution": "share = pd.crosstab(tx[\"store\"], tx[\"product\"], values=tx[\"qty\"], aggfunc=\"sum\", normalize=\"index\").fillna(0)",
+   "check": "assert isinstance(share, pd.DataFrame), \"share should be a DataFrame\"\nassert sorted(share.index) == [\"S1\", \"S2\", \"S3\"] and sorted(share.columns) == [\"Gadget\", \"Gizmo\", \"Widget\"], \"rows should be stores and columns products\"\nassert np.allclose(share.sum(axis=1), 1), \"each row should sum to 1 (normalize='index')\"\nassert np.isclose(share.loc[\"S1\", \"Widget\"], 5 / 7), f\"S1 sold 5 of its 7 units as Widgets, so the share is {5 / 7:.3f}; got {share.loc['S1', 'Widget']:.3f}. Weight by qty, not by number of transactions\"",
+   "hints": [
+    "`pd.crosstab(rows, cols)` counts transactions; pass `values=tx['qty'], aggfunc='sum'` to add up units instead.",
+    "`normalize='index'` divides each row by its total."
+   ]
+  },
+  {
+   "id": "finding",
+   "title": "State the finding",
+   "prompt": "Set `best_city` to the city with the highest revenue per square metre, taken from `store_perf` rather than typed in,\nand write a one-sentence `summary` that names the city and gives its revenue per m² to 2 decimal places.",
+   "starter": "best_city = \"\"\nsummary = \"\"",
+   "solution": "best_city = store_perf[\"revenue_per_sqm\"].idxmax()\nvalue = store_perf.loc[best_city, \"revenue_per_sqm\"]\nsummary = f\"{best_city} earns {value:.2f} per square metre, the most of the three stores.\"",
+   "check": "assert best_city == \"York\", f\"best_city is {best_city!r}\"\nassert isinstance(summary, str) and \"York\" in summary, \"the summary should name the city\"\nassert \"0.92\" in summary, f\"the summary should give the figure to 2 decimal places (0.92): {summary!r}\"\nassert summary.count(\".\") >= 1 and len(summary.split()) >= 6, \"write a full sentence\"",
+   "hints": [
+    "`idxmax()` returns the index label of the largest value.",
+    "Format with `f\"{value:.2f}\"`. Lead with the finding and the number that supports it."
+   ]
+  }
+ ],
+ "chain": true
+}

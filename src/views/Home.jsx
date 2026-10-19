@@ -177,6 +177,9 @@ export function Home({ store }) {
       <a class="btn btn-block" href="#/guide">
         Revision guide
       </a>
+      <a class="btn btn-block" href="#/notebooks">
+        Notebooks
+      </a>
       <div class="actions-secondary">
         <a class="btn" href="#/maps">
           Decision maps
@@ -303,6 +306,10 @@ const HELP = [
   {
     title: 'Revision guide',
     body: 'Every objective opens with "Know this" and the exam angle on each fact. The full notes, with runnable examples, sit underneath. Use "Try 5 questions" after reading, and tick "Mark as revised" to track coverage.',
+  },
+  {
+    title: 'Notebooks',
+    body: 'Hands-on coding: each notebook gives you data and a series of tasks, from warm-ups to above-exam challenges. Write Python in the cell, Run it to see the output, and Check it against the task. Python (with pandas, NumPy, scikit-learn and Matplotlib) runs inside the browser, so the first run takes a moment to download it. Every notebook also downloads as a .ipynb file for Jupyter or VS Code, with a check cell under each task and the solutions at the end. Solved tasks and your code are kept in this browser.',
   },
   {
     title: 'Decision maps',

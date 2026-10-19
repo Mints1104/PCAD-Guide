@@ -23,6 +23,9 @@ export const MAP_BY_ID = new Map(MAPS.map((m) => [m.id, m]));
 
 export const SYNTAX_CARDS = content.syntaxCards;
 
+export const NOTEBOOKS = content.notebooks;
+export const NOTEBOOK_BY_ID = new Map(NOTEBOOKS.map((n) => [n.id, n]));
+
 // Glossary lines "**Term** (note) — definition", keyed by lower-case term as essentials cite them.
 export const GLOSSARY = new Map(
   [...content.guide.glossary.matchAll(/^\*\*(.+?)\*\*\s*(\([^)]*\))?\s*[—–:-]\s+(.+)$/gm)].map((m) => [

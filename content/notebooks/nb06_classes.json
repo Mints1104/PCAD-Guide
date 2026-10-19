@@ -1,0 +1,74 @@
+{
+ "id": "classes",
+ "title": "Classes for data records",
+ "level": 2,
+ "objectives": [
+  "2.3.1",
+  "2.3.2",
+  "2.3.3"
+ ],
+ "summary": "Attributes and methods, __eq__ and __repr__, inheritance, composition and properties.",
+ "intro": "`Sensor` is a base class: every sensor has a `name`, `describe()` builds a line of text,\nand subclasses supply `read()`.",
+ "setup": "class Sensor:\n    def __init__(self, name):\n        self.name = name\n\n    def read(self):\n        raise NotImplementedError(\"subclasses implement read()\")\n\n    def describe(self):\n        return f\"{self.name}: {self.read()}\"",
+ "tasks": [
+  {
+   "id": "reading",
+   "title": "Attributes and a method",
+   "prompt": "Write a class `Reading` whose `__init__` takes `sensor` and `value` and stores them as attributes of the same names.\nAdd a method `is_high(limit=22)` that returns `True` when `value` is above `limit`.",
+   "starter": "class Reading:\n    pass",
+   "solution": "class Reading:\n    def __init__(self, sensor, value):\n        self.sensor = sensor\n        self.value = value\n\n    def is_high(self, limit=22):\n        return self.value > limit",
+   "check": "r = Reading(\"t1\", 23.0)\nassert r.sensor == \"t1\" and r.value == 23.0, \"store sensor and value as attributes (self.sensor = sensor)\"\nassert r.is_high() is True, \"23.0 is above the default limit of 22\"\nassert Reading(\"t2\", 10).is_high() is False, \"10 is not above 22\"\nassert Reading(\"t3\", 10).is_high(limit=5) is True, \"is_high should use the limit passed in\"\nassert Reading(\"t4\", 22).is_high() is False, \"a value equal to the limit is not above it\"",
+   "hints": [
+    "Methods take `self` first; attributes are set with `self.name = value` inside `__init__`."
+   ]
+  },
+  {
+   "id": "equality",
+   "title": "Equality versus identity",
+   "prompt": "Write a class `Point` with attributes `x` and `y` where:\n\n- `Point(1, 2) == Point(1, 2)` is `True` (same coordinates), yet the two are different objects (`is` gives `False`);\n- `repr(Point(1, 2))` is `\"Point(1, 2)\"`;\n- comparing a `Point` with something that is not a `Point` returns `False` rather than raising.",
+   "starter": "class Point:\n    def __init__(self, x, y):\n        self.x = x\n        self.y = y",
+   "solution": "class Point:\n    def __init__(self, x, y):\n        self.x = x\n        self.y = y\n\n    def __eq__(self, other):\n        if not isinstance(other, Point):\n            return NotImplemented\n        return (self.x, self.y) == (other.x, other.y)\n\n    def __repr__(self):\n        return f\"Point({self.x!r}, {self.y!r})\"",
+   "check": "a, b = Point(1, 2), Point(1, 2)\nassert a == b, \"two Points with the same coordinates should be equal: define __eq__\"\nassert a is not b, \"they are still two separate objects\"\nassert Point(1, 2) != Point(2, 1), \"different coordinates should not be equal\"\nassert repr(a) == \"Point(1, 2)\", f\"repr gave {repr(a)!r}\"\ntry:\n    result = a == \"Point(1, 2)\"\nexcept Exception as exc:\n    raise AssertionError(f\"comparing with a string raised {type(exc).__name__}; return NotImplemented for other types\")\nassert result is False, \"a Point should not equal a string\"",
+   "hints": [
+    "Without `__eq__`, `==` falls back to identity, so two separate objects are never equal.",
+    "Returning `NotImplemented` from `__eq__` lets Python try the other side and then fall back to `False`."
+   ]
+  },
+  {
+   "id": "inherit",
+   "title": "Subclasses and super()",
+   "prompt": "Write two subclasses of `Sensor`:\n\n- `Thermometer(name, celsius)`, whose `read()` returns the temperature with one decimal and ` C`, e.g. `\"21.5 C\"`;\n- `Hygrometer(name, pct)`, whose `read()` returns e.g. `\"40%\"`.\n\nCall `super().__init__(name)` rather than setting `name` yourself; `describe()` is inherited unchanged.",
+   "starter": "class Thermometer(Sensor):\n    pass\n\n\nclass Hygrometer(Sensor):\n    pass",
+   "solution": "class Thermometer(Sensor):\n    def __init__(self, name, celsius):\n        super().__init__(name)\n        self.celsius = celsius\n\n    def read(self):\n        return f\"{self.celsius:.1f} C\"\n\n\nclass Hygrometer(Sensor):\n    def __init__(self, name, pct):\n        super().__init__(name)\n        self.pct = pct\n\n    def read(self):\n        return f\"{self.pct}%\"",
+   "check": "t = Thermometer(\"lab\", 21.46)\nh = Hygrometer(\"lab\", 40)\nassert isinstance(t, Sensor) and isinstance(h, Sensor), \"both classes should inherit from Sensor\"\nassert t.name == \"lab\", \"the name should be stored by Sensor.__init__ (call super().__init__(name))\"\nassert t.read() == \"21.5 C\", f\"Thermometer.read() gave {t.read()!r}, expected '21.5 C'\"\nassert h.read() == \"40%\", f\"Hygrometer.read() gave {h.read()!r}, expected '40%'\"\nassert [s.describe() for s in (t, h)] == [\"lab: 21.5 C\", \"lab: 40%\"], \"describe() should come from Sensor and call each subclass's read()\"\nassert \"describe\" not in vars(Thermometer) and \"describe\" not in vars(Hygrometer), \"inherit describe() instead of redefining it\"",
+   "hints": [
+    "Format with one decimal: `f\"{value:.1f}\"`.",
+    "The same `describe()` call gives different text for each subclass: that is polymorphism."
+   ]
+  },
+  {
+   "id": "compose",
+   "title": "Composition: a station holds sensors",
+   "prompt": "Write a class `Station(name)` that **has** sensors (composition, not inheritance):\n\n- `add(sensor)` stores a sensor;\n- `len(station)` gives the number of sensors;\n- `report()` returns the list of each sensor's `describe()` text, in the order they were added.\n\nTwo stations must not share their sensors.",
+   "starter": "class Station:\n    sensors = []\n\n    def __init__(self, name):\n        self.name = name\n\n    def add(self, sensor):\n        self.sensors.append(sensor)",
+   "solution": "class Station:\n    def __init__(self, name):\n        self.name = name\n        self.sensors = []\n\n    def add(self, sensor):\n        self.sensors.append(sensor)\n\n    def __len__(self):\n        return len(self.sensors)\n\n    def report(self):\n        return [s.describe() for s in self.sensors]",
+   "check": "class Fixed(Sensor):\n    def __init__(self, name, text):\n        super().__init__(name)\n        self.text = text\n\n    def read(self):\n        return self.text\n\nroof = Station(\"roof\")\nroof.add(Fixed(\"a\", \"ok\"))\nroof.add(Fixed(\"b\", \"low\"))\ncellar = Station(\"cellar\")\nassert len(cellar) == 0, \"a new station should have no sensors: a list defined on the class is shared by every instance, so create it in __init__\"\nassert len(roof) == 2, \"len() should count the sensors (define __len__)\"\nassert roof.report() == [\"a: ok\", \"b: low\"], f\"report() gave {roof.report()}\"\nassert not isinstance(roof, Sensor), \"a Station has sensors; it is not a sensor itself\"",
+   "hints": [
+    "A list written in the class body is a class attribute, shared by all instances. Create `self.sensors = []` in `__init__`.",
+    "`len(obj)` calls `obj.__len__()`."
+   ]
+  },
+  {
+   "id": "property",
+   "title": "A validated property",
+   "prompt": "Write a class `Temperature(celsius)` with:\n\n- a property `celsius` whose setter raises `ValueError` for values below -273.15 (also when the object is created);\n- a read-only property `fahrenheit` computed as `celsius * 9 / 5 + 32`.",
+   "starter": "class Temperature:\n    def __init__(self, celsius):\n        self.celsius = celsius\n        self.fahrenheit = celsius * 9 / 5 + 32",
+   "solution": "class Temperature:\n    def __init__(self, celsius):\n        self.celsius = celsius\n\n    @property\n    def celsius(self):\n        return self._celsius\n\n    @celsius.setter\n    def celsius(self, value):\n        if value < -273.15:\n            raise ValueError(\"below absolute zero\")\n        self._celsius = value\n\n    @property\n    def fahrenheit(self):\n        return self.celsius * 9 / 5 + 32",
+   "check": "t = Temperature(100)\nassert t.fahrenheit == 212, f\"100 C should be 212 F, got {t.fahrenheit}\"\nt.celsius = 0\nassert t.fahrenheit == 32, \"fahrenheit should follow celsius when celsius changes (compute it in a property)\"\ntry:\n    t.celsius = -300\nexcept ValueError:\n    pass\nelse:\n    raise AssertionError(\"setting celsius to -300 should raise ValueError\")\ntry:\n    Temperature(-500)\nexcept ValueError:\n    pass\nelse:\n    raise AssertionError(\"Temperature(-500) should raise ValueError: assign through the property in __init__\")\ntry:\n    t.fahrenheit = 50\nexcept AttributeError:\n    pass\nelse:\n    raise AssertionError(\"fahrenheit should be read-only (a property with no setter)\")",
+   "hints": [
+    "`@property` makes a method read like an attribute; `@celsius.setter` runs on assignment.",
+    "Store the value under another name (`self._celsius`) or the setter would call itself forever."
+   ]
+  }
+ ]
+}

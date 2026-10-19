@@ -1,7 +1,7 @@
 import { Fragment } from 'preact';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { AREAS, BLOCK_NAMES, OBJECTIVE_IDS, STORAGE_PREFIX, areaOf, blockOf } from '../constants.js';
-import { ESSENTIALS, GLOSSARY, GUIDE_DOCS, MAP_BY_ID, QUESTIONS } from '../data.js';
+import { ESSENTIALS, GLOSSARY, GUIDE_DOCS, MAP_BY_ID, NOTEBOOKS, QUESTIONS } from '../data.js';
 import { toggleRevised } from '../score.js';
 import { BlockBadge, Rich, barStyle, renderMarkdown, slugify } from '../ui.jsx';
 import { readLocal, writeLocal } from '../store.js';
@@ -284,6 +284,7 @@ function TermChips({ terms, objective }) {
 
 function ObjectiveBlock({ chunk, block, revised, notesOpen, onNotes, onRevised, onTry }) {
   const e = ESSENTIALS.get(chunk.objective);
+  const notebooks = NOTEBOOKS.filter((nb) => nb.objectives.includes(chunk.objective));
   const html = useMemo(() => renderMarkdown(chunk.md), [chunk.md]);
   const count = QUESTIONS.filter((q) => q.objective === chunk.objective).length;
   return (
@@ -311,11 +312,16 @@ function ObjectiveBlock({ chunk, block, revised, notesOpen, onNotes, onRevised, 
             ))}
           </ul>
           {e.terms?.length > 0 && <TermChips terms={e.terms} objective={chunk.objective} />}
-          {e.maps?.length > 0 && (
+          {(e.maps?.length > 0 || notebooks.length > 0) && (
             <div class="map-links">
-              {e.maps.map((m) => (
+              {(e.maps ?? []).map((m) => (
                 <a key={m} class="map-link" href={`#/maps/${m}`}>
                   Decision map: {MAP_BY_ID.get(m)?.title ?? m}
+                </a>
+              ))}
+              {notebooks.map((nb) => (
+                <a key={nb.id} class="map-link" href={`#/notebooks/${nb.id}`}>
+                  Notebook: {nb.title}
                 </a>
               ))}
             </div>

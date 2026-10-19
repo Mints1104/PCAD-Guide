@@ -1,0 +1,74 @@
+{
+ "id": "charts",
+ "title": "Charts with Matplotlib",
+ "level": 2,
+ "objectives": [
+  "5.1.1",
+  "5.1.2",
+  "5.1.3"
+ ],
+ "summary": "Line, bar and scatter charts, titles and labels, annotation and subplots.",
+ "intro": "Six months of website traffic and the visits per marketing channel. In every task, create the chart with\n`fig, ax = plt.subplots()` and keep those names: the checks read the chart from `ax` (and `fig`).",
+ "setup": "import matplotlib.pyplot as plt\nimport pandas as pd\n\nmonthly = pd.DataFrame({\n    \"month\": [\"Jan\", \"Feb\", \"Mar\", \"Apr\", \"May\", \"Jun\"],\n    \"visitors\": [1200, 1350, 1280, 1600, 1750, 1900],\n    \"signups\": [80, 95, 90, 130, 150, 170],\n})\nby_channel = pd.Series({\"Email\": 220, \"Search\": 540, \"Direct\": 180, \"Social\": 310})",
+ "tasks": [
+  {
+   "id": "line",
+   "title": "A labelled line chart",
+   "prompt": "Plot `visitors` against `month` as a line chart, with the title `Monthly visitors`, the x-axis label `Month` and the y-axis label `Visitors`.",
+   "starter": "fig, ax = plt.subplots()",
+   "solution": "fig, ax = plt.subplots()\nax.plot(monthly[\"month\"], monthly[\"visitors\"], marker=\"o\")\nax.set_title(\"Monthly visitors\")\nax.set_xlabel(\"Month\")\nax.set_ylabel(\"Visitors\")",
+   "check": "assert len(ax.lines) >= 1, \"draw a line on ax (ax.plot)\"\nassert list(ax.lines[0].get_ydata()) == monthly[\"visitors\"].tolist(), \"the line should show the visitors column\"\nassert ax.get_title() == \"Monthly visitors\", f\"title is {ax.get_title()!r}\"\nassert ax.get_xlabel() == \"Month\", f\"x label is {ax.get_xlabel()!r}\"\nassert ax.get_ylabel() == \"Visitors\", f\"y label is {ax.get_ylabel()!r}\"",
+   "hints": [
+    "`ax.plot(x, y)`, then `ax.set_title`, `ax.set_xlabel` and `ax.set_ylabel`.",
+    "A line chart suits values that change over an ordered sequence such as time."
+   ]
+  },
+  {
+   "id": "bar",
+   "title": "A sorted bar chart",
+   "prompt": "Draw a vertical bar chart of `by_channel` with the bars sorted from **largest to smallest**, and the title `Visits by channel`.",
+   "starter": "fig, ax = plt.subplots()\nax.bar(by_channel.index, by_channel.values)",
+   "solution": "ordered = by_channel.sort_values(ascending=False)\nfig, ax = plt.subplots()\nax.bar(ordered.index, ordered.values)\nax.set_title(\"Visits by channel\")",
+   "check": "ax.figure.canvas.draw()\nheights = [p.get_height() for p in ax.patches]\nassert len(heights) == 4, f\"expected 4 bars, found {len(heights)}\"\nassert heights == [540, 310, 220, 180], f\"bar heights left to right are {heights}; sort the Series descending first\"\nlabels = [t.get_text() for t in ax.get_xticklabels()]\nassert labels == [\"Search\", \"Social\", \"Email\", \"Direct\"], f\"bar labels are {labels}\"\nassert ax.get_title() == \"Visits by channel\", f\"title is {ax.get_title()!r}\"",
+   "hints": [
+    "`by_channel.sort_values(ascending=False)` before plotting.",
+    "Sorted bars make the ranking readable at a glance; a pie chart would hide the small differences."
+   ]
+  },
+  {
+   "id": "scatter",
+   "title": "A scatter plot for a relationship",
+   "prompt": "Show the relationship between `visitors` (x) and `signups` (y) as a scatter plot, with the axis labels `Visitors` and `Signups`.",
+   "starter": "fig, ax = plt.subplots()\nax.plot(monthly[\"visitors\"], monthly[\"signups\"])",
+   "solution": "fig, ax = plt.subplots()\nax.scatter(monthly[\"visitors\"], monthly[\"signups\"])\nax.set_xlabel(\"Visitors\")\nax.set_ylabel(\"Signups\")",
+   "check": "assert len(ax.collections) >= 1, \"use ax.scatter: a scatter plot draws points, not a connected line\"\npoints = ax.collections[0].get_offsets().tolist()\nassert points == [[v, s] for v, s in zip(monthly[\"visitors\"], monthly[\"signups\"])], \"plot visitors on x and signups on y\"\nassert ax.get_xlabel() == \"Visitors\" and ax.get_ylabel() == \"Signups\", f\"labels are {ax.get_xlabel()!r} and {ax.get_ylabel()!r}\"",
+   "hints": [
+    "`ax.scatter(x, y)` draws one marker per pair, which is the chart for a relationship between two numeric variables."
+   ]
+  },
+  {
+   "id": "annotate",
+   "title": "Annotate the peak",
+   "prompt": "Plot `signups` by `month` as a line and annotate the highest point with the text `Peak: 170`, using an arrow.\nFind the peak in code rather than typing its position.",
+   "starter": "fig, ax = plt.subplots()\nax.plot(monthly[\"month\"], monthly[\"signups\"])",
+   "solution": "fig, ax = plt.subplots()\nax.plot(monthly[\"month\"], monthly[\"signups\"])\ni = monthly[\"signups\"].idxmax()\npeak = monthly.loc[i, \"signups\"]\nax.annotate(f\"Peak: {peak}\", xy=(i, peak), xytext=(i - 2, peak - 20), arrowprops={\"arrowstyle\": \"->\"})",
+   "check": "assert len(ax.lines) >= 1 and list(ax.lines[0].get_ydata()) == monthly[\"signups\"].tolist(), \"plot the signups line\"\nnotes = [t for t in ax.texts if t.get_text() == \"Peak: 170\"]\nassert notes, f\"no annotation with the text 'Peak: 170'; texts on the axes: {[t.get_text() for t in ax.texts]}\"\nassert getattr(notes[0], \"arrow_patch\", None) is not None, \"add an arrow with arrowprops={'arrowstyle': '->'}\"",
+   "hints": [
+    "`ax.annotate(text, xy=point, xytext=label_position, arrowprops={...})`.",
+    "With text on the x-axis, Matplotlib places the categories at positions 0, 1, 2, ..., so the row position works as x."
+   ]
+  },
+  {
+   "id": "subplots",
+   "title": "Two charts side by side",
+   "prompt": "Make one figure with two charts side by side: on the left, the visitors line by month; on the right, a bar chart of `by_channel`.\nGive the whole figure the title `Website overview`. Use `fig, (left, right) = plt.subplots(1, 2, figsize=(10, 4))`.",
+   "starter": "fig, (left, right) = plt.subplots(1, 2, figsize=(10, 4))",
+   "solution": "fig, (left, right) = plt.subplots(1, 2, figsize=(10, 4))\nleft.plot(monthly[\"month\"], monthly[\"visitors\"])\nright.bar(by_channel.index, by_channel.values)\nfig.suptitle(\"Website overview\")",
+   "check": "axes = fig.get_axes()\nassert len(axes) == 2, f\"the figure should have 2 axes, found {len(axes)}\"\nassert len(axes[0].lines) >= 1, \"draw the visitors line on the left axes\"\nassert len(axes[1].patches) == 4, \"draw the four channel bars on the right axes\"\nassert fig._suptitle is not None and fig._suptitle.get_text() == \"Website overview\", \"set the figure title with fig.suptitle\"",
+   "hints": [
+    "Each axes has its own methods: `left.plot(...)`, `right.bar(...)`.",
+    "`fig.suptitle` titles the whole figure; `ax.set_title` titles one chart."
+   ]
+  }
+ ]
+}

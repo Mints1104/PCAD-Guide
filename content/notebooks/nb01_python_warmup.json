@@ -1,0 +1,76 @@
+{
+ "id": "python-warmup",
+ "title": "Python warm-up",
+ "level": 1,
+ "objectives": [
+  "2.1.1",
+  "2.1.2",
+  "2.1.4",
+  "2.2.2"
+ ],
+ "summary": "Comprehensions, functions with defaults, dictionaries and try/except.",
+ "intro": "Plain Python on small lists and dictionaries: the building blocks every later notebook uses.",
+ "setup": "temps = [21.5, 19.0, None, 23.4, 18.2, None, 25.1]\nscores = {\"ana\": 82, \"ben\": 67, \"cara\": 91, \"dev\": 74}\nwords = [\"data\", \"Python\", \"pandas\", \"data\", \"SQL\", \"python\", \"NumPy\"]",
+ "tasks": [
+  {
+   "id": "drop-none",
+   "title": "Drop the missing readings",
+   "prompt": "`temps` has gaps recorded as `None`. Make a list `clean` with every reading that is not `None`,\nin the original order.",
+   "starter": "clean = []",
+   "solution": "clean = [t for t in temps if t is not None]",
+   "check": "assert isinstance(clean, list), \"clean should be a list\"\nassert None not in clean, \"clean still contains None\"\nassert clean == [21.5, 19.0, 23.4, 18.2, 25.1], \"clean should hold the five readings in their original order\"",
+   "hints": [
+    "A list comprehension with a condition: `[x for x in items if ...]`.",
+    "Test with `is not None` rather than truthiness: a reading of `0.0` would be falsy but is not missing."
+   ]
+  },
+  {
+   "id": "passed",
+   "title": "A function with a default argument",
+   "prompt": "Write `passed(scores, mark=70)` that returns the **sorted** list of names whose score is at least `mark`.\n\n`passed(scores)` should give `['ana', 'cara', 'dev']`.",
+   "starter": "def passed(scores, mark=70):\n    pass",
+   "solution": "def passed(scores, mark=70):\n    return sorted(name for name, score in scores.items() if score >= mark)",
+   "check": "assert passed(scores) == [\"ana\", \"cara\", \"dev\"], f\"passed(scores) returned {passed(scores)!r}, expected ['ana', 'cara', 'dev']\"\nassert passed(scores, 80) == [\"ana\", \"cara\"], \"passed(scores, 80) should use the mark you pass in\"\nassert passed(scores, mark=74) == [\"ana\", \"cara\", \"dev\"], \"a score equal to the mark counts as passed (use >=)\"\nassert passed({}) == [], \"an empty dict should give an empty list\"",
+   "hints": [
+    "`scores.items()` gives `(name, score)` pairs.",
+    "`sorted(...)` accepts any iterable and returns a new list."
+   ]
+  },
+  {
+   "id": "count-words",
+   "title": "Count words, ignoring case",
+   "prompt": "Build a dictionary `counts` that maps each word in `words`, **lower-cased**, to how many times it appears.\nFor example `counts[\"python\"]` is `2`.",
+   "starter": "counts = {}\nfor w in words:\n    pass",
+   "solution": "counts = {}\nfor w in words:\n    key = w.lower()\n    counts[key] = counts.get(key, 0) + 1",
+   "check": "assert isinstance(counts, dict), \"counts should be a dict (or a Counter)\"\nexpected = {\"data\": 2, \"python\": 2, \"pandas\": 1, \"sql\": 1, \"numpy\": 1}\nassert set(counts) == set(expected), f\"the keys should be {sorted(expected)}, got {sorted(counts)}\"\nassert dict(counts) == expected, \"some counts are off: 'Python' and 'python' should count as the same word\"",
+   "hints": [
+    "`d.get(key, 0)` returns 0 for a key that is not in the dictionary yet.",
+    "`collections.Counter` does the counting in one call."
+   ]
+  },
+  {
+   "id": "label-temps",
+   "title": "Label each reading",
+   "prompt": "For every reading in `temps` that is not `None`, add a label to the list `labels`:\n\n- `\"cold\"` below 20\n- `\"mild\"` from 20 up to (not including) 24\n- `\"warm\"` from 24 upwards",
+   "starter": "labels = []",
+   "solution": "labels = []\nfor t in temps:\n    if t is None:\n        continue\n    if t < 20:\n        labels.append(\"cold\")\n    elif t < 24:\n        labels.append(\"mild\")\n    else:\n        labels.append(\"warm\")",
+   "check": "assert isinstance(labels, list), \"labels should be a list\"\nassert len(labels) == 5, f\"there are 5 readings that are not None; labels has {len(labels)} items\"\nassert labels == [\"mild\", \"cold\", \"mild\", \"cold\", \"warm\"], f\"got {labels!r}; check the boundaries (20 is mild, 24 is warm)\"",
+   "hints": [
+    "`continue` skips to the next reading.",
+    "With `if / elif / else`, only the first true branch runs, so `elif t < 24` already knows `t >= 20`."
+   ]
+  },
+  {
+   "id": "to-float",
+   "title": "Convert safely with try/except",
+   "prompt": "Write `to_float(value)` that returns `float(value)`, or `None` when the value cannot be converted.\nIt must handle text such as `\"n/a\"` (a `ValueError`) and `None` (a `TypeError`).\nCatch only those two exceptions, not every exception.",
+   "starter": "def to_float(value):\n    return float(value)",
+   "solution": "def to_float(value):\n    try:\n        return float(value)\n    except (ValueError, TypeError):\n        return None",
+   "check": "assert to_float(\"3.5\") == 3.5, \"to_float('3.5') should be 3.5\"\nassert to_float(\" 7 \") == 7.0, \"float() ignores surrounding spaces, so ' 7 ' gives 7.0\"\nassert to_float(\"n/a\") is None, \"to_float('n/a') should return None\"\nassert to_float(None) is None, \"to_float(None) should return None (float(None) raises TypeError)\"\nclass Weird:\n    def __float__(self):\n        raise KeyError(\"not a conversion problem\")\ntry:\n    to_float(Weird())\nexcept KeyError:\n    pass\nelse:\n    raise AssertionError(\"catch only ValueError and TypeError: other errors should still be raised\")",
+   "hints": [
+    "Several exceptions can share one handler: `except (ValueError, TypeError):`.",
+    "A bare `except:` would also hide bugs you did not expect, which is why the check rejects it."
+   ]
+  }
+ ]
+}

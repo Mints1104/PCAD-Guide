@@ -1,0 +1,87 @@
+{
+ "id": "sql",
+ "title": "SQL from Python with sqlite3",
+ "level": 2,
+ "objectives": [
+  "2.4.1",
+  "2.4.2",
+  "2.4.3",
+  "2.4.4",
+  "2.4.6"
+ ],
+ "summary": "SELECT, JOIN and GROUP BY, parameterized queries, INSERT, UPDATE and DELETE, and read_sql_query.",
+ "intro": "An in-memory SQLite database with two tables; `con` is the open connection. The `products` table:\n\n| id | name | category | price |\n|---|---|---|---|\n| 1 | Notebook | stationery | 3.5 |\n| 2 | Pen | stationery | 1.2 |\n| 3 | Desk lamp | office | 24.0 |\n| 4 | Chair | office | 89.0 |\n| 5 | Mug | kitchen | 6.0 |\n| 6 | Ruler | stationery | 2.0 |\n\n`sales(id, product_id, qty, day)` has six sales; the Ruler has never sold.",
+ "setup": "import sqlite3\n\ncon = sqlite3.connect(\":memory:\")\ncon.executescript(\"\"\"\nCREATE TABLE products (id INTEGER PRIMARY KEY, name TEXT NOT NULL, category TEXT, price REAL);\nINSERT INTO products VALUES\n  (1, 'Notebook', 'stationery', 3.5),\n  (2, 'Pen', 'stationery', 1.2),\n  (3, 'Desk lamp', 'office', 24.0),\n  (4, 'Chair', 'office', 89.0),\n  (5, 'Mug', 'kitchen', 6.0),\n  (6, 'Ruler', 'stationery', 2.0);\nCREATE TABLE sales (id INTEGER PRIMARY KEY, product_id INTEGER REFERENCES products(id), qty INTEGER, day TEXT);\nINSERT INTO sales VALUES\n  (1, 1, 10, '2024-05-01'), (2, 2, 25, '2024-05-01'), (3, 3, 2, '2024-05-02'),\n  (4, 1, 4, '2024-05-02'), (5, 5, 6, '2024-05-03'), (6, 4, 1, '2024-05-03');\n\"\"\")",
+ "tasks": [
+  {
+   "id": "where-order",
+   "title": "Filter and sort",
+   "prompt": "Store the `(name, price)` rows of products cheaper than 5.00, cheapest first, in `cheap` (a list of tuples from `fetchall()`).",
+   "starter": "query = \"SELECT name, price FROM products\"\ncheap = con.execute(query).fetchall()",
+   "solution": "query = \"SELECT name, price FROM products WHERE price < 5 ORDER BY price\"\ncheap = con.execute(query).fetchall()",
+   "check": "assert isinstance(cheap, list), \"cheap should be the list that fetchall() returns\"\nassert cheap == [(\"Pen\", 1.2), (\"Ruler\", 2.0), (\"Notebook\", 3.5)], f\"got {cheap}\"",
+   "hints": [
+    "`WHERE price < 5` filters; `ORDER BY price` sorts ascending (add `DESC` for descending)."
+   ]
+  },
+  {
+   "id": "join-group",
+   "title": "JOIN and GROUP BY",
+   "prompt": "Store the total quantity sold per category, as `(category, total_qty)` rows sorted by category, in `by_category`.\nCategories with no sales may be left out.",
+   "starter": "by_category = con.execute(\"SELECT category FROM products\").fetchall()",
+   "solution": "by_category = con.execute(\"\"\"\n    SELECT p.category, SUM(s.qty) AS total_qty\n    FROM sales AS s\n    JOIN products AS p ON p.id = s.product_id\n    GROUP BY p.category\n    ORDER BY p.category\n\"\"\").fetchall()",
+   "check": "assert isinstance(by_category, list), \"by_category should be a list of rows\"\nassert by_category == [(\"kitchen\", 6), (\"office\", 3), (\"stationery\", 39)], f\"got {by_category}\"",
+   "hints": [
+    "Join `sales` to `products` on `products.id = sales.product_id`, then `GROUP BY category`.",
+    "Every selected column must be grouped or aggregated: `SELECT category, SUM(qty)`."
+   ]
+  },
+  {
+   "id": "params",
+   "title": "A parameterized query",
+   "prompt": "Write `find_by_category(con, category)` that returns the product **names** in that category, sorted by name.\nPass `category` with a `?` placeholder; never build the SQL with string formatting.",
+   "starter": "def find_by_category(con, category):\n    sql = f\"SELECT name FROM products WHERE category = '{category}' ORDER BY name\"\n    return [row[0] for row in con.execute(sql)]",
+   "solution": "def find_by_category(con, category):\n    sql = \"SELECT name FROM products WHERE category = ? ORDER BY name\"\n    return [row[0] for row in con.execute(sql, (category,))]",
+   "check": "assert find_by_category(con, \"office\") == [\"Chair\", \"Desk lamp\"], f\"office gave {find_by_category(con, 'office')}\"\nassert find_by_category(con, \"kitchen\") == [\"Mug\"], \"kitchen should give ['Mug']\"\ntry:\n    attack = find_by_category(con, \"x' OR '1'='1\")\nexcept Exception as exc:\n    raise AssertionError(f\"a category containing a quote broke the query ({type(exc).__name__}); use a ? placeholder\")\nassert attack == [], f\"the input x' OR '1'='1 returned {attack}: the SQL was built from the text (SQL injection). Use a ? placeholder\"",
+   "hints": [
+    "`con.execute(sql, (value,))`: the parameters go in a tuple; note the comma in a one-item tuple.",
+    "The driver sends the value separately from the SQL, so quotes in it cannot change the query."
+   ]
+  },
+  {
+   "id": "read-sql",
+   "title": "Query results as a DataFrame",
+   "prompt": "Use `pd.read_sql_query` to make `revenue`: a DataFrame with the columns `day` and `revenue` (sum of `qty * price`), one row per day, sorted by day.",
+   "starter": "import pandas as pd\n\nrevenue = pd.read_sql_query(\"SELECT day FROM sales\", con)",
+   "solution": "import pandas as pd\n\nrevenue = pd.read_sql_query(\"\"\"\n    SELECT s.day, SUM(s.qty * p.price) AS revenue\n    FROM sales AS s\n    JOIN products AS p ON p.id = s.product_id\n    GROUP BY s.day\n    ORDER BY s.day\n\"\"\", con)",
+   "check": "assert isinstance(revenue, pd.DataFrame), \"revenue should be a DataFrame\"\nassert list(revenue.columns) == [\"day\", \"revenue\"], f\"columns should be day and revenue, got {list(revenue.columns)} (alias the sum: AS revenue)\"\nassert revenue[\"day\"].tolist() == [\"2024-05-01\", \"2024-05-02\", \"2024-05-03\"], f\"days: {revenue['day'].tolist()}\"\nassert [round(v, 2) for v in revenue[\"revenue\"]] == [65.0, 62.0, 125.0], f\"revenue: {revenue['revenue'].tolist()}\"",
+   "hints": [
+    "`pd.read_sql_query(sql, con)` runs the query and builds a DataFrame from the rows and column names."
+   ]
+  },
+  {
+   "id": "insert",
+   "title": "INSERT and commit",
+   "prompt": "Write `add_product(con, name, category, price)` that inserts a product with a parameterized `INSERT`,\ncommits, and returns the new row's `id`. Leave out `id` so SQLite assigns the next one.",
+   "starter": "def add_product(con, name, category, price):\n    pass",
+   "solution": "def add_product(con, name, category, price):\n    cur = con.execute(\n        \"INSERT INTO products (name, category, price) VALUES (?, ?, ?)\",\n        (name, category, price),\n    )\n    con.commit()\n    return cur.lastrowid",
+   "check": "new_id = add_product(con, \"Stapler\", \"stationery\", 7.5)\nassert new_id == 7, f\"add_product should return the new id (7), got {new_id!r}; the cursor's lastrowid holds it\"\nrow = con.execute(\"SELECT name, category, price FROM products WHERE id = ?\", (new_id,)).fetchone()\nassert row == (\"Stapler\", \"stationery\", 7.5), f\"the inserted row is {row}\"\nassert not con.in_transaction, \"commit after the insert\"",
+   "hints": [
+    "`cur = con.execute(...)` returns a cursor; `cur.lastrowid` is the id SQLite assigned.",
+    "`con.commit()` makes the change permanent."
+   ]
+  },
+  {
+   "id": "update-delete",
+   "title": "UPDATE and DELETE",
+   "prompt": "Raise every `office` price by 10%, then delete products that have never been sold. Commit at the end.",
+   "starter": "# your UPDATE and DELETE statements",
+   "solution": "con.execute(\"UPDATE products SET price = price * 1.1 WHERE category = ?\", (\"office\",))\ncon.execute(\"DELETE FROM products WHERE id NOT IN (SELECT product_id FROM sales)\")\ncon.commit()",
+   "check": "office = [round(p, 2) for (p,) in con.execute(\"SELECT price FROM products WHERE category = 'office' ORDER BY price\")]\nassert office == [26.4, 97.9], f\"office prices are {office}, expected [26.4, 97.9]\"\nothers = con.execute(\"SELECT price FROM products WHERE category = 'stationery' ORDER BY price\").fetchall()\nassert others == [(1.2,), (3.5,)], f\"only office prices should change (and the Ruler should be gone); stationery prices are {others}\"\nnames = [n for (n,) in con.execute(\"SELECT name FROM products\")]\nassert \"Ruler\" not in names, \"the Ruler has no sales, so it should be deleted\"\nassert len(names) == 5, f\"5 products should remain, found {len(names)}\"\nassert not con.in_transaction, \"commit at the end\"",
+   "hints": [
+    "`UPDATE products SET price = price * 1.1 WHERE ...`: without WHERE, every row changes.",
+    "`DELETE FROM products WHERE id NOT IN (SELECT product_id FROM sales)`."
+   ]
+  }
+ ]
+}

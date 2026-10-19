@@ -1,0 +1,94 @@
+{
+ "id": "pandas-selection",
+ "title": "Selecting with loc and iloc",
+ "level": 1,
+ "objectives": [
+  "4.1.3",
+  "4.1.4"
+ ],
+ "summary": "Columns, label and position slicing, boolean masks and new columns.",
+ "intro": "A small sales table with a text index (`r1` to `r6`), so label-based `.loc` and position-based `.iloc` give different answers.",
+ "setup": "import pandas as pd\n\nsales = pd.DataFrame(\n    {\n        \"region\": [\"North\", \"South\", \"East\", \"West\", \"North\", \"East\"],\n        \"product\": [\"A\", \"B\", \"A\", \"C\", \"B\", \"C\"],\n        \"units\": [12, 7, 3, 15, 9, 4],\n        \"price\": [2.5, 4.0, 2.5, 6.0, 4.0, 6.0],\n    },\n    index=[\"r1\", \"r2\", \"r3\", \"r4\", \"r5\", \"r6\"],\n)",
+ "tasks": [
+  {
+   "id": "column",
+   "title": "One column as a Series",
+   "prompt": "Store the `units` column in `units`, as a **Series** (not a one-column DataFrame).",
+   "starter": "units = None",
+   "solution": "units = sales[\"units\"]",
+   "check": "assert isinstance(units, pd.Series), f\"units should be a Series, got {type(units).__name__} (single brackets give a Series, double brackets a DataFrame)\"\nassert units.tolist() == [12, 7, 3, 15, 9, 4], \"units should hold the units column\"\nassert list(units.index) == [\"r1\", \"r2\", \"r3\", \"r4\", \"r5\", \"r6\"], \"keep the original index\"",
+   "hints": [
+    "`df['col']` gives a Series; `df[['col']]` gives a DataFrame."
+   ]
+  },
+  {
+   "id": "first-three",
+   "title": "The first three rows by position",
+   "prompt": "Store the first three rows (all columns) in `first_three`, selecting **by position** with `.iloc`.",
+   "starter": "first_three = sales",
+   "solution": "first_three = sales.iloc[:3]",
+   "check": "assert isinstance(first_three, pd.DataFrame), \"first_three should be a DataFrame\"\nassert list(first_three.index) == [\"r1\", \"r2\", \"r3\"], f\"expected rows r1, r2, r3, got {list(first_three.index)}\"\nassert list(first_three.columns) == list(sales.columns), \"keep all four columns\"",
+   "hints": [
+    "`.iloc` slices exclude the stop position, like Python lists: `[:3]` is positions 0, 1, 2."
+   ]
+  },
+  {
+   "id": "label-slice",
+   "title": "A label slice with two columns",
+   "prompt": "Store rows `r2` **through** `r4` (inclusive), with only the `region` and `units` columns, in `middle`. Use `.loc`.",
+   "starter": "middle = sales.loc[:, :]",
+   "solution": "middle = sales.loc[\"r2\":\"r4\", [\"region\", \"units\"]]",
+   "check": "assert isinstance(middle, pd.DataFrame), \"middle should be a DataFrame\"\nassert list(middle.index) == [\"r2\", \"r3\", \"r4\"], f\"expected rows r2, r3, r4, got {list(middle.index)} (a .loc slice includes its end label)\"\nassert list(middle.columns) == [\"region\", \"units\"], f\"expected columns ['region', 'units'], got {list(middle.columns)}\"",
+   "hints": [
+    "`.loc[rows, columns]`: rows can be a label slice `'r2':'r4'`, columns a list of names.",
+    "Unlike `.iloc`, a `.loc` slice **includes** the end label."
+   ]
+  },
+  {
+   "id": "mask",
+   "title": "Filter with a boolean mask",
+   "prompt": "Store the rows where `units` is greater than 8 in `big`.",
+   "starter": "big = sales",
+   "solution": "big = sales[sales[\"units\"] > 8]",
+   "check": "assert isinstance(big, pd.DataFrame), \"big should be a DataFrame\"\nassert list(big.index) == [\"r1\", \"r4\", \"r5\"], f\"expected rows r1, r4, r5, got {list(big.index)}\"",
+   "hints": [
+    "`sales['units'] > 8` is a Series of True/False; indexing with it keeps the True rows."
+   ]
+  },
+  {
+   "id": "two-conditions",
+   "title": "Combine two conditions",
+   "prompt": "Store the rows where `region` is `\"North\"` **and** `product` is `\"B\"` in `north_b`.",
+   "starter": "north_b = sales[sales[\"region\"] == \"North\"]",
+   "solution": "north_b = sales[(sales[\"region\"] == \"North\") & (sales[\"product\"] == \"B\")]",
+   "check": "assert isinstance(north_b, pd.DataFrame), \"north_b should be a DataFrame\"\nassert list(north_b.index) == [\"r5\"], f\"expected only row r5, got {list(north_b.index)}\"",
+   "hints": [
+    "pandas uses `&` (and), `|` (or) and `~` (not), not the Python keywords.",
+    "Wrap each condition in parentheses: `&` binds more tightly than `==`."
+   ]
+  },
+  {
+   "id": "new-column",
+   "title": "Add a column without changing the original",
+   "prompt": "Make `with_revenue`: a **copy** of `sales` with an extra column `revenue` = `units * price`.\n`sales` itself must stay unchanged.",
+   "starter": "with_revenue = sales\nwith_revenue[\"revenue\"] = 0",
+   "solution": "with_revenue = sales.copy()\nwith_revenue[\"revenue\"] = with_revenue[\"units\"] * with_revenue[\"price\"]",
+   "check": "assert \"revenue\" not in sales.columns, \"sales gained a revenue column: plain assignment (with_revenue = sales) names the same object, so make a copy first\"\nassert isinstance(with_revenue, pd.DataFrame), \"with_revenue should be a DataFrame\"\nassert \"revenue\" in with_revenue.columns, \"with_revenue needs a revenue column\"\nassert with_revenue[\"revenue\"].tolist() == [30.0, 28.0, 7.5, 90.0, 36.0, 24.0], \"revenue should be units * price for each row\"",
+   "hints": [
+    "`df.copy()` makes an independent DataFrame; `b = a` only gives the same object a second name.",
+    "`df.assign(revenue=...)` also returns a new DataFrame."
+   ]
+  },
+  {
+   "id": "idxmax",
+   "title": "The label of the largest value",
+   "prompt": "Store the **index label** of the row with the most units in `best` (it should be a label such as `\"r1\"`, not a position).",
+   "starter": "best = sales[\"units\"].max()",
+   "solution": "best = sales[\"units\"].idxmax()",
+   "check": "assert best == \"r4\", f\"best should be 'r4', got {best!r}\" + (\" (that is the largest value itself; idxmax gives its label)\" if best == 15 else \"\")",
+   "hints": [
+    "`.max()` gives the value; `.idxmax()` gives the index label where it occurs."
+   ]
+  }
+ ]
+}

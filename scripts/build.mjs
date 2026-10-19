@@ -46,6 +46,10 @@ const essentials = readdirSync(join(root, 'content/essentials'))
   .flatMap((f) => readJson(`content/essentials/${f}`));
 const maps = readJson('content/maps/maps.json');
 const syntaxCards = readJson('content/cards/syntax.json');
+const notebooks = readdirSync(join(root, 'content/notebooks'))
+  .filter((f) => /^nb\d.*\.json$/.test(f))
+  .sort()
+  .map((f) => readJson(`content/notebooks/${f}`));
 
 // ---------- glossary terms ----------
 const glossaryTerms = new Set();
@@ -110,6 +114,25 @@ for (const c of syntaxCards) {
   if (c.objective && !OBJECTIVES[c.objective]) err(`syntax card ${c.id}: unknown objective ${c.objective}`);
 }
 
+// ---------- notebooks ----------
+const notebookIds = new Set();
+for (const nb of notebooks) {
+  const where = `notebook ${nb.id ?? '(no id)'}`;
+  for (const f of ['id', 'title', 'level', 'objectives', 'summary', 'intro', 'setup', 'tasks']) if (nb[f] === undefined) err(`${where}: missing ${f}`);
+  if (notebookIds.has(nb.id)) err(`${where}: duplicate id`);
+  notebookIds.add(nb.id);
+  if (![1, 2, 3].includes(nb.level)) err(`${where}: level must be 1-3`);
+  for (const o of nb.objectives ?? []) if (!OBJECTIVES[o]) err(`${where}: unknown objective ${o}`);
+  if (!Array.isArray(nb.tasks) || nb.tasks.length === 0) err(`${where}: needs tasks`);
+  const taskIds = new Set();
+  for (const t of nb.tasks ?? []) {
+    for (const f of ['id', 'title', 'prompt', 'starter', 'solution', 'check']) if (typeof t[f] !== 'string' || (f !== 'starter' && t[f] === '')) err(`${where}/${t.id}: missing ${f}`);
+    if (taskIds.has(t.id)) err(`${where}: duplicate task ${t.id}`);
+    taskIds.add(t.id);
+    if (!Array.isArray(t.hints)) err(`${where}/${t.id}: hints must be a list`);
+  }
+}
+
 // ---------- questions ----------
 const ids = new Set();
 const COUNT_WORDS = { 2: 'two', 3: 'three', 4: 'four' };
@@ -158,13 +181,14 @@ for (const q of questions) {
 }
 const thin = OBJECTIVE_IDS.filter((o) => (perObjective[o] ?? 0) < 3);
 console.log(`questions: ${questions.length}  by block: ${JSON.stringify(perBlock)}`);
+console.log(`notebooks: ${notebooks.length}  tasks: ${notebooks.reduce((s, nb) => s + nb.tasks.length, 0)}`);
 console.log(`multi: ${questions.filter((q) => q.type === 'multi').length}  with code: ${questions.filter((q) => q.code).length}  difficulty: ${JSON.stringify(questions.reduce((a, q) => ((a[q.difficulty] = (a[q.difficulty] ?? 0) + 1), a), {}))}`);
 if (thin.length) console.log(`objectives with fewer than 3 questions: ${thin.map((o) => `${o}(${perObjective[o] ?? 0})`).join(' ')}`);
 
 // ---------- write content + bundle ----------
 const shipped = questions.map(({ _file, verify, setup, ...q }) => q);
 mkdirSync(join(root, '.build'), { recursive: true });
-writeFileSync(join(root, '.build/content.json'), JSON.stringify({ questions: shipped, essentials, maps, syntaxCards, guide }));
+writeFileSync(join(root, '.build/content.json'), JSON.stringify({ questions: shipped, essentials, maps, syntaxCards, notebooks, guide }));
 
 const result = await build({
   entryPoints: [join(root, 'src/main.jsx')],
@@ -174,6 +198,7 @@ const result = await build({
   target: ['es2020'],
   jsx: 'automatic',
   jsxImportSource: 'preact',
+  loader: { '.py': 'text' },
   write: false,
   legalComments: 'none',
 });
