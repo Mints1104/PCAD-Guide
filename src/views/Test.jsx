@@ -3,6 +3,7 @@ import { BLOCKS, BLOCK_NAMES, EXAM, OBJECTIVES, blockOf } from '../constants.js'
 import { QUESTION_BY_ID, guideHref, optionLang } from '../data.js';
 import { isCorrect, recordSession, scoreSession } from '../score.js';
 import * as S from '../select.js';
+import { tutorPrompt } from '../tutor.js';
 import { BlockBadge, CodeBlock, Icon, Rich } from '../ui.jsx';
 
 const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
@@ -346,6 +347,60 @@ function resolveResult(progress, id) {
   return lastResult;
 }
 
+// Copy the results with a ready-made tutoring prompt, to paste into a chatbot.
+function TutorExport({ session, score }) {
+  const [scope, setScope] = useState('mistakes');
+  const [text, setText] = useState(null);
+  const [message, setMessage] = useState(null);
+
+  async function copy() {
+    const t = tutorPrompt(session, score, QUESTION_BY_ID, scope);
+    try {
+      await navigator.clipboard.writeText(t);
+      setText(null);
+      setMessage('Copied. Paste it into ChatGPT, Claude, Gemini or any other chatbot.');
+    } catch {
+      setText(t);
+      setMessage('Copy the text below and paste it into a chatbot.');
+    }
+  }
+
+  return (
+    <section class="tutor-export">
+      <h2>Review with an AI tutor</h2>
+      <p class="muted">Copies a prompt and your answers, so a chatbot can explain your mistakes and target your weak areas.</p>
+      <div class="filter-row">
+        {[
+          ['mistakes', 'Wrong and flagged'],
+          ['all', 'Every question'],
+        ].map(([k, label]) => (
+          <button
+            key={k}
+            class={`chip ${scope === k ? 'chip-selected' : ''}`}
+            aria-pressed={scope === k}
+            onClick={() => {
+              setScope(k);
+              setText(null);
+              setMessage(null);
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      <button class="btn btn-primary" onClick={copy}>
+        Copy for an AI tutor
+      </button>
+      {message && <p class="message">{message}</p>}
+      {text !== null && (
+        <div class="import-box">
+          <textarea value={text} readOnly rows={8} onFocus={(e) => e.currentTarget.select()} />
+        </div>
+      )}
+    </section>
+  );
+}
+
 export function Results({ store, id }) {
   const [filter, setFilter] = useState('all');
   const result = resolveResult(store.progress, id);
@@ -458,6 +513,7 @@ export function Results({ store, id }) {
           </li>
         ))}
       </ul>
+      <TutorExport key={session.id} session={session} score={score} />
       <div class="actions">
         {session.returnTo && (
           <a class="btn btn-primary" href={session.returnTo}>

@@ -1230,6 +1230,26 @@ pre {
 .objective-results .results-table {
   margin-bottom: 0;
 }
+.tutor-export {
+  margin-bottom: 20px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-elevated);
+}
+.tutor-export h2 {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+}
+.tutor-export > .muted {
+  margin: 0 0 12px;
+}
+.tutor-export .btn {
+  width: 100%;
+}
+.tutor-export .message {
+  margin-bottom: 0;
+}
 .review-list,
 .browse-list,
 .guide-index,
