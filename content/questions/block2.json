@@ -780,6 +780,37 @@
   ]
  },
  {
+  "id": "b2-027",
+  "objective": "2.1.3",
+  "type": "multi",
+  "stem": "Which two statements about scikit-learn are correct? Select two.",
+  "options": [
+   "It provides `train_test_split` and cross-validation tools",
+   "Its models share the same `fit` / `predict` interface",
+   "It reports p-values for regression coefficients by default",
+   "It is a plotting library built on Matplotlib",
+   "It is the standard tool for reading Excel files"
+  ],
+  "answer": [
+   0,
+   1
+  ],
+  "explanation": "scikit-learn is the machine-learning library: preprocessing, splitting, models with a common `fit`/`predict` API, and evaluation metrics.",
+  "why_wrong": [
+   "",
+   "",
+   "Inference output such as p-values comes from statsmodels.",
+   "That describes Seaborn.",
+   "pandas reads Excel files (`pd.read_excel`)."
+  ],
+  "source": "Syllabus 2.1.3 · scikit-learn docs",
+  "difficulty": 2,
+  "tags": [
+   "ecosystem",
+   "scikit-learn"
+  ]
+ },
+ {
   "id": "b2-030",
   "objective": "2.1.4",
   "type": "single",
@@ -1414,6 +1445,69 @@
   ],
   "code": "import os, sys\n\nMAX_ROWS = 500\n\ndef load_rows(path, limit=MAX_ROWS):\n    if limit == None:\n        limit = MAX_ROWS\n    with open(path) as f:\n        return f.read().splitlines()[:limit]",
   "verify": "runs"
+ },
+ {
+  "id": "b2-046",
+  "objective": "2.1.5",
+  "type": "multi",
+  "stem": "Which two docstrings follow PEP 257? Select two.",
+  "options": [
+   "\"\"\"Return the share of orders that were refunded.\"\"\"",
+   "\"\"\"Summarize sales by region.\n\nGroup the rows by region and return a DataFrame with the\ntotal and the order count for each.\n\"\"\"",
+   "\"\"\"returns the share of orders that were refunded\"\"\"",
+   "'''Summarize sales by region.'''",
+   "\"\"\"share_refunded(orders) -> float\"\"\""
+  ],
+  "answer": [
+   0,
+   1
+  ],
+  "explanation": "A one-line docstring is a command ending in a period, on one line. A multi-line docstring has a summary line, a blank line, the details, and the closing quotes on a line of their own.",
+  "why_wrong": [
+   "",
+   "",
+   "The summary should be a command (\"Return\", not \"returns\"), start with a capital and end with a period.",
+   "PEP 257 asks for triple double quotes, `\"\"\"`.",
+   "A docstring shouldn't just repeat the signature; say what the function does."
+  ],
+  "source": "Syllabus 2.1.5 · PEP 257",
+  "difficulty": 3,
+  "tags": [
+   "pep257",
+   "docstring"
+  ],
+  "optlang": "text"
+ },
+ {
+  "id": "b2-047",
+  "objective": "2.1.5",
+  "type": "multi",
+  "stem": "Which two lines follow PEP 8's whitespace rules? Select two.",
+  "options": [
+   "`total = price * qty`",
+   "`items = [1, 2, 3]`",
+   "`x=compute( a,b )`",
+   "`print (total)`",
+   "`def f(a, b = 2):`"
+  ],
+  "answer": [
+   0,
+   1
+  ],
+  "explanation": "Put single spaces around assignment and binary operators and after commas; put none just inside brackets, before a call's bracket, or around `=` in default values and keyword arguments.",
+  "why_wrong": [
+   "",
+   "",
+   "PEP 8 wants spaces around `=` and after commas, and none just inside brackets.",
+   "No space goes between a function name and its opening bracket.",
+   "A default value in a definition takes no spaces around `=`: `b=2`."
+  ],
+  "source": "Syllabus 2.1.5 · PEP 8",
+  "difficulty": 2,
+  "tags": [
+   "pep8",
+   "whitespace"
+  ]
  },
  {
   "id": "b2-050",
@@ -2402,6 +2496,69 @@
   ]
  },
  {
+  "id": "b2-086",
+  "objective": "2.3.2",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "saved q1.txt\nsaved q1.csv\nsaved q1.csv.gz",
+   "saved q1.txt\nsaved q1.txt\nsaved q1.txt.gz",
+   "saved q1.txt\nsaved q1.csv\nsaved q1.csv",
+   "saved q1.txt\nsaved q1.csv\nsaved q1.txt.gz"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`export` is written once in the base class and calls `self.filename`, which dispatches to each object's own version. CsvExporter only overrides the class attribute `ext`; GzipCsvExporter overrides `filename` and extends the inherited result with `super()`.",
+  "why_wrong": [
+   "",
+   "`self.ext` is looked up on the object's own class first, and CsvExporter overrides it with \"csv\".",
+   "GzipCsvExporter overrides `filename`, so its version runs and adds \".gz\".",
+   "`super().filename(name)` runs the inherited method, but `self` is still the GzipCsvExporter, so `self.ext` is \"csv\"."
+  ],
+  "source": "Syllabus 2.3.2 · Python docs",
+  "difficulty": 3,
+  "tags": [
+   "inheritance",
+   "super",
+   "polymorphism"
+  ],
+  "code": "class Exporter:\n    ext = \"txt\"\n\n    def filename(self, name):\n        return f\"{name}.{self.ext}\"\n\n    def export(self, name):\n        return \"saved \" + self.filename(name)\n\nclass CsvExporter(Exporter):\n    ext = \"csv\"\n\nclass GzipCsvExporter(CsvExporter):\n    def filename(self, name):\n        return super().filename(name) + \".gz\"\n\nfor e in [Exporter(), CsvExporter(), GzipCsvExporter()]:\n    print(e.export(\"q1\"))",
+  "optlang": "text",
+  "verify": "stdout"
+ },
+ {
+  "id": "b2-087",
+  "objective": "2.3.2",
+  "type": "multi",
+  "stem": "Which two relationships are better modeled with composition than with inheritance? Select two.",
+  "options": [
+   "A `Report` that contains several `Chart` objects",
+   "A survey `Response` that holds the `Respondent` who gave it",
+   "A `CsvExporter` that is a kind of `Exporter`",
+   "A `SalesReport` that is a specialized `Report`",
+   "A `MonthlyForecast` that is a kind of `Forecast`"
+  ],
+  "answer": [
+   0,
+   1
+  ],
+  "explanation": "Use composition for \"has-a\" relationships, where one object holds others as attributes, and inheritance for \"is-a\" relationships.",
+  "why_wrong": [
+   "",
+   "",
+   "\"Is a kind of\" is the test for inheritance.",
+   "A specialized report is a report: inheritance.",
+   "A monthly forecast is a forecast: inheritance."
+  ],
+  "source": "Syllabus 2.3.2",
+  "difficulty": 2,
+  "tags": [
+   "composition",
+   "inheritance"
+  ]
+ },
+ {
   "id": "b2-090",
   "objective": "2.3.3",
   "type": "single",
@@ -2548,6 +2705,103 @@
   ],
   "code": "import pandas as pd\n\ndf = pd.DataFrame({\"a\": [1, 2]})\nview = df\nsafe = df.copy()\nview[\"a\"] = view[\"a\"] * 10\nprint(df[\"a\"].tolist(), safe[\"a\"].tolist())",
   "verify": "stdout"
+ },
+ {
+  "id": "b2-095",
+  "objective": "2.3.3",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "[[0, 5, 0], [0, 5, 0]]\n[[0, 5, 0], [0, 0, 0]]",
+   "[[0, 5, 0], [0, 0, 0]]\n[[0, 5, 0], [0, 0, 0]]",
+   "[[0, 5, 0], [0, 5, 0]]\n[[0, 5, 0], [0, 5, 0]]",
+   "[[0, 5, 0], [0, 0, 0]]\n[[0, 5, 0], [0, 5, 0]]"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`[[0] * 3] * 2` builds one inner list and puts two references to it in the outer list, so changing `grid[0]` also changes `grid[1]`. The comprehension creates a new inner list on each pass, so the rows are independent.",
+  "why_wrong": [
+   "",
+   "`[row] * 2` repeats a reference to the same inner list, so both rows change together.",
+   "The comprehension runs `[0] * 3` once per row, creating two separate lists.",
+   "It's the other way round: the multiplied version shares one list."
+  ],
+  "source": "Syllabus 2.3.3 · Python docs",
+  "difficulty": 3,
+  "tags": [
+   "references",
+   "aliasing",
+   "lists"
+  ],
+  "code": "grid = [[0] * 3] * 2\ngrid[0][1] = 5\nprint(grid)\n\nrows = [[0] * 3 for _ in range(2)]\nrows[0][1] = 5\nprint(rows)",
+  "optlang": "text",
+  "verify": "stdout"
+ },
+ {
+  "id": "b2-096",
+  "objective": "2.3.3",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "`['tea', 'jam'] ['tea'] True False`",
+   "`['tea'] ['tea'] False True`",
+   "`['tea', 'jam'] ['tea', 'jam'] True True`",
+   "`['tea', 'jam'] ['tea'] False False`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Storing an argument in `self.items` stores a reference, not a copy. `a` and `b` share one list; `c` got an independent copy, so it still has only \"tea\" and is no longer equal to `a.items`.",
+  "why_wrong": [
+   "",
+   "`a` and `b` were both given the same list object, so the append through `a` shows in `b`.",
+   "`list(shared)` made `c` its own copy before the append.",
+   "`a.items` and `b.items` are the very same list, so `is` is True."
+  ],
+  "source": "Syllabus 2.3.3",
+  "difficulty": 3,
+  "tags": [
+   "references",
+   "objects",
+   "copy"
+  ],
+  "code": "class Basket:\n    def __init__(self, items):\n        self.items = items\n\nshared = [\"tea\"]\na = Basket(shared)\nb = Basket(shared)\nc = Basket(list(shared))\na.items.append(\"jam\")\nprint(b.items, c.items, a.items is b.items, a.items == c.items)",
+  "verify": "stdout"
+ },
+ {
+  "id": "b2-097",
+  "objective": "2.3.3",
+  "type": "multi",
+  "stem": "After `a = [1, 2]`, `b = [1, 2]` and `c = a`, which two expressions are True? Select two.",
+  "options": [
+   "`a == b`",
+   "`a is c`",
+   "`a is b`",
+   "`a != c`",
+   "`b is c`"
+  ],
+  "answer": [
+   0,
+   1
+  ],
+  "explanation": "`==` compares values, so the two lists holding [1, 2] are equal. `is` compares identity: only `a` and `c` name the same object.",
+  "why_wrong": [
+   "",
+   "",
+   "`a` and `b` are two separate lists that happen to hold the same values.",
+   "`c` is the same list as `a`, so they are equal.",
+   "`c` refers to `a`'s list, not to `b`'s."
+  ],
+  "source": "Syllabus 2.3.3",
+  "difficulty": 2,
+  "tags": [
+   "identity",
+   "equality"
+  ],
+  "verify": {
+   "py": "a = [1, 2]\nb = [1, 2]\nc = a\ntruths = [i for i in range(5) if eval(opt(i))]\nassert truths == q[\"answer\"], truths"
+  }
  },
  {
   "id": "b2-100",
@@ -3872,6 +4126,106 @@
   ]
  },
  {
+  "id": "b2-116",
+  "objective": "2.4.2",
+  "type": "single",
+  "stem": "These three statements run in order. Which names does `SELECT name FROM products ORDER BY name` return afterwards?",
+  "options": [
+   "Chai, Green, Mint, Oats",
+   "Chai, Green, Oats",
+   "Chai, Green, Jam, Mint, Oats",
+   "Green, Mint, Oats"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "The UPDATE raises tea prices by 10% (Green 2.2, Mint 2.09); the DELETE then removes only Jam (1.8); the INSERT adds Chai. Statements run in order, so each one sees the previous one's changes.",
+  "why_wrong": [
+   "",
+   "The UPDATE runs first and lifts Mint from 1.9 to about 2.09, so the DELETE no longer removes it.",
+   "Jam (1.8) isn't tea, so its price isn't raised, and the DELETE removes it.",
+   "The INSERT adds Chai after the DELETE has run, so Chai stays."
+  ],
+  "source": "Syllabus 2.4.2",
+  "difficulty": 3,
+  "tags": [
+   "sql",
+   "crud",
+   "update",
+   "delete"
+  ],
+  "code": "UPDATE products SET price = price * 1.1 WHERE category = 'tea';\nDELETE FROM products WHERE price < 2;\nINSERT INTO products (name, category, price) VALUES ('Chai', 'tea', 3.0);",
+  "lang": "sql",
+  "setup": "CREATE TABLE products (name TEXT, category TEXT, price REAL);\nINSERT INTO products VALUES ('Green', 'tea', 2.0), ('Mint', 'tea', 1.9),\n                            ('Jam', 'food', 1.8), ('Oats', 'food', 4.0);",
+  "tables": [
+   {
+    "name": "products",
+    "columns": [
+     "name",
+     "category",
+     "price"
+    ],
+    "rows": [
+     [
+      "Green",
+      "tea",
+      2.0
+     ],
+     [
+      "Mint",
+      "tea",
+      1.9
+     ],
+     [
+      "Jam",
+      "food",
+      1.8
+     ],
+     [
+      "Oats",
+      "food",
+      4.0
+     ]
+    ]
+   }
+  ],
+  "verify": {
+   "py": "con = run_sql_script(setup, code)\nnames = [r[0] for r in con.execute(\"SELECT name FROM products ORDER BY name\")]\nassert names == [\"Chai\", \"Green\", \"Mint\", \"Oats\"], names"
+  }
+ },
+ {
+  "id": "b2-117",
+  "objective": "2.4.2",
+  "type": "multi",
+  "stem": "Which two statements delete rows from `logs` but keep the table itself? Select two.",
+  "options": [
+   "`DELETE FROM logs WHERE created < '2025-01-01';`",
+   "`DELETE FROM logs;`",
+   "`DROP TABLE logs;`",
+   "`SELECT * FROM logs LIMIT 0;`",
+   "`ALTER TABLE logs RENAME TO old_logs;`"
+  ],
+  "answer": [
+   0,
+   1
+  ],
+  "explanation": "DELETE removes rows: those matching the WHERE, or every row when there is no WHERE. The empty table stays, ready for new data.",
+  "why_wrong": [
+   "",
+   "",
+   "DROP removes the whole table, structure included.",
+   "SELECT only reads; it never changes the data.",
+   "Renaming changes the table's name, not its rows."
+  ],
+  "source": "Syllabus 2.4.2",
+  "difficulty": 2,
+  "tags": [
+   "sql",
+   "delete",
+   "drop"
+  ]
+ },
+ {
   "id": "b2-120",
   "objective": "2.4.3",
   "type": "single",
@@ -4078,6 +4432,38 @@
   "verify": "stdout"
  },
  {
+  "id": "b2-127",
+  "objective": "2.4.3",
+  "type": "multi",
+  "stem": "Which two error messages point to a connection problem rather than a mistake in the SQL? Select two.",
+  "options": [
+   "`Access denied for user 'analyst'@'10.0.0.5'`",
+   "`Can't connect to MySQL server on 'db.example.com' (timed out)`",
+   "`near \"FORM\": syntax error`",
+   "`no such column: totl`",
+   "`UNIQUE constraint failed: users.email`"
+  ],
+  "answer": [
+   0,
+   1
+  ],
+  "explanation": "\"Access denied\" means the server was reached but rejected the login or permissions; \"can't connect / timed out\" means the server wasn't reached (wrong host or port, server down, firewall). The other messages come from a connection that works.",
+  "why_wrong": [
+   "",
+   "",
+   "A misspelled keyword (FORM for FROM) is an SQL syntax error; the connection worked.",
+   "A misspelled column name is a mistake in the query.",
+   "A constraint error means the query ran and the data broke a rule."
+  ],
+  "source": "Syllabus 2.4.3",
+  "difficulty": 2,
+  "tags": [
+   "connections",
+   "errors",
+   "pymysql"
+  ]
+ },
+ {
   "id": "b2-130",
   "objective": "2.4.4",
   "type": "single",
@@ -4257,6 +4643,65 @@
   ]
  },
  {
+  "id": "b2-136",
+  "objective": "2.4.4",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "`2 ('ana',)`",
+   "An OperationalError is raised, because the quotes break the INSERT",
+   "`1 None`",
+   "An OperationalError is raised: no such table: notes"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`executemany` with named placeholders inserts both rows, apostrophes and all. The attempted injection is just text in the `body` column, which the `LIKE ?` query finds.",
+  "why_wrong": [
+   "",
+   "Values passed through placeholders are never pasted into the SQL text, so quotes inside them are harmless.",
+   "Both rows are inserted, and the second body contains \"DROP\" as plain text.",
+   "The DROP TABLE text was stored as data; it never ran as SQL."
+  ],
+  "source": "Syllabus 2.4.4 · Python sqlite3 docs",
+  "difficulty": 3,
+  "tags": [
+   "executemany",
+   "named-placeholders",
+   "sql-injection"
+  ],
+  "code": "import sqlite3\n\ncon = sqlite3.connect(\":memory:\")\ncon.execute(\"CREATE TABLE notes (author TEXT, body TEXT)\")\nrows = [{\"a\": \"o'brien\", \"b\": \"it's fine\"},\n        {\"a\": \"ana\", \"b\": \"x'); DROP TABLE notes; --\"}]\ncon.executemany(\"INSERT INTO notes VALUES (:a, :b)\", rows)\nprint(con.execute(\"SELECT COUNT(*) FROM notes\").fetchone()[0],\n      con.execute(\"SELECT author FROM notes WHERE body LIKE ?\", (\"%DROP%\",)).fetchone())",
+  "verify": "stdout"
+ },
+ {
+  "id": "b2-137",
+  "objective": "2.4.4",
+  "type": "single",
+  "stem": "`region` and `minimum` come from user input. Which PyMySQL call passes both values safely?",
+  "options": [
+   "`cur.execute(\"SELECT * FROM t WHERE region = %s AND total > %s\", (region, minimum))`",
+   "`cur.execute(\"SELECT * FROM t WHERE region = %s AND total > %s\" % (region, minimum))`",
+   "`cur.execute(\"SELECT * FROM t WHERE region = ? AND total > ?\", (region, minimum))`",
+   "`cur.execute(f\"SELECT * FROM t WHERE region = '{region}' AND total > {minimum}\")`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "PyMySQL's placeholder is `%s`, with the values passed as the second argument to `execute`. The driver then sends them as data, separately from the SQL.",
+  "why_wrong": [
+   "",
+   "The `%` operator builds the SQL string in Python before the driver sees it, so it is injectable.",
+   "`?` is sqlite3's placeholder; PyMySQL uses `%s`.",
+   "An f-string pastes the input into the SQL text."
+  ],
+  "source": "Syllabus 2.4.4 · PyMySQL docs",
+  "difficulty": 2,
+  "tags": [
+   "pymysql",
+   "placeholders"
+  ]
+ },
+ {
   "id": "b2-140",
   "objective": "2.4.5",
   "type": "single",
@@ -4430,6 +4875,68 @@
    "affinity"
   ],
   "code": "import sqlite3\n\ncon = sqlite3.connect(\":memory:\")\ncon.execute(\"CREATE TABLE t (qty INTEGER)\")\ncon.execute(\"INSERT INTO t VALUES ('12'), ('abc')\")\nprint(con.execute(\"SELECT typeof(qty) FROM t\").fetchall())",
+  "verify": "stdout"
+ },
+ {
+  "id": "b2-146",
+  "objective": "2.4.5",
+  "type": "single",
+  "stem": "A DataFrame is written to SQLite with pandas. What does this code print?",
+  "options": [
+   "`('text', 'integer', 'integer')`",
+   "`('date', 'boolean', 'integer')`",
+   "`('text', 'text', 'integer')`",
+   "`('real', 'integer', 'integer')`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "SQLite stores only NULL, INTEGER, REAL, TEXT and BLOB. pandas writes the datetime as text (\"2025-07-15 00:00:00\") and the boolean as 1, so both need converting back when read (`parse_dates=`, `astype(bool)`).",
+  "why_wrong": [
+   "",
+   "SQLite has no date or boolean storage types.",
+   "A Python or pandas boolean is stored as the integer 0 or 1.",
+   "pandas writes datetimes to SQLite as ISO-style text, not as numbers."
+  ],
+  "source": "Syllabus 2.4.5 · pandas docs · SQLite docs",
+  "difficulty": 3,
+  "tags": [
+   "to_sql",
+   "type-conversion",
+   "sqlite"
+  ],
+  "code": "import sqlite3\nimport pandas as pd\n\ncon = sqlite3.connect(\":memory:\")\ndf = pd.DataFrame({\"day\": pd.to_datetime([\"2025-07-15\"]), \"paid\": [True], \"qty\": [3]})\ndf.to_sql(\"t\", con, index=False)\nprint(con.execute(\"SELECT typeof(day), typeof(paid), typeof(qty) FROM t\").fetchone())",
+  "verify": "stdout"
+ },
+ {
+  "id": "b2-147",
+  "objective": "2.4.5",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "`20.00 False 0.3`",
+   "`20.0 True 0.3`",
+   "`20.00 False 0.30000000000000004`",
+   "`20 False 0.3`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`Decimal` (what MySQL's DECIMAL columns become in Python) stores decimal values exactly and keeps their precision, which is why it suits money. Binary floats can't store 0.1 or 0.2 exactly, so their sum isn't exactly 0.3.",
+  "why_wrong": [
+   "",
+   "Decimals keep their two decimal places, and `0.1 + 0.2 == 0.3` is False for floats.",
+   "Decimal arithmetic is exact: `Decimal(\"0.1\") * 3` is exactly 0.3.",
+   "Adding 19.99 and 0.01 as Decimals keeps two decimal places: 20.00."
+  ],
+  "source": "Syllabus 2.4.5 · Python docs (decimal)",
+  "difficulty": 2,
+  "tags": [
+   "decimal",
+   "float",
+   "money"
+  ],
+  "code": "from decimal import Decimal\n\nprices = [Decimal(\"19.99\"), Decimal(\"0.01\")]\nprint(sum(prices), 0.1 + 0.2 == 0.3, Decimal(\"0.1\") * 3)",
   "verify": "stdout"
  },
  {
@@ -4607,5 +5114,68 @@
   "verify": {
    "py": "import sqlite3\ncon = sqlite3.connect(\":memory:\")\ncon.execute(\"CREATE TABLE sales (name TEXT, region TEXT, total REAL)\")\ncon.executemany(\"INSERT INTO sales VALUES (?, ?, ?)\", [(\"b\", \"EU\", 1), (\"a\", \"EU\", 3), (\"c\", \"EU\", 2)])\nns = {\"con\": con, \"region\": \"EU\", \"sort_col\": \"total\"}\nsetup_line, call = opt(0).splitlines()\nexec(setup_line, ns)\nassert [r[2] for r in eval(call, ns).fetchall()] == [1, 2, 3]\nassert [r[2] for r in eval(opt(1), ns).fetchall()] == [1, 3, 2]"
   }
+ },
+ {
+  "id": "b2-156",
+  "objective": "2.4.6",
+  "type": "single",
+  "stem": "A login check builds `f\"SELECT * FROM users WHERE name = '{name}' AND pw_hash = '{h}'\"`. An attacker types `admin' --` as the name and anything as the password. What happens?",
+  "options": [
+   "The query returns the admin row: `--` turns the rest of the line, including the password check, into a comment",
+   "The query fails with a syntax error, because of the stray quote",
+   "It looks for a user literally named \"admin' --\" and finds nobody",
+   "Nothing changes, because comments are only allowed at the end of a script"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "The SQL becomes `... WHERE name = 'admin' --' AND pw_hash = '...'`. Everything after `--` is a comment, so only the name is checked. Placeholders stop this, because the input can never close the string or start a comment.",
+  "why_wrong": [
+   "",
+   "The typed quote closes the name string neatly, so the remaining SQL is valid.",
+   "That is what a parameterized query would do; an f-string makes the input part of the SQL.",
+   "`--` starts a comment anywhere on a line in SQL."
+  ],
+  "source": "Syllabus 2.4.6",
+  "difficulty": 3,
+  "tags": [
+   "sql-injection",
+   "comments",
+   "authentication"
+  ],
+  "verify": {
+   "py": "import sqlite3\ncon = sqlite3.connect(\":memory:\")\ncon.execute(\"CREATE TABLE users (name TEXT, pw_hash TEXT)\")\ncon.execute(\"INSERT INTO users VALUES ('admin', 'secret'), ('ben', 'other')\")\nname, h = \"admin' --\", \"wrong\"\nrows = con.execute(f\"SELECT * FROM users WHERE name = '{name}' AND pw_hash = '{h}'\").fetchall()\nassert rows == [('admin', 'secret')], rows\nsafe = con.execute(\"SELECT * FROM users WHERE name = ? AND pw_hash = ?\", (name, h)).fetchall()\nassert safe == [], safe"
+  }
+ },
+ {
+  "id": "b2-157",
+  "objective": "2.4.6",
+  "type": "multi",
+  "stem": "Which two measures are not reliable defences against SQL injection on their own? Select two.",
+  "options": [
+   "Replacing each `'` in the input with `''` by hand before building the SQL",
+   "Rejecting input that contains words such as DROP or DELETE",
+   "Passing every value through placeholders",
+   "Checking user-chosen column names against a fixed allow-list",
+   "Giving the application's account read-only access to the tables it needs"
+  ],
+  "answer": [
+   0,
+   1
+  ],
+  "explanation": "Hand-escaping misses edge cases (other quote styles, encodings, numeric contexts), and word blacklists are easy to bypass and block legitimate text. Use placeholders for values, allow-lists for identifiers, and least privilege to limit damage.",
+  "why_wrong": [
+   "",
+   "",
+   "Placeholders are the primary defence: values can never change the query.",
+   "Allow-lists are the right defence for identifiers, which placeholders can't cover.",
+   "Least privilege limits the damage if anything gets through."
+  ],
+  "source": "Syllabus 2.4.6",
+  "difficulty": 2,
+  "tags": [
+   "sql-injection",
+   "defences"
+  ]
  }
 ]

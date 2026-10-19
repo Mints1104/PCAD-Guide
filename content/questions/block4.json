@@ -181,6 +181,71 @@
   }
  },
  {
+  "id": "b4-007",
+  "objective": "4.1.1",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "`{'paid': 3, 'open': 1} 1 24.5`",
+   "`{'Paid': 1, 'paid ': 1, 'PAID': 1, 'open': 1} 1 24.5`",
+   "`{'paid': 3, 'open': 1} 0 24.5`",
+   "`{'paid': 3, 'open': 1} 1 nan`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "The status text is trimmed, lowercased and \"unpaid\" renamed to \"open\"; `value_counts()` skips the one missing status, which `isna().sum()` counts. The amounts become numbers, \"n/a\" becomes NaN and then 0: 10 + 0 + 7.5 + 3 + 4 = 24.5.",
+  "why_wrong": [
+   "",
+   "`strip()` and `lower()` run before counting, so the three spellings become one \"paid\".",
+   "The missing status stays missing; nothing filled it.",
+   "`errors=\"coerce\"` turns \"n/a\" into NaN, and `fillna(0)` replaces it, so the sum is a number."
+  ],
+  "source": "Syllabus 4.1.1 · pandas docs",
+  "difficulty": 3,
+  "tags": [
+   "cleaning",
+   "replace",
+   "to_numeric"
+  ],
+  "code": "import pandas as pd\n\ndf = pd.DataFrame({\"status\": [\"Paid\", \"paid \", \"PAID\", \"unpaid\", None],\n                   \"amount\": [\"10\", \"n/a\", \"7.5\", \"3\", \"4\"]})\ndf[\"status\"] = df[\"status\"].str.strip().str.lower().replace({\"unpaid\": \"open\"})\ndf[\"amount\"] = pd.to_numeric(df[\"amount\"], errors=\"coerce\").fillna(0)\nprint(df[\"status\"].value_counts().to_dict(), df[\"status\"].isna().sum(), df[\"amount\"].sum())",
+  "verify": "stdout"
+ },
+ {
+  "id": "b4-008",
+  "objective": "4.1.1",
+  "type": "multi",
+  "stem": "Which two lines remove only the rows where `email` is missing, keeping rows with gaps in other columns? Select two.",
+  "options": [
+   "`df.dropna(subset=[\"email\"])`",
+   "`df[df[\"email\"].notna()]`",
+   "`df.dropna()`",
+   "`df.dropna(axis=1)`",
+   "`df.fillna(\"\")`"
+  ],
+  "answer": [
+   0,
+   1
+  ],
+  "explanation": "`subset=` limits `dropna` to the named columns; a `notna()` mask does the same job by filtering.",
+  "why_wrong": [
+   "",
+   "",
+   "With no arguments, `dropna` removes a row with a gap in any column.",
+   "`axis=1` drops columns that contain missing values, not rows.",
+   "`fillna` replaces gaps instead of removing rows."
+  ],
+  "source": "Syllabus 4.1.1 · pandas docs",
+  "difficulty": 2,
+  "tags": [
+   "dropna",
+   "missing-values"
+  ],
+  "verify": {
+   "py": "import numpy as np\nimport pandas as pd\ndf = pd.DataFrame({\"email\": [\"a@x\", None, \"c@x\"], \"phone\": [np.nan, \"1\", \"2\"]})\ngood = []\nfor i in range(5):\n    out = eval(opt(i))\n    if out.shape == (2, 2) and out[\"email\"].tolist() == [\"a@x\", \"c@x\"]:\n        good.append(i)\nassert good == q[\"answer\"], good"
+  }
+ },
+ {
   "id": "b4-010",
   "objective": "4.1.2",
   "type": "single",
@@ -359,6 +424,72 @@
   "verify": "stdout"
  },
  {
+  "id": "b4-016",
+  "objective": "4.1.2",
+  "type": "single",
+  "stem": "The key columns have different names in the two tables. What does this code print?",
+  "options": [
+   "`['order', 'cust_id', 'city_order', 'id', 'city_cust'] 1`",
+   "`['order', 'cust_id', 'city_x', 'id', 'city_y'] 1`",
+   "`['order', 'cust_id', 'city_order', 'city_cust'] 1`",
+   "`['order', 'cust_id', 'city_order', 'id', 'city_cust'] 0`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`left_on=\"cust_id\", right_on=\"id\"` matches keys with different names and keeps both columns. The clashing `city` columns get the chosen suffixes. The left merge keeps all three orders, and order 2 finds no customer.",
+  "why_wrong": [
+   "",
+   "`suffixes=` replaces the default `_x` / `_y` endings.",
+   "With `left_on` / `right_on`, both key columns are kept, because their names differ.",
+   "Order 2 belongs to customer 20, who isn't in `custs`, so the left merge gives it NaN."
+  ],
+  "source": "Syllabus 4.1.2 · pandas docs",
+  "difficulty": 3,
+  "tags": [
+   "merge",
+   "left_on",
+   "suffixes"
+  ],
+  "code": "import pandas as pd\n\norders = pd.DataFrame({\"order\": [1, 2, 3], \"cust_id\": [10, 20, 10],\n                       \"city\": [\"Oslo\", \"Rome\", \"Oslo\"]})\ncusts = pd.DataFrame({\"id\": [10, 30], \"city\": [\"Bergen\", \"Lima\"]})\nm = orders.merge(custs, left_on=\"cust_id\", right_on=\"id\", how=\"left\",\n                 suffixes=(\"_order\", \"_cust\"))\nprint(m.columns.tolist(), m[\"city_cust\"].isna().sum())",
+  "verify": "stdout"
+ },
+ {
+  "id": "b4-017",
+  "objective": "4.1.2",
+  "type": "multi",
+  "stem": "`df` has one row per region and month, with columns `region`, `month` and `sales`. Which two calls give one row per region and one column per month? Select two.",
+  "options": [
+   "`df.pivot(index=\"region\", columns=\"month\", values=\"sales\")`",
+   "`df.pivot_table(index=\"region\", columns=\"month\", values=\"sales\", aggfunc=\"sum\")`",
+   "`df.melt(id_vars=\"region\")`",
+   "`df.groupby(\"region\")[\"sales\"].sum()`",
+   "`pd.concat([df, df], axis=1)`"
+  ],
+  "answer": [
+   0,
+   1
+  ],
+  "explanation": "With one row per region and month, `pivot` reshapes long to wide directly. `pivot_table` gives the same table and would also cope with duplicate pairs by aggregating them.",
+  "why_wrong": [
+   "",
+   "",
+   "`melt` goes the other way, wide to long.",
+   "This gives one total per region, with no month columns.",
+   "This just places two copies of the table side by side."
+  ],
+  "source": "Syllabus 4.1.2 · pandas docs",
+  "difficulty": 2,
+  "tags": [
+   "pivot",
+   "pivot_table",
+   "reshape"
+  ],
+  "verify": {
+   "py": "import pandas as pd\ndf = pd.DataFrame({\"region\": [\"EU\", \"EU\", \"US\", \"US\"], \"month\": [\"Jan\", \"Feb\", \"Jan\", \"Feb\"],\n                   \"sales\": [1, 2, 3, 4]})\ngood = []\nfor i in range(5):\n    out = eval(opt(i))\n    if isinstance(out, pd.DataFrame) and out.shape == (2, 2) and out.loc[\"US\", \"Feb\"] == 4:\n        good.append(i)\nassert good == q[\"answer\"], good"
+  }
+ },
+ {
   "id": "b4-020",
   "objective": "4.1.3",
   "type": "single",
@@ -505,6 +636,99 @@
   ],
   "code": "import pandas as pd\n\ndf = pd.DataFrame({\"sku\": [\"A\", \"B\"], \"units\": [5, 3]}).set_index(\"sku\")\nprint(list(df.columns), list(df.reset_index().columns))",
   "verify": "stdout"
+ },
+ {
+  "id": "b4-025",
+  "objective": "4.1.3",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "`{'jam': 7.0, 'oat': nan, 'tea': nan} {'jam': 7.0, 'oat': 2.0, 'tea': 5.0}`",
+   "`{'tea': 9, 'jam': 5} {'tea': 9, 'jam': 5}`",
+   "`{'jam': 7, 'oat': 2, 'tea': 5} {'jam': 7, 'oat': 2, 'tea': 5}`",
+   "`{'jam': 7.0} {'jam': 7.0, 'oat': 2.0, 'tea': 5.0}`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Series arithmetic aligns on index labels and keeps the union of labels (sorted here): only jam is in both, so oat and tea come out NaN, which also makes the values floats. `add(..., fill_value=0)` treats a missing side as 0.",
+  "why_wrong": [
+   "",
+   "pandas adds by label, not by position: tea + jam is never computed.",
+   "With `+`, a label present in only one Series gives NaN; `fill_value` is needed to treat it as 0.",
+   "The result keeps every label from both Series; the unmatched ones are NaN, not dropped."
+  ],
+  "source": "Syllabus 4.1.3 · pandas docs",
+  "difficulty": 3,
+  "tags": [
+   "alignment",
+   "series",
+   "fill_value"
+  ],
+  "code": "import pandas as pd\n\njan = pd.Series({\"tea\": 5, \"jam\": 3})\nfeb = pd.Series({\"jam\": 4, \"oat\": 2})\nprint((jan + feb).to_dict(), jan.add(feb, fill_value=0).to_dict())",
+  "verify": "stdout"
+ },
+ {
+  "id": "b4-026",
+  "objective": "4.1.3",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "`Series ['price', 'qty'] ['tea', 'jam'] [7.5, 4.0]`",
+   "`DataFrame ['price', 'qty'] ['tea', 'jam'] [7.5, 4.0]`",
+   "`Series ['jam'] ['qty'] [7.5, 4.0]`",
+   "`Series ['price', 'qty'] ['tea', 'jam'] [2.5, 4.0, 3, 1]`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`df.loc[\"jam\"]` is one row as a Series indexed by the column names; `df[\"qty\"]` is one column as a Series indexed by the row labels. Column arithmetic is vectorized: 2.5 × 3 and 4.0 × 1.",
+  "why_wrong": [
+   "",
+   "A single row selected by label comes back as a Series.",
+   "A row's index is the column names; a column's index is the row labels.",
+   "Multiplying two columns is element-wise, row by row."
+  ],
+  "source": "Syllabus 4.1.3",
+  "difficulty": 2,
+  "tags": [
+   "series",
+   "dataframe",
+   "index"
+  ],
+  "code": "import pandas as pd\n\ndf = pd.DataFrame({\"price\": [2.5, 4.0], \"qty\": [3, 1]}, index=[\"tea\", \"jam\"])\nrow = df.loc[\"jam\"]\ncol = df[\"qty\"]\nprint(type(row).__name__, row.index.tolist(), col.index.tolist(), (df[\"price\"] * df[\"qty\"]).tolist())",
+  "verify": "stdout"
+ },
+ {
+  "id": "b4-027",
+  "objective": "4.1.3",
+  "type": "multi",
+  "stem": "Which two statements about pandas Series and DataFrames are true? Select two.",
+  "options": [
+   "Each column of a DataFrame is a Series that shares the DataFrame's row index",
+   "Different columns of one DataFrame can hold different dtypes",
+   "A single Series can hold several named columns",
+   "Arithmetic between two Series matches values by position",
+   "`df[[\"a\"]]` returns a Series"
+  ],
+  "answer": [
+   0,
+   1
+  ],
+  "explanation": "A DataFrame is a set of Series (its columns) that share one row index; each column has its own dtype.",
+  "why_wrong": [
+   "",
+   "",
+   "A Series is one-dimensional: one column of values with an index.",
+   "It matches values by index label; unmatched labels give NaN.",
+   "A list of names returns a DataFrame, even with one name; `df[\"a\"]` returns a Series."
+  ],
+  "source": "Syllabus 4.1.3",
+  "difficulty": 2,
+  "tags": [
+   "series",
+   "dataframe"
+  ]
  },
  {
   "id": "b4-030",
@@ -655,6 +879,103 @@
    "iat"
   ],
   "code": "import pandas as pd\n\ndf = pd.DataFrame({\"qty\": [1, 12, 5]}, index=[\"a\", \"b\", \"c\"])\ndf.at[\"b\", \"qty\"] = 10\nprint(df[\"qty\"].sum(), df.iat[2, 0])",
+  "verify": "stdout"
+ },
+ {
+  "id": "b4-035",
+  "objective": "4.1.4",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "`[nan, 'empty', 'check', 'check'] [12, 3]`",
+   "`[nan, 'empty', 'check', 'check'] [3]`",
+   "`[nan, 'empty', 'check', nan] [12, 3]`",
+   "A KeyError is raised, because `flag` doesn't exist"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "The first `.loc` assignment creates `flag`, sets b to \"empty\" and leaves the other rows NaN. The label slice `\"c\":` then sets c and d to \"check\". `iloc[-2:, 0]` reads the last two values of the first column.",
+  "why_wrong": [
+   "",
+   "`iloc[-2:]` takes the last two positions.",
+   "`\"c\":` is a label slice that runs to the end, so d is included.",
+   "Assigning through `.loc` to a column that doesn't exist creates it."
+  ],
+  "source": "Syllabus 4.1.4 · pandas docs",
+  "difficulty": 3,
+  "tags": [
+   "loc",
+   "iloc",
+   "assignment"
+  ],
+  "code": "import pandas as pd\n\ndf = pd.DataFrame({\"qty\": [5, 0, 12, 3]}, index=[\"a\", \"b\", \"c\", \"d\"])\ndf.loc[df[\"qty\"] == 0, \"flag\"] = \"empty\"\ndf.loc[\"c\":, \"flag\"] = \"check\"\nprint(df[\"flag\"].tolist(), df.iloc[-2:, 0].tolist())",
+  "verify": "stdout"
+ },
+ {
+  "id": "b4-036",
+  "objective": "4.1.4",
+  "type": "multi",
+  "stem": "Which two lines return the rows where `qty` is greater than 4? Select two.",
+  "options": [
+   "`df.loc[df[\"qty\"] > 4]`",
+   "`df[df[\"qty\"] > 4]`",
+   "`df.iloc[df[\"qty\"] > 4]`",
+   "`df.at[df[\"qty\"] > 4]`",
+   "`df.loc[\"qty\" > 4]`"
+  ],
+  "answer": [
+   0,
+   1
+  ],
+  "explanation": "A boolean mask selects rows with plain brackets or with `.loc`. `.iloc` is for integer positions.",
+  "why_wrong": [
+   "",
+   "",
+   "`.iloc` takes positions; a boolean Series (which carries an index) raises an error. `.iloc[mask.to_numpy()]` would work.",
+   "`.at` reads or writes one single cell.",
+   "`\"qty\" > 4` compares a string with a number, which raises TypeError."
+  ],
+  "source": "Syllabus 4.1.4 · pandas docs",
+  "difficulty": 3,
+  "tags": [
+   "boolean-mask",
+   "loc",
+   "iloc"
+  ],
+  "verify": {
+   "py": "import pandas as pd\ndf = pd.DataFrame({\"qty\": [5, 0, 12, 3]}, index=[\"a\", \"b\", \"c\", \"d\"])\ngood = []\nfor i in range(5):\n    try:\n        out = eval(opt(i))\n        if isinstance(out, pd.DataFrame) and out.index.tolist() == [\"a\", \"c\"]:\n            good.append(i)\n    except Exception:\n        pass\nassert good == q[\"answer\"], good"
+  }
+ },
+ {
+  "id": "b4-037",
+  "objective": "4.1.4",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "`[[2, 10], [3, 11]] (2, 2)`",
+   "`[[2, 10], [3, 11], [4, 12]] (2, 2)`",
+   "`[[2, 6], [3, 7]] (2, 2)`",
+   "`[[2, 10], [3, 11]] (1, 2)`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`iloc[1:3, [0, 2]]` takes positions 1 and 2 of columns a and c. `loc[1:2, \"b\":\"c\"]` uses labels and includes both ends: 2 rows and 2 columns.",
+  "why_wrong": [
+   "",
+   "`iloc[1:3]` stops before position 3.",
+   "`[0, 2]` picks the first and third columns, a and c.",
+   "`loc[1:2]` includes the end label, so rows 1 and 2 both appear."
+  ],
+  "source": "Syllabus 4.1.4",
+  "difficulty": 2,
+  "tags": [
+   "iloc",
+   "loc",
+   "slicing"
+  ],
+  "code": "import pandas as pd\n\ndf = pd.DataFrame({\"a\": [1, 2, 3, 4], \"b\": [5, 6, 7, 8], \"c\": [9, 10, 11, 12]})\nprint(df.iloc[1:3, [0, 2]].values.tolist(), df.loc[1:2, \"b\":\"c\"].shape)",
   "verify": "stdout"
  },
  {
@@ -1081,6 +1402,72 @@
   }
  },
  {
+  "id": "b4-056",
+  "objective": "4.1.6",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "`Ana 90 {'EU': 2, 'US': 2}`",
+   "`Ana 90 {'EU': 3, 'US': 3}`",
+   "`Ana Cy {'EU': 2, 'US': 2}`",
+   "`Cy 180 {'EU': 2, 'US': 2}`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Totals per rep are Ana 180, Ben 120, Cy 90; sorted from largest, the first label is Ana and the last value is 90. Each region has two different reps (EU: Ana and Cy; US: Ben and Ana).",
+  "why_wrong": [
+   "",
+   "`nunique` counts distinct reps: Ana appears twice in EU but counts once.",
+   "`iloc[-1]` returns the last value, 90, not its label.",
+   "`ascending=False` puts the largest total, Ana's 180, first."
+  ],
+  "source": "Syllabus 4.1.6 · pandas docs",
+  "difficulty": 3,
+  "tags": [
+   "groupby",
+   "nunique",
+   "sort_values"
+  ],
+  "code": "import pandas as pd\n\ndf = pd.DataFrame({\"rep\": [\"Ana\", \"Ben\", \"Ana\", \"Cy\", \"Ben\", \"Ana\"],\n                   \"region\": [\"EU\", \"US\", \"EU\", \"EU\", \"US\", \"US\"],\n                   \"sales\": [100, 80, 50, 90, 40, 30]})\ntop = df.groupby(\"rep\")[\"sales\"].sum().sort_values(ascending=False)\nprint(top.index[0], top.iloc[-1], df.groupby(\"region\")[\"rep\"].nunique().to_dict())",
+  "verify": "stdout"
+ },
+ {
+  "id": "b4-057",
+  "objective": "4.1.6",
+  "type": "multi",
+  "stem": "`df` has one row per order, with columns `region`, `channel` and `amount`. Which two calls count the orders for each region and channel combination? Select two.",
+  "options": [
+   "`pd.crosstab(df[\"region\"], df[\"channel\"])`",
+   "`df.groupby([\"region\", \"channel\"]).size()`",
+   "`df.pivot_table(index=\"region\", columns=\"channel\", values=\"amount\")`",
+   "`df.groupby(\"region\")[\"channel\"].nunique()`",
+   "`df[\"region\"].value_counts()`"
+  ],
+  "answer": [
+   0,
+   1
+  ],
+  "explanation": "`crosstab` builds a table of counts for each pair; `groupby([...]).size()` gives the same counts as a Series with a two-level index.",
+  "why_wrong": [
+   "",
+   "",
+   "`pivot_table` averages `amount` by default; it doesn't count orders.",
+   "This counts how many different channels each region uses.",
+   "This counts orders per region only, ignoring the channel."
+  ],
+  "source": "Syllabus 4.1.6 · pandas docs",
+  "difficulty": 2,
+  "tags": [
+   "crosstab",
+   "groupby",
+   "size"
+  ],
+  "verify": {
+   "py": "import pandas as pd\ndf = pd.DataFrame({\"region\": [\"EU\", \"EU\", \"US\", \"EU\"], \"channel\": [\"web\", \"web\", \"shop\", \"shop\"],\n                   \"amount\": [10, 50, 20, 30]})\ndef eu_web(out):\n    if isinstance(out, pd.DataFrame) and \"web\" in out.columns:\n        return out.loc[\"EU\", \"web\"]\n    if isinstance(out, pd.Series) and isinstance(out.index, pd.MultiIndex):\n        return out.loc[(\"EU\", \"web\")]\n    return None\ngood = [i for i in range(5) if eu_web(eval(opt(i))) == 2]\nassert good == q[\"answer\"], good"
+  }
+ },
+ {
   "id": "b4-060",
   "objective": "4.2.1",
   "type": "single",
@@ -1260,6 +1647,70 @@
   "verify": "stdout"
  },
  {
+  "id": "b4-066",
+  "objective": "4.2.1",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "`22.0 3.0 2.0 43.6`",
+   "`22.0 3.0 99.0 43.6`",
+   "`3.0 22.0 2.0 43.6`",
+   "`22.0 3.0 2.0 39.0`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "One extreme value drags the mean to 22 and the standard deviation to about 43.6, while the median (3) and the IQR (2) barely notice it. That is why the median and IQR describe skewed data better.",
+  "why_wrong": [
+   "",
+   "99 is the range (max − min); the IQR is Q3 − Q1 = 4 − 2.",
+   "The mean (22) is pulled up by 100; the median stays at the middle value, 3.",
+   "pandas' `std` uses ddof=1; 39.0 is the population value."
+  ],
+  "source": "Syllabus 4.2.1, 3.1.1 · pandas docs",
+  "difficulty": 3,
+  "tags": [
+   "mean",
+   "median",
+   "iqr",
+   "outliers"
+  ],
+  "code": "import pandas as pd\n\ns = pd.Series([1, 2, 3, 4, 100])\nprint(s.mean(), s.median(), s.quantile(0.75) - s.quantile(0.25), round(s.std(), 1))",
+  "verify": "stdout"
+ },
+ {
+  "id": "b4-067",
+  "objective": "4.2.1",
+  "type": "multi",
+  "stem": "House prices in a dataset have mean 410,000, median 290,000 and standard deviation 380,000. Which two conclusions are reasonable? Select two.",
+  "options": [
+   "The distribution is right-skewed: a few very expensive houses pull the mean up",
+   "The median is a better summary of a typical price than the mean",
+   "Half of the houses cost more than 410,000",
+   "The prices follow a normal distribution",
+   "The standard deviation must be wrong, because it is larger than the median"
+  ],
+  "answer": [
+   0,
+   1
+  ],
+  "explanation": "A mean far above the median means a long right tail of high values. With skew, the median describes the typical case, and the large standard deviation reflects how spread out prices are.",
+  "why_wrong": [
+   "",
+   "",
+   "Half the houses cost more than the median, 290,000, not the mean.",
+   "A normal distribution has mean ≈ median; a gap this large signals skew.",
+   "A large standard deviation just means widely spread prices; nothing stops it exceeding the median."
+  ],
+  "source": "Syllabus 4.2.1",
+  "difficulty": 2,
+  "tags": [
+   "skew",
+   "median",
+   "interpretation"
+  ]
+ },
+ {
   "id": "b4-070",
   "objective": "4.2.2",
   "type": "single",
@@ -1430,6 +1881,65 @@
   "tags": [
    "data-leakage",
    "evaluation"
+  ]
+ },
+ {
+  "id": "b4-076",
+  "objective": "4.2.2",
+  "type": "single",
+  "stem": "Daily sales data is split for a forecasting model. What does this code print?",
+  "options": [
+   "`7 [8, 9, 10]`",
+   "`10 [1, 2, 3]`",
+   "`7 [8, 9]`",
+   "`8 [9, 10]`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`shuffle=False` keeps the original order: the first 70% (days 1 to 7) train the model and the last 30% (days 8 to 10) test it, so the model is judged on the future, as a forecast would be.",
+  "why_wrong": [
+   "",
+   "Without shuffling, the test part is the end of the list, not the start.",
+   "30% of 10 days is 3 days.",
+   "70% of 10 is 7 training days, so the training part ends at day 7."
+  ],
+  "source": "Syllabus 4.2.2 · scikit-learn docs",
+  "difficulty": 2,
+  "tags": [
+   "train-test-split",
+   "time-series"
+  ],
+  "code": "from sklearn.model_selection import train_test_split\n\ndays = list(range(1, 11))\ntrain, test = train_test_split(days, test_size=0.3, shuffle=False)\nprint(train[-1], test)",
+  "verify": "stdout"
+ },
+ {
+  "id": "b4-077",
+  "objective": "4.2.2",
+  "type": "single",
+  "stem": "A dataset has several rows per patient, one per clinic visit. The model will be used on new patients. The analyst splits the rows at random 80/20. What is the problem, and what is the fix?",
+  "options": [
+   "Visits from the same patient land in both sets, so the test score is too optimistic; split by patient so each patient is entirely in one set",
+   "Nothing; a random split is always unbiased",
+   "The test set is too small; switch to 50/50",
+   "The rows should be sorted by visit date before the random split"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "When rows come in groups, a random split leaks: the model meets familiar patients in the test set and scores better than it will on new ones. Split by group (for example scikit-learn's `GroupShuffleSplit`) so the test set holds only unseen patients.",
+  "why_wrong": [
+   "",
+   "Random rows are only independent if no two rows share a source; here they share patients.",
+   "Size isn't the issue: a bigger test set would still contain patients the model has seen.",
+   "Sorting before a random split changes nothing; what matters is keeping each patient on one side."
+  ],
+  "source": "Syllabus 4.2.2 · scikit-learn docs",
+  "difficulty": 3,
+  "tags": [
+   "leakage",
+   "group-split",
+   "test-set"
   ]
  },
  {

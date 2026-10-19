@@ -436,6 +436,20 @@ QUESTIONS = [
       "`pd.read_excel` (which uses openpyxl) and `pd.concat` combine the workbooks; scikit-learn handles prediction and `cross_val_score`; statsmodels reports coefficients with p-values and confidence intervals.",
       "Syllabus 2.1.3", ["ecosystem", "library-choice"]),
 
+    Q("b2-027", "2.1.3", 2,
+      "Which two statements about scikit-learn are correct? Select two.",
+      ["It provides `train_test_split` and cross-validation tools",
+       "Its models share the same `fit` / `predict` interface",
+       "It reports p-values for regression coefficients by default",
+       "It is a plotting library built on Matplotlib",
+       "It is the standard tool for reading Excel files"],
+      [0, 1],
+      {2: "Inference output such as p-values comes from statsmodels.",
+       3: "That describes Seaborn.",
+       4: "pandas reads Excel files (`pd.read_excel`)."},
+      "scikit-learn is the machine-learning library: preprocessing, splitting, models with a common `fit`/`predict` API, and evaluation metrics.",
+      "Syllabus 2.1.3 · scikit-learn docs", ["ecosystem", "scikit-learn"]),
+
     # ---------- 2.1.4 Data structures ----------
     Q("b2-030", "2.1.4", 2,
       "What does this code print?",
@@ -773,6 +787,34 @@ QUESTIONS = [
           with open(path) as f:
               return f.read().splitlines()[:limit]
       """, verify="runs"),
+
+    Q("b2-046", "2.1.5", 3,
+      "Which two docstrings follow PEP 257? Select two.",
+      ['"""Return the share of orders that were refunded."""',
+       '"""Summarize sales by region.\n\nGroup the rows by region and return a DataFrame with the\ntotal and the order count for each.\n"""',
+       '"""returns the share of orders that were refunded"""',
+       "'''Summarize sales by region.'''",
+       '"""share_refunded(orders) -> float"""'],
+      [0, 1],
+      {2: "The summary should be a command (\"Return\", not \"returns\"), start with a capital and end with a period.",
+       3: "PEP 257 asks for triple double quotes, `\"\"\"`.",
+       4: "A docstring shouldn't just repeat the signature; say what the function does."},
+      "A one-line docstring is a command ending in a period, on one line. A multi-line docstring has a summary line, a blank line, the details, and the closing quotes on a line of their own.",
+      "Syllabus 2.1.5 · PEP 257", ["pep257", "docstring"], optlang="text"),
+
+    Q("b2-047", "2.1.5", 2,
+      "Which two lines follow PEP 8's whitespace rules? Select two.",
+      ["`total = price * qty`",
+       "`items = [1, 2, 3]`",
+       "`x=compute( a,b )`",
+       "`print (total)`",
+       "`def f(a, b = 2):`"],
+      [0, 1],
+      {2: "PEP 8 wants spaces around `=` and after commas, and none just inside brackets.",
+       3: "No space goes between a function name and its opening bracket.",
+       4: "A default value in a definition takes no spaces around `=`: `b=2`."},
+      "Put single spaces around assignment and binary operators and after commas; put none just inside brackets, before a call's bracket, or around `=` in default values and keyword arguments.",
+      "Syllabus 2.1.5 · PEP 8", ["pep8", "whitespace"]),
 
     # ---------- 2.2.1 Modules and pip ----------
     Q("b2-050", "2.2.1", 1,
@@ -1407,6 +1449,53 @@ QUESTIONS = [
       "Polymorphism means one interface, many implementations: callers use the shared method name and each class supplies its own behaviour.",
       "Syllabus 2.3.2", ["polymorphism", "definitions"]),
 
+    Q("b2-086", "2.3.2", 3,
+      "What does this code print?",
+      ["saved q1.txt\nsaved q1.csv\nsaved q1.csv.gz",
+       "saved q1.txt\nsaved q1.txt\nsaved q1.txt.gz",
+       "saved q1.txt\nsaved q1.csv\nsaved q1.csv",
+       "saved q1.txt\nsaved q1.csv\nsaved q1.txt.gz"],
+      0,
+      {1: "`self.ext` is looked up on the object's own class first, and CsvExporter overrides it with \"csv\".",
+       2: "GzipCsvExporter overrides `filename`, so its version runs and adds \".gz\".",
+       3: "`super().filename(name)` runs the inherited method, but `self` is still the GzipCsvExporter, so `self.ext` is \"csv\"."},
+      "`export` is written once in the base class and calls `self.filename`, which dispatches to each object's own version. CsvExporter only overrides the class attribute `ext`; GzipCsvExporter overrides `filename` and extends the inherited result with `super()`.",
+      "Syllabus 2.3.2 · Python docs", ["inheritance", "super", "polymorphism"], optlang="text",
+      code="""
+      class Exporter:
+          ext = "txt"
+
+          def filename(self, name):
+              return f"{name}.{self.ext}"
+
+          def export(self, name):
+              return "saved " + self.filename(name)
+
+      class CsvExporter(Exporter):
+          ext = "csv"
+
+      class GzipCsvExporter(CsvExporter):
+          def filename(self, name):
+              return super().filename(name) + ".gz"
+
+      for e in [Exporter(), CsvExporter(), GzipCsvExporter()]:
+          print(e.export("q1"))
+      """, verify="stdout"),
+
+    Q("b2-087", "2.3.2", 2,
+      "Which two relationships are better modeled with composition than with inheritance? Select two.",
+      ["A `Report` that contains several `Chart` objects",
+       "A survey `Response` that holds the `Respondent` who gave it",
+       "A `CsvExporter` that is a kind of `Exporter`",
+       "A `SalesReport` that is a specialized `Report`",
+       "A `MonthlyForecast` that is a kind of `Forecast`"],
+      [0, 1],
+      {2: "\"Is a kind of\" is the test for inheritance.",
+       3: "A specialized report is a report: inheritance.",
+       4: "A monthly forecast is a forecast: inheritance."},
+      "Use composition for \"has-a\" relationships, where one object holds others as attributes, and inheritance for \"is-a\" relationships.",
+      "Syllabus 2.3.2", ["composition", "inheritance"]),
+
     # ---------- 2.3.3 Identity and comparison ----------
     Q("b2-090", "2.3.3", 2,
       "What does this code print?",
@@ -1493,6 +1582,70 @@ QUESTIONS = [
       view["a"] = view["a"] * 10
       print(df["a"].tolist(), safe["a"].tolist())
       """, verify="stdout"),
+
+    Q("b2-095", "2.3.3", 3,
+      "What does this code print?",
+      ["[[0, 5, 0], [0, 5, 0]]\n[[0, 5, 0], [0, 0, 0]]",
+       "[[0, 5, 0], [0, 0, 0]]\n[[0, 5, 0], [0, 0, 0]]",
+       "[[0, 5, 0], [0, 5, 0]]\n[[0, 5, 0], [0, 5, 0]]",
+       "[[0, 5, 0], [0, 0, 0]]\n[[0, 5, 0], [0, 5, 0]]"],
+      0,
+      {1: "`[row] * 2` repeats a reference to the same inner list, so both rows change together.",
+       2: "The comprehension runs `[0] * 3` once per row, creating two separate lists.",
+       3: "It's the other way round: the multiplied version shares one list."},
+      "`[[0] * 3] * 2` builds one inner list and puts two references to it in the outer list, so changing `grid[0]` also changes `grid[1]`. The comprehension creates a new inner list on each pass, so the rows are independent.",
+      "Syllabus 2.3.3 · Python docs", ["references", "aliasing", "lists"], optlang="text",
+      code="""
+      grid = [[0] * 3] * 2
+      grid[0][1] = 5
+      print(grid)
+
+      rows = [[0] * 3 for _ in range(2)]
+      rows[0][1] = 5
+      print(rows)
+      """, verify="stdout"),
+
+    Q("b2-096", "2.3.3", 3,
+      "What does this code print?",
+      ["`['tea', 'jam'] ['tea'] True False`",
+       "`['tea'] ['tea'] False True`",
+       "`['tea', 'jam'] ['tea', 'jam'] True True`",
+       "`['tea', 'jam'] ['tea'] False False`"],
+      0,
+      {1: "`a` and `b` were both given the same list object, so the append through `a` shows in `b`.",
+       2: "`list(shared)` made `c` its own copy before the append.",
+       3: "`a.items` and `b.items` are the very same list, so `is` is True."},
+      "Storing an argument in `self.items` stores a reference, not a copy. `a` and `b` share one list; `c` got an independent copy, so it still has only \"tea\" and is no longer equal to `a.items`.",
+      "Syllabus 2.3.3", ["references", "objects", "copy"],
+      code="""
+      class Basket:
+          def __init__(self, items):
+              self.items = items
+
+      shared = ["tea"]
+      a = Basket(shared)
+      b = Basket(shared)
+      c = Basket(list(shared))
+      a.items.append("jam")
+      print(b.items, c.items, a.items is b.items, a.items == c.items)
+      """, verify="stdout"),
+
+    Q("b2-097", "2.3.3", 2,
+      "After `a = [1, 2]`, `b = [1, 2]` and `c = a`, which two expressions are True? Select two.",
+      ["`a == b`", "`a is c`", "`a is b`", "`a != c`", "`b is c`"],
+      [0, 1],
+      {2: "`a` and `b` are two separate lists that happen to hold the same values.",
+       3: "`c` is the same list as `a`, so they are equal.",
+       4: "`c` refers to `a`'s list, not to `b`'s."},
+      "`==` compares values, so the two lists holding [1, 2] are equal. `is` compares identity: only `a` and `c` name the same object.",
+      "Syllabus 2.3.3", ["identity", "equality"],
+      verify={"py": """
+      a = [1, 2]
+      b = [1, 2]
+      c = a
+      truths = [i for i in range(5) if eval(opt(i))]
+      assert truths == q["answer"], truths
+      """}),
 
     # ---------- 2.4.1 SQL queries ----------
     Q("b2-100", "2.4.1", 2,
@@ -1818,6 +1971,45 @@ QUESTIONS = [
       "INSERT, UPDATE and DELETE manipulate rows (DML); CREATE, DROP and ALTER define structure (DDL).",
       "Syllabus 2.4.2", ["sql", "dml"]),
 
+    Q("b2-116", "2.4.2", 3,
+      "These three statements run in order. Which names does `SELECT name FROM products ORDER BY name` return afterwards?",
+      ["Chai, Green, Mint, Oats", "Chai, Green, Oats", "Chai, Green, Jam, Mint, Oats", "Green, Mint, Oats"],
+      0,
+      {1: "The UPDATE runs first and lifts Mint from 1.9 to about 2.09, so the DELETE no longer removes it.",
+       2: "Jam (1.8) isn't tea, so its price isn't raised, and the DELETE removes it.",
+       3: "The INSERT adds Chai after the DELETE has run, so Chai stays."},
+      "The UPDATE raises tea prices by 10% (Green 2.2, Mint 2.09); the DELETE then removes only Jam (1.8); the INSERT adds Chai. Statements run in order, so each one sees the previous one's changes.",
+      "Syllabus 2.4.2", ["sql", "crud", "update", "delete"],
+      code="""
+      UPDATE products SET price = price * 1.1 WHERE category = 'tea';
+      DELETE FROM products WHERE price < 2;
+      INSERT INTO products (name, category, price) VALUES ('Chai', 'tea', 3.0);
+      """, lang="sql", tables=["products"],
+      setup="""
+      CREATE TABLE products (name TEXT, category TEXT, price REAL);
+      INSERT INTO products VALUES ('Green', 'tea', 2.0), ('Mint', 'tea', 1.9),
+                                  ('Jam', 'food', 1.8), ('Oats', 'food', 4.0);
+      """,
+      verify={"py": """
+      con = run_sql_script(setup, code)
+      names = [r[0] for r in con.execute("SELECT name FROM products ORDER BY name")]
+      assert names == ["Chai", "Green", "Mint", "Oats"], names
+      """}),
+
+    Q("b2-117", "2.4.2", 2,
+      "Which two statements delete rows from `logs` but keep the table itself? Select two.",
+      ["`DELETE FROM logs WHERE created < '2025-01-01';`",
+       "`DELETE FROM logs;`",
+       "`DROP TABLE logs;`",
+       "`SELECT * FROM logs LIMIT 0;`",
+       "`ALTER TABLE logs RENAME TO old_logs;`"],
+      [0, 1],
+      {2: "DROP removes the whole table, structure included.",
+       3: "SELECT only reads; it never changes the data.",
+       4: "Renaming changes the table's name, not its rows."},
+      "DELETE removes rows: those matching the WHERE, or every row when there is no WHERE. The empty table stays, ready for new data.",
+      "Syllabus 2.4.2", ["sql", "delete", "drop"]),
+
     # ---------- 2.4.3 Connections ----------
     Q("b2-120", "2.4.3", 2,
       "What does this code print?",
@@ -1937,6 +2129,20 @@ QUESTIONS = [
           pass
       print(con.execute("SELECT COUNT(*) FROM t").fetchone()[0])
       """, verify="stdout"),
+
+    Q("b2-127", "2.4.3", 2,
+      "Which two error messages point to a connection problem rather than a mistake in the SQL? Select two.",
+      ["`Access denied for user 'analyst'@'10.0.0.5'`",
+       "`Can't connect to MySQL server on 'db.example.com' (timed out)`",
+       "`near \"FORM\": syntax error`",
+       "`no such column: totl`",
+       "`UNIQUE constraint failed: users.email`"],
+      [0, 1],
+      {2: "A misspelled keyword (FORM for FROM) is an SQL syntax error; the connection worked.",
+       3: "A misspelled column name is a mistake in the query.",
+       4: "A constraint error means the query ran and the data broke a rule."},
+      "\"Access denied\" means the server was reached but rejected the login or permissions; \"can't connect / timed out\" means the server wasn't reached (wrong host or port, server down, firewall). The other messages come from a connection that works.",
+      "Syllabus 2.4.3", ["connections", "errors", "pymysql"]),
 
     # ---------- 2.4.4 Parameterized queries ----------
     Q("b2-130", "2.4.4", 1,
@@ -2067,6 +2273,43 @@ QUESTIONS = [
       "Identifiers can't be parameterized, so only accept names from a known list; still use placeholders for any values.",
       "Syllabus 2.4.4, 2.4.6", ["sql", "identifiers", "security"]),
 
+    Q("b2-136", "2.4.4", 3,
+      "What does this code print?",
+      ["`2 ('ana',)`",
+       "An OperationalError is raised, because the quotes break the INSERT",
+       "`1 None`",
+       "An OperationalError is raised: no such table: notes"],
+      0,
+      {1: "Values passed through placeholders are never pasted into the SQL text, so quotes inside them are harmless.",
+       2: "Both rows are inserted, and the second body contains \"DROP\" as plain text.",
+       3: "The DROP TABLE text was stored as data; it never ran as SQL."},
+      "`executemany` with named placeholders inserts both rows, apostrophes and all. The attempted injection is just text in the `body` column, which the `LIKE ?` query finds.",
+      "Syllabus 2.4.4 · Python sqlite3 docs", ["executemany", "named-placeholders", "sql-injection"],
+      code="""
+      import sqlite3
+
+      con = sqlite3.connect(":memory:")
+      con.execute("CREATE TABLE notes (author TEXT, body TEXT)")
+      rows = [{"a": "o'brien", "b": "it's fine"},
+              {"a": "ana", "b": "x'); DROP TABLE notes; --"}]
+      con.executemany("INSERT INTO notes VALUES (:a, :b)", rows)
+      print(con.execute("SELECT COUNT(*) FROM notes").fetchone()[0],
+            con.execute("SELECT author FROM notes WHERE body LIKE ?", ("%DROP%",)).fetchone())
+      """, verify="stdout"),
+
+    Q("b2-137", "2.4.4", 2,
+      "`region` and `minimum` come from user input. Which PyMySQL call passes both values safely?",
+      ["`cur.execute(\"SELECT * FROM t WHERE region = %s AND total > %s\", (region, minimum))`",
+       "`cur.execute(\"SELECT * FROM t WHERE region = %s AND total > %s\" % (region, minimum))`",
+       "`cur.execute(\"SELECT * FROM t WHERE region = ? AND total > ?\", (region, minimum))`",
+       "`cur.execute(f\"SELECT * FROM t WHERE region = '{region}' AND total > {minimum}\")`"],
+      0,
+      {1: "The `%` operator builds the SQL string in Python before the driver sees it, so it is injectable.",
+       2: "`?` is sqlite3's placeholder; PyMySQL uses `%s`.",
+       3: "An f-string pastes the input into the SQL text."},
+      "PyMySQL's placeholder is `%s`, with the values passed as the second argument to `execute`. The driver then sends them as data, separately from the SQL.",
+      "Syllabus 2.4.4 · PyMySQL docs", ["pymysql", "placeholders"]),
+
     # ---------- 2.4.5 Types ----------
     Q("b2-140", "2.4.5", 2,
       "What does this code print?",
@@ -2170,6 +2413,44 @@ QUESTIONS = [
       print(con.execute("SELECT typeof(qty) FROM t").fetchall())
       """, verify="stdout"),
 
+    Q("b2-146", "2.4.5", 3,
+      "A DataFrame is written to SQLite with pandas. What does this code print?",
+      ["`('text', 'integer', 'integer')`",
+       "`('date', 'boolean', 'integer')`",
+       "`('text', 'text', 'integer')`",
+       "`('real', 'integer', 'integer')`"],
+      0,
+      {1: "SQLite has no date or boolean storage types.",
+       2: "A Python or pandas boolean is stored as the integer 0 or 1.",
+       3: "pandas writes datetimes to SQLite as ISO-style text, not as numbers."},
+      "SQLite stores only NULL, INTEGER, REAL, TEXT and BLOB. pandas writes the datetime as text (\"2025-07-15 00:00:00\") and the boolean as 1, so both need converting back when read (`parse_dates=`, `astype(bool)`).",
+      "Syllabus 2.4.5 · pandas docs · SQLite docs", ["to_sql", "type-conversion", "sqlite"],
+      code="""
+      import sqlite3
+      import pandas as pd
+
+      con = sqlite3.connect(":memory:")
+      df = pd.DataFrame({"day": pd.to_datetime(["2025-07-15"]), "paid": [True], "qty": [3]})
+      df.to_sql("t", con, index=False)
+      print(con.execute("SELECT typeof(day), typeof(paid), typeof(qty) FROM t").fetchone())
+      """, verify="stdout"),
+
+    Q("b2-147", "2.4.5", 2,
+      "What does this code print?",
+      ["`20.00 False 0.3`", "`20.0 True 0.3`", "`20.00 False 0.30000000000000004`", "`20 False 0.3`"],
+      0,
+      {1: "Decimals keep their two decimal places, and `0.1 + 0.2 == 0.3` is False for floats.",
+       2: "Decimal arithmetic is exact: `Decimal(\"0.1\") * 3` is exactly 0.3.",
+       3: "Adding 19.99 and 0.01 as Decimals keeps two decimal places: 20.00."},
+      "`Decimal` (what MySQL's DECIMAL columns become in Python) stores decimal values exactly and keeps their precision, which is why it suits money. Binary floats can't store 0.1 or 0.2 exactly, so their sum isn't exactly 0.3.",
+      "Syllabus 2.4.5 · Python docs (decimal)", ["decimal", "float", "money"],
+      code="""
+      from decimal import Decimal
+
+      prices = [Decimal("19.99"), Decimal("0.01")]
+      print(sum(prices), 0.1 + 0.2 == 0.3, Decimal("0.1") * 3)
+      """, verify="stdout"),
+
     # ---------- 2.4.6 Security ----------
     Q("b2-150", "2.4.6", 2,
       "`user_id` comes from a web form. Which PyMySQL call is vulnerable to SQL injection?",
@@ -2257,4 +2538,42 @@ QUESTIONS = [
       assert [r[2] for r in eval(call, ns).fetchall()] == [1, 2, 3]
       assert [r[2] for r in eval(opt(1), ns).fetchall()] == [1, 3, 2]
       """}),
+
+    Q("b2-156", "2.4.6", 3,
+      "A login check builds `f\"SELECT * FROM users WHERE name = '{name}' AND pw_hash = '{h}'\"`. An attacker types `admin' --` as the name and anything as the password. What happens?",
+      ["The query returns the admin row: `--` turns the rest of the line, including the password check, into a comment",
+       "The query fails with a syntax error, because of the stray quote",
+       "It looks for a user literally named \"admin' --\" and finds nobody",
+       "Nothing changes, because comments are only allowed at the end of a script"],
+      0,
+      {1: "The typed quote closes the name string neatly, so the remaining SQL is valid.",
+       2: "That is what a parameterized query would do; an f-string makes the input part of the SQL.",
+       3: "`--` starts a comment anywhere on a line in SQL."},
+      "The SQL becomes `... WHERE name = 'admin' --' AND pw_hash = '...'`. Everything after `--` is a comment, so only the name is checked. Placeholders stop this, because the input can never close the string or start a comment.",
+      "Syllabus 2.4.6", ["sql-injection", "comments", "authentication"],
+      verify={"py": """
+      import sqlite3
+      con = sqlite3.connect(":memory:")
+      con.execute("CREATE TABLE users (name TEXT, pw_hash TEXT)")
+      con.execute("INSERT INTO users VALUES ('admin', 'secret'), ('ben', 'other')")
+      name, h = "admin' --", "wrong"
+      rows = con.execute(f"SELECT * FROM users WHERE name = '{name}' AND pw_hash = '{h}'").fetchall()
+      assert rows == [('admin', 'secret')], rows
+      safe = con.execute("SELECT * FROM users WHERE name = ? AND pw_hash = ?", (name, h)).fetchall()
+      assert safe == [], safe
+      """}),
+
+    Q("b2-157", "2.4.6", 2,
+      "Which two measures are not reliable defences against SQL injection on their own? Select two.",
+      ["Replacing each `'` in the input with `''` by hand before building the SQL",
+       "Rejecting input that contains words such as DROP or DELETE",
+       "Passing every value through placeholders",
+       "Checking user-chosen column names against a fixed allow-list",
+       "Giving the application's account read-only access to the tables it needs"],
+      [0, 1],
+      {2: "Placeholders are the primary defence: values can never change the query.",
+       3: "Allow-lists are the right defence for identifiers, which placeholders can't cover.",
+       4: "Least privilege limits the damage if anything gets through."},
+      "Hand-escaping misses edge cases (other quote styles, encodings, numeric contexts), and word blacklists are easy to bypass and block legitimate text. Use placeholders for values, allow-lists for identifiers, and least privilege to limit damage.",
+      "Syllabus 2.4.6", ["sql-injection", "defences"]),
 ]

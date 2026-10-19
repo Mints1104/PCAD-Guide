@@ -347,6 +347,25 @@ QUESTIONS = [
       """,
       verify={"py": "assert run_py(code) == '[0.0, 0.5, 1.0, 1.5, 2.0, 2.5]'\nassert opt(0).startswith('`' + run_py(code) + '`')"}),
 
+    Q("b3-027", "3.2.1", 3,
+      "Each row of the 5,000 × 8 array is one bootstrap resample. What does this code print?",
+      ["`13.9 1.2 1.2`", "`13.9 3.5 1.2`", "`13.9 0.0 1.2`", "`12.5 1.2 1.2`"],
+      0,
+      {1: "3.5 is the spread of the individual values; the spread of resample means is much smaller.",
+       2: "Resampling with replacement gives a different mix in each row, so the means vary.",
+       3: "The bootstrap means centre on the sample mean, 13.875."},
+      "Each row is a resample of 8 values drawn with replacement, and `.mean(axis=1)` gives its mean. The standard deviation of those 5,000 means is the bootstrap standard error, about 1.2, which agrees with the formula s / √n. Here the formula exists; the bootstrap matters for statistics where it doesn't.",
+      "Syllabus 3.2.1", ["bootstrap", "standard-error"],
+      code="""
+      import numpy as np
+
+      rng = np.random.default_rng(3)
+      data = np.array([12, 15, 9, 20, 14, 11, 17, 13])
+      boots = rng.choice(data, size=(5000, data.size), replace=True).mean(axis=1)
+      print(round(boots.mean(), 1), round(boots.std(), 1),
+            round(data.std(ddof=1) / np.sqrt(data.size), 1))
+      """, verify="stdout"),
+
     # ---------- 3.2.2 Regression ----------
     Q("b3-030", "3.2.2", 1,
       "A subscription company wants to predict whether each customer will cancel next month (yes or no). Which model fits?",

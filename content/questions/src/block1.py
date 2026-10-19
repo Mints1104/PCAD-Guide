@@ -195,6 +195,41 @@ QUESTIONS = [
       "Loading raw data first and transforming it inside the target system is ELT.",
       "Syllabus 1.1.2", ["elt", "integration"]),
 
+    Q("b1-016", "1.1.2", 3,
+      "What does this code print?",
+      ["`{'both': 2, 'left_only': 2, 'right_only': 1}`",
+       "`{'both': 2, 'left_only': 1, 'right_only': 1}`",
+       "`{'both': 4}`",
+       "`{'both': 3, 'left_only': 1, 'right_only': 1}`"],
+      0,
+      {1: "Product C has two sales rows, and each one is kept as its own `left_only` row.",
+       2: "An outer merge keeps unmatched rows from both sides instead of dropping them.",
+       3: "C isn't in the price list, so its rows can't be `both`."},
+      "`how=\"outer\"` keeps every row from both tables, and `indicator=True` labels where each came from: A and B match (`both`), the two C sales have no price (`left_only`), and D has a price but no sales (`right_only`). Counting the labels is a quick integration check.",
+      "Syllabus 1.1.2 · pandas docs", ["merge", "indicator", "integration"],
+      code="""
+      import pandas as pd
+
+      sales = pd.DataFrame({"sku": ["A", "B", "C", "C"], "units": [5, 3, 2, 4]})
+      prices = pd.DataFrame({"sku": ["A", "B", "D"], "price_eur": [2.0, 3.5, 1.0]})
+      m = sales.merge(prices, on="sku", how="outer", indicator=True)
+      print(m["_merge"].astype(str).value_counts().sort_index().to_dict())
+      """, verify="stdout"),
+
+    Q("b1-017", "1.1.2", 2,
+      "Three regions send monthly CSV files to be stacked into one table. The EU files use `;` between fields and a comma as the decimal mark (`12,50`); the UK files hold amounts in GBP, the others in EUR. Which two steps are needed before `pd.concat`? Select two.",
+      ["Read the EU files with `sep=\";\"` and `decimal=\",\"`",
+       "Convert the GBP amounts to EUR and keep the currency in the column name (`amount_eur`)",
+       "Sort each file by date",
+       "Convert every column to text so the types match",
+       "Drop the header row from each file"],
+      [0, 1],
+      {2: "Order doesn't affect stacking; sort once after combining if needed.",
+       3: "Turning numbers into text makes them useless for analysis; align the real types instead.",
+       4: "The header names the columns; `concat` aligns the files by those names."},
+      "Combining sources means fixing format differences first: parse each file correctly (delimiter, decimal mark) and bring values to one unit or currency, so the stacked rows are comparable.",
+      "Syllabus 1.1.2", ["integration", "csv", "units"]),
+
     # ---------- 1.1.3 Storage ----------
     Q("b1-020", "1.1.3", 1,
       "An IoT company wants to keep raw sensor logs, JSON events and camera images for future machine-learning projects, without deciding their structure yet. Which storage suits this?",
@@ -269,6 +304,33 @@ QUESTIONS = [
       "The two needs call for both layers: a lake (schema-on-read) keeps raw data of every type cheaply for later use, and a warehouse (schema-on-write) serves cleaned, consistent tables for SQL reporting. Many teams build this as a lake plus a warehouse, or as a lakehouse.",
       "Syllabus 1.1.3", ["data-lake", "data-warehouse"]),
 
+    Q("b1-026", "1.1.3", 2,
+      "Which two describe a data warehouse rather than a data lake? Select two.",
+      ["The schema is defined before data is loaded",
+       "It holds cleaned, integrated data for BI dashboards and SQL reporting",
+       "It stores raw images, logs and JSON in their native formats",
+       "The structure is applied only when the data is read",
+       "It is the cheapest place to keep everything in case it's useful later"],
+      [0, 1],
+      {2: "Keeping raw data of every type in native formats is what a data lake does.",
+       3: "Schema-on-read is the data-lake approach.",
+       4: "Cheap, keep-everything storage describes a lake; warehouses cost more because data is modeled and cleaned first."},
+      "Warehouses are schema-on-write stores of cleaned, modeled data built for consistent reporting; lakes keep raw data of any type and apply structure when it is read.",
+      "Syllabus 1.1.3", ["data-warehouse", "data-lake"]),
+
+    Q("b1-027", "1.1.3", 2,
+      "Month-end reports run directly against the production order database, and the online checkout slows down while they run. What is the best fix?",
+      ["Copy the order data on a schedule into a warehouse (an OLAP system) and run the reports there",
+       "Add an index on every column of the production tables",
+       "Export the orders to one Excel workbook each month and report from that",
+       "Delete orders older than a year from production"],
+      0,
+      {1: "Indexing everything slows every insert and update, which is the checkout's main job.",
+       2: "A workbook caps out at about a million rows and gives no shared, governed source.",
+       3: "Deleting history loses data the reports need."},
+      "Transactional (OLTP) databases are built for many small writes; heavy analytical reads belong in an OLAP system such as a warehouse, loaded on a schedule so reporting never competes with checkout.",
+      "Syllabus 1.1.3", ["oltp", "olap", "data-warehouse"]),
+
     # ---------- 1.2.1 Structured vs unstructured ----------
     Q("b1-030", "1.2.1", 1,
       "Which of these is semi-structured data?",
@@ -333,6 +395,54 @@ QUESTIONS = [
        4: "Scaling applies to numbers; free text has to be turned into features (keywords, topics, sentiment) first."},
       "One file can mix both kinds. The typed columns are structured and can be queried at once; the free-text column is unstructured content that needs processing (keyword or topic extraction, sentiment scoring) before it can be counted or grouped.",
       "Syllabus 1.2.1", ["structured", "unstructured"]),
+
+    Q("b1-035", "1.2.1", 2,
+      "A server writes log lines like `2025-07-15T10:02:11Z level=ERROR user=42 msg=\"timeout\"`. How is this data best classified?",
+      ["Semi-structured: each line carries labeled fields, but there is no fixed table schema",
+       "Structured: it is already a database table",
+       "Unstructured: it is free text with no labels",
+       "Binary data that can't be parsed"],
+      0,
+      {1: "Nothing enforces a fixed set of typed columns; lines can carry different fields.",
+       2: "The `key=value` labels give each value a meaning a program can parse.",
+       3: "It is plain text and can be parsed line by line."},
+      "Logs with self-describing `key=value` pairs, like JSON and XML, are semi-structured: they can be parsed into columns, but the structure lives in the data rather than in a schema.",
+      "Syllabus 1.2.1", ["semi-structured", "logs"]),
+
+    Q("b1-036", "1.2.1", 3,
+      "Records from an API are flattened into a table. What does this code print?",
+      ["`['id', 'tags', 'customer.name', 'customer.city'] (2, 4)`",
+       "`['id', 'customer', 'tags'] (2, 3)`",
+       "`['id', 'tags', 'customer.name', 'customer.city', 'tags.0'] (2, 5)`",
+       "A KeyError is raised, because Ben has no city"],
+      0,
+      {1: "`json_normalize` expands nested dicts into separate dotted columns.",
+       2: "Lists are left as single values in one column; only dicts are expanded.",
+       3: "A key missing from one record just becomes NaN in that row."},
+      "`pd.json_normalize` turns each nested dict into dotted columns (`customer.name`, `customer.city`), keeps lists as they are, and fills keys a record lacks with NaN. This is the usual step from semi-structured JSON to a structured table.",
+      "Syllabus 1.2.1, 1.4.1 · pandas docs", ["json", "json_normalize", "semi-structured"],
+      code="""
+      import pandas as pd
+
+      records = [{"id": 1, "customer": {"name": "Ana", "city": "Oslo"}, "tags": ["new"]},
+                 {"id": 2, "customer": {"name": "Ben"}, "tags": []}]
+      flat = pd.json_normalize(records)
+      print(flat.columns.tolist(), flat.shape)
+      """, verify="stdout"),
+
+    Q("b1-037", "1.2.1", 2,
+      "Which two make unstructured data harder to analyze than structured data? Select two.",
+      ["It has no predefined fields, so useful features must be extracted first",
+       "It usually needs specialized processing such as NLP or computer vision",
+       "It can't be stored in the cloud",
+       "It is always smaller than structured data",
+       "It can never contain numbers"],
+      [0, 1],
+      {2: "Object storage in the cloud is a common home for unstructured data.",
+       3: "Unstructured data is often far larger: video, audio and images.",
+       4: "A scanned invoice or a review can contain numbers; they just aren't in typed columns."},
+      "Without a schema there are no columns to query, so text, images and audio have to be processed into features (keywords, labels, transcripts) before they can be counted or modeled.",
+      "Syllabus 1.2.1", ["unstructured", "feature-extraction"]),
 
     # ---------- 1.2.2 Erroneous data ----------
     Q("b1-040", "1.2.2", 2,
@@ -555,6 +665,25 @@ QUESTIONS = [
       "ISO 8601 writes dates as YYYY-MM-DD, which is unambiguous and sorts correctly as text.",
       "Syllabus 1.2.3", ["dates", "standardization"]),
 
+    Q("b1-057", "1.2.3", 3,
+      "The scaler is fitted on the training data only. What does this code print?",
+      ["`4.0 1.633 2.449`", "`4.0 2.0 2.0`", "`5.0 2.236 1.342`", "`4.0 1.633 1.0`"],
+      0,
+      {1: "`StandardScaler` uses the population standard deviation (ddof=0): √(8/3) ≈ 1.633, not 2.0.",
+       2: "Those numbers come from fitting on the training and test rows together, which is leakage.",
+       3: "Transforming doesn't clip values: a test point beyond the training range gets a large z-score."},
+      "The scaler learns mean 4 and standard deviation √(((2−4)² + 0 + (6−4)²) / 3) ≈ 1.633 from the training rows, then applies them to the test value: (8 − 4) / 1.633 ≈ 2.449.",
+      "Syllabus 1.2.3 · scikit-learn docs", ["standardscaler", "z-score", "leakage"],
+      code="""
+      import numpy as np
+      from sklearn.preprocessing import StandardScaler
+
+      train = np.array([[2.0], [4.0], [6.0]])
+      test = np.array([[8.0]])
+      sc = StandardScaler().fit(train)
+      print(sc.mean_[0], round(sc.scale_[0], 3), round(sc.transform(test)[0, 0], 3))
+      """, verify="stdout"),
+
     # ---------- 1.2.4 Cleaning techniques ----------
     Q("b1-060", "1.2.4", 2,
       "What does this bucketization print?",
@@ -775,6 +904,40 @@ QUESTIONS = [
       "Simple rules can be checked with plain Python logic (`isinstance`, comparisons, `between`). When the same rules apply to every incoming file, a schema declares them once and checks each dataset against it.",
       "Syllabus 1.3.1", ["validation", "schema"]),
 
+    Q("b1-076", "1.3.1", 3,
+      "A format check runs on an email column. What does this code print?",
+      ["`2 ['ben@x', 'cara@@x.com', '']`",
+       "`3 ['cara@@x.com', '']`",
+       "`2 ['ben@x', 'cara@@x.com']`",
+       "`4 ['']`"],
+      0,
+      {1: "\"ben@x\" has no dot after the @, so the pattern doesn't match it.",
+       2: "An empty string doesn't match the pattern either, so it is flagged too.",
+       3: "Only two values match the whole pattern."},
+      "`str.fullmatch` requires the entire value to fit the pattern: some characters, one @, more characters, a dot and letters. \"ana@x.com\" and \"dev@y.org\" pass; \"ben@x\" lacks the dot, \"cara@@x.com\" has two @ signs, and the empty string has nothing.",
+      "Syllabus 1.3.1 · pandas docs", ["format-check", "regex", "validation"],
+      code="""
+      import pandas as pd
+
+      emails = pd.Series(["ana@x.com", "ben@x", "cara@@x.com", "", "dev@y.org"])
+      ok = emails.str.fullmatch(r"[^@\\s]+@[^@\\s]+\\.[a-z]+")
+      print(ok.sum(), emails[~ok].tolist())
+      """, verify="stdout"),
+
+    Q("b1-077", "1.3.1", 2,
+      "Which two are cross-field checks? Select two.",
+      ["`ship_date >= order_date`",
+       "`total == qty * unit_price`",
+       "Every `customer_id` exists in the customers table",
+       "`qty` is between 1 and 100",
+       "`email` matches an email pattern"],
+      [0, 1],
+      {2: "Looking a value up in another table is a cross-reference check.",
+       3: "Limits on one field are a range check.",
+       4: "A pattern on one field is a format check."},
+      "Cross-field checks compare two or more fields of the same record against a rule they must satisfy together.",
+      "Syllabus 1.3.1", ["cross-field", "validation"]),
+
     # ---------- 1.3.2 Integrity ----------
     Q("b1-080", "1.3.2", 1,
       "Which constraint enforces referential integrity between an `orders` table and a `customers` table?",
@@ -841,6 +1004,77 @@ QUESTIONS = [
        4: "LIMIT restricts how many rows a query returns."},
       "Domain integrity keeps values in their allowed set: NOT NULL requires a value and CHECK enforces a rule on it.",
       "Syllabus 1.3.2", ["integrity", "constraints"]),
+
+    Q("b1-085", "1.3.2", 3,
+      "Six units are moved from SKU A to SKU B, but A only holds 5. What does this code print?",
+      ["`[('A', 5), ('B', 2)]`", "`[('A', 5), ('B', 8)]`", "`[('A', -1), ('B', 8)]`", "An IntegrityError escapes and nothing is printed"],
+      0,
+      {1: "The failed second UPDATE rolls back the whole transaction, including B's increase.",
+       2: "`CHECK (qty >= 0)` refuses the negative value, so A never becomes −1.",
+       3: "The `except` catches the IntegrityError after the `with` block has rolled back."},
+      "Adding 6 to B succeeds, but subtracting 6 from A breaks the CHECK constraint and raises IntegrityError. Leaving the `with con:` block with an exception rolls back both updates, so the stock is exactly as it was: the transfer is all or nothing.",
+      "Syllabus 1.3.2 · SQLite docs", ["transactions", "check-constraint", "atomicity"],
+      code="""
+      import sqlite3
+
+      con = sqlite3.connect(":memory:")
+      con.execute("CREATE TABLE stock (sku TEXT PRIMARY KEY, qty INTEGER CHECK (qty >= 0))")
+      con.execute("INSERT INTO stock VALUES ('A', 5), ('B', 2)")
+      con.commit()
+      try:
+          with con:
+              con.execute("UPDATE stock SET qty = qty + 6 WHERE sku = 'B'")
+              con.execute("UPDATE stock SET qty = qty - 6 WHERE sku = 'A'")
+      except sqlite3.IntegrityError:
+          pass
+      print(con.execute("SELECT sku, qty FROM stock ORDER BY sku").fetchall())
+      """, verify="stdout"),
+
+    Q("b1-086", "1.3.2", 3,
+      "Foreign keys are switched on. What does this code print?",
+      ["`['ok', 'blocked', 'blocked', 'blocked']`",
+       "`['ok', 'blocked', 'ok', 'blocked']`",
+       "`['ok', 'ok', 'blocked', 'blocked']`",
+       "`['ok', 'blocked', 'blocked', 'ok']`"],
+      0,
+      {1: "With `PRAGMA foreign_keys = ON`, an order for the missing customer 99 is refused.",
+       2: "Order id 10 already exists, and a PRIMARY KEY must be unique.",
+       3: "`NOT NULL` refuses an order with no customer."},
+      "Each blocked insert breaks a different kind of integrity: a repeated primary key (entity), a reference to a customer who doesn't exist (referential), and a missing required value (domain).",
+      "Syllabus 1.3.2 · SQLite docs", ["primary-key", "foreign-key", "not-null"],
+      code="""
+      import sqlite3
+
+      con = sqlite3.connect(":memory:")
+      con.execute("PRAGMA foreign_keys = ON")
+      con.execute("CREATE TABLE customers (id INTEGER PRIMARY KEY)")
+      con.execute("CREATE TABLE orders (id INTEGER PRIMARY KEY, "
+                  "customer_id INTEGER NOT NULL REFERENCES customers(id))")
+      con.execute("INSERT INTO customers VALUES (1)")
+      results = []
+      for sql in ["INSERT INTO orders VALUES (10, 1)", "INSERT INTO orders VALUES (10, 1)",
+                  "INSERT INTO orders VALUES (11, 99)", "INSERT INTO orders VALUES (12, NULL)"]:
+          try:
+              con.execute(sql)
+              results.append("ok")
+          except sqlite3.IntegrityError:
+              results.append("blocked")
+      print(results)
+      """, verify="stdout"),
+
+    Q("b1-087", "1.3.2", 2,
+      "Which two practices protect the integrity of a shared dataset over time? Select two.",
+      ["Enforce rules where data enters: types, NOT NULL, CHECK constraints and keys",
+       "Keep an audit log of changes and regular backups",
+       "Let every analyst edit the master copy directly",
+       "Correct errors only in the reports, leaving the source as it is",
+       "Keep several unsynchronized copies in different spreadsheets"],
+      [0, 1],
+      {2: "Unrestricted edits are how accidental and unauthorized changes creep in.",
+       3: "Fixing only the output leaves the source wrong for everyone else.",
+       4: "Unsynchronized copies drift apart, so no version can be trusted."},
+      "Integrity is kept by stopping bad data at the door (constraints and validation) and by being able to trace and undo changes (audit logs and backups).",
+      "Syllabus 1.3.2", ["data-integrity", "governance"]),
 
     # ---------- 1.4.1 File formats ----------
     Q("b1-090", "1.4.1", 1,
@@ -1064,6 +1298,52 @@ QUESTIONS = [
       print(out.index.tolist())
       """, verify="stdout"),
 
+    Q("b1-106", "1.4.2", 3,
+      "What does this code print?",
+      ["`[15, 18] 4`", "`[18, 15] 1`", "`[15, 18] 0`", "`[15, 18, 22] 4`"],
+      0,
+      {1: "`sort_values([\"city\", \"temp\"])` sorts temperature from low to high within each city.",
+       2: "Sorting keeps the original row labels; the first row after sorting is label 4.",
+       3: "`city != 'Lima'` removes Lima's 22."},
+      "`@limit` inside `query` refers to the Python variable. Only Rome's 18 (row 1) and 15 (row 4) pass both conditions; sorted by city then temperature, row 4 (15) comes first and keeps its label.",
+      "Syllabus 1.4.2 · pandas docs", ["query", "sorting", "filtering"],
+      code="""
+      import pandas as pd
+
+      df = pd.DataFrame({"city": ["Oslo", "Rome", "Lima", "Oslo", "Rome"],
+                         "temp": [3, 18, 22, -2, 15]})
+      limit = 10
+      out = df.query("temp > @limit and city != 'Lima'").sort_values(["city", "temp"])
+      print(out["temp"].tolist(), out.index[0])
+      """, verify="stdout"),
+
+    Q("b1-107", "1.4.2", 2,
+      "Which two lines keep only the rows where `region` is \"EU\" or \"UK\"? Select two.",
+      ["`df[df[\"region\"].isin([\"EU\", \"UK\"])]`",
+       "`df[(df[\"region\"] == \"EU\") | (df[\"region\"] == \"UK\")]`",
+       "`df[df[\"region\"] == \"EU\" or df[\"region\"] == \"UK\"]`",
+       "`df[df[\"region\"] == \"EU\" | df[\"region\"] == \"UK\"]`",
+       "`df[df[\"region\"].isin(\"EU\", \"UK\")]`"],
+      [0, 1],
+      {2: "`or` asks for the truth value of a whole Series, which raises ValueError.",
+       3: "Without brackets, `|` binds before `==`, so the expression becomes `\"EU\" | df[\"region\"]` and fails.",
+       4: "`isin` takes one list of values, not separate arguments."},
+      "Combine conditions with `|` and bracket each one, or use `isin` with a list of allowed values.",
+      "Syllabus 1.4.2 · pandas docs", ["filtering", "isin", "boolean-mask"],
+      verify={"py": """
+      import pandas as pd
+      df = pd.DataFrame({"region": ["EU", "US", "UK", "EU"], "x": [1, 2, 3, 4]})
+      good = []
+      for i in range(5):
+          try:
+              out = eval(opt(i))
+              if out["x"].tolist() == [1, 3, 4]:
+                  good.append(i)
+          except Exception:
+              pass
+      assert good == q["answer"], good
+      """}),
+
     # ---------- 1.4.3 Extracting data ----------
     Q("b1-110", "1.4.3", 3,
       "What does this parsing code print?",
@@ -1247,6 +1527,43 @@ QUESTIONS = [
        3: "`$1` locks the row, so it stays 1."},
       "A `$` fixes only the part it stands in front of. `B2` is fully relative, so it moves one column and one row to C3. `C$1` has a relative column and a fixed row, so it becomes D$1.",
       "Syllabus 1.4.4", ["spreadsheet", "cell-references"]),
+
+    Q("b1-125", "1.4.4", 2,
+      "Column B holds regions and column C holds sales amounts. What does `=SUMIF(B:B, \"EU\", C:C)` return?",
+      ["The total of the column C amounts on rows where column B is \"EU\"",
+       "The number of rows where column B is \"EU\"",
+       "The total of column B on rows where column C is \"EU\"",
+       "The total of column C for every row"],
+      0,
+      {1: "Counting matching rows is `COUNTIF`.",
+       2: "The first range is tested against the condition; the third range is the one summed.",
+       3: "Only rows that meet the condition are added."},
+      "`SUMIF(range, criteria, sum_range)` checks each cell of `range` against the criteria and adds the matching cells of `sum_range`.",
+      "Syllabus 1.4.4", ["spreadsheet", "sumif"]),
+
+    Q("b1-126", "1.4.4", 3,
+      "Cells A1:A6 hold: the number 12, the text \"n/a\", an empty cell, the number 7, the text \"15\" (entered as text), and the number 0. What do `=COUNT(A1:A6)` and `=COUNTA(A1:A6)` return?",
+      ["3 and 5", "4 and 5", "3 and 6", "4 and 6"],
+      0,
+      {1: "\"15\" stored as text isn't a number, so `COUNT` skips it.",
+       2: "`COUNTA` counts non-empty cells, and one cell is empty.",
+       3: "Neither function counts the empty cell, and `COUNT` skips the two text values."},
+      "`COUNT` counts numbers only: 12, 7 and 0 (zero is still a number). `COUNTA` counts every non-empty cell, text included: 5. Numbers stored as text are a common reason totals come out wrong.",
+      "Syllabus 1.4.4", ["spreadsheet", "count", "counta"]),
+
+    Q("b1-127", "1.4.4", 2,
+      "Which two formatting choices make a shared sheet easier to read without hiding information? Select two.",
+      ["One number format per column, with the unit in the header (\"Revenue (EUR)\")",
+       "Freezing the header row so it stays visible while scrolling",
+       "Marking late orders only by colouring the row red",
+       "Merging cells inside the data to group related rows",
+       "Typing rounded values over the exact ones so the sheet looks tidy"],
+      [0, 1],
+      {2: "Colour alone is lost on export, invisible to formulas and hard for colour-blind readers; add a status column.",
+       3: "Merged cells break sorting, filtering and imports.",
+       4: "That destroys the exact values; use a number format to round the display instead."},
+      "Good formatting changes how values look, never what they are, and keeps the layout one clean table that people and tools can both read.",
+      "Syllabus 1.4.4", ["spreadsheet", "formatting"]),
 
     # ---------- 1.4.5 Preparing data ----------
     Q("b1-130", "1.4.5", 2,
