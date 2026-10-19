@@ -132,6 +132,26 @@ QUESTIONS = [
       print([x ** 2 for x in data if x > 0])
       """, verify="stdout"),
 
+    Q("b2-008", "2.1.1", 3,
+      "What does this code print?",
+      ["`1-Ann-90; 2-Bob-75; done`",
+       "`0-Ann-90; 1-Bob-75; done`",
+       "`1-Ann-90; 2-Bob-75; 3-Cy-None; done`",
+       "1 Ann 90\n2 Bob 75\ndone"],
+      0,
+      {1: "`start=1` makes `enumerate` count from 1.",
+       2: "`zip` stops at the shorter list, so Cy (who has no score) is dropped without any error.",
+       3: "`sep=\"-\"` joins the values with dashes, and `end=\"; \"` keeps everything on one line."},
+      "`zip` pairs the names with the two scores and stops there; `enumerate(..., start=1)` numbers the pairs from 1; `sep` goes between the printed values and `end` replaces the newline, so the final `print` continues the same line.",
+      "Syllabus 2.1.1 · Python docs", ["zip", "enumerate", "print"], optlang="text",
+      code="""
+      names = ["Ann", "Bob", "Cy"]
+      scores = [90, 75]
+      for i, (name, score) in enumerate(zip(names, scores), start=1):
+          print(i, name, score, sep="-", end="; ")
+      print("done")
+      """, verify="stdout"),
+
     # ---------- 2.1.2 Functions ----------
     Q("b2-010", "2.1.2", 2,
       "What does this code print?",
@@ -262,6 +282,28 @@ QUESTIONS = [
       print(export([1, 2], "json"))
       """, verify="raises:TypeError"),
 
+    Q("b2-017", "2.1.2", 3,
+      "Given `def scale(x, /, factor=2, *, offset=0):`, which call raises a TypeError?",
+      ["`scale(x=3)`", "`scale(3, 4)`", "`scale(3, offset=1)`", "`scale(3, factor=4, offset=1)`"],
+      0,
+      {1: "`factor` sits between `/` and `*`, so it can be passed by position.",
+       2: "`offset` is keyword-only and is passed by name, which is what it requires.",
+       3: "`factor` can also be passed by name, and `offset` is passed by name as required."},
+      "Parameters before `/` are positional-only, so `x` can't be passed as `x=3`. Parameters after `*` are keyword-only. Those in between, here `factor`, can be passed either way.",
+      "Syllabus 2.1.2 · Python docs", ["positional-only", "keyword-only"],
+      verify={"py": """
+      def scale(x, /, factor=2, *, offset=0):
+          return x * factor + offset
+      results = []
+      for i in range(4):
+          try:
+              eval(opt(i))
+              results.append(False)
+          except TypeError:
+              results.append(True)
+      assert results == [True, False, False, False], results
+      """}),
+
     # ---------- 2.1.3 Ecosystem ----------
     Q("b2-020", "2.1.3", 1,
       "Which library is designed for reading, cleaning, joining and grouping labeled tabular data?",
@@ -329,6 +371,19 @@ QUESTIONS = [
        4: "Branding is irrelevant to technical suitability."},
       "Suitability means fitting the task, being maintained and documented, having a community, and a licence that allows your use.",
       "Syllabus 2.1.3", ["ecosystem", "evaluation"]),
+
+    Q("b2-026", "2.1.3", 3,
+      "An analyst must (1) read 30 Excel workbooks into one table, (2) predict which customers will churn and estimate accuracy with cross-validation, and (3) give a regulator a p-value for each predictor. Which set of tools fits?",
+      ["pandas (with openpyxl) for the workbooks, scikit-learn for the churn model and cross-validation, statsmodels for the p-values",
+       "NumPy for the workbooks, Seaborn for the model, SciPy for the p-values",
+       "pandas for the workbooks, then statsmodels for everything else, because it also provides cross-validation and pipelines",
+       "BeautifulSoup for the workbooks, then scikit-learn for the model and its p-values"],
+      0,
+      {1: "NumPy doesn't read Excel files, and Seaborn draws charts; it doesn't fit predictive models.",
+       2: "statsmodels reports inference statistics, but cross-validation, pipelines and predictive evaluation are scikit-learn's job.",
+       3: "BeautifulSoup parses HTML, not Excel, and scikit-learn's models don't report p-values."},
+      "`pd.read_excel` (which uses openpyxl) and `pd.concat` combine the workbooks; scikit-learn handles prediction and `cross_val_score`; statsmodels reports coefficients with p-values and confidence intervals.",
+      "Syllabus 2.1.3", ["ecosystem", "library-choice"]),
 
     # ---------- 2.1.4 Data structures ----------
     Q("b2-030", "2.1.4", 2,
@@ -472,6 +527,26 @@ QUESTIONS = [
       print(top, sorted(sales.values())[0])
       """, verify="stdout"),
 
+    Q("b2-039", "2.1.4", 3,
+      "What does this code print?",
+      ["`2 0 2 0 3`", "`2 0 2 0 2`", "`3 0 2 0 2`", "A KeyError is raised for \"APAC\""],
+      0,
+      {1: "Reading `by_region[\"APAC\"]` creates that key with an empty set, so the dict has 3 keys by the time `len(by_region)` runs.",
+       2: "EU's items go into a set, so the repeated \"tea\" is stored once: EU has 2 distinct items.",
+       3: "A `defaultdict` never raises KeyError for a missing key; it creates the key with a default value."},
+      "EU's set holds {tea, jam} (2). Looking up \"APAC\" creates an empty set (0) and adds the key. The Counter has tea twice and returns 0 for the unseen \"milk\". The arguments are evaluated left to right, so `len(by_region)` sees EU, US and APAC: 3.",
+      "Syllabus 2.1.4 · Python docs (collections)", ["defaultdict", "counter", "set"],
+      code="""
+      from collections import Counter, defaultdict
+
+      orders = [("EU", "tea"), ("US", "jam"), ("EU", "jam"), ("EU", "tea")]
+      by_region = defaultdict(set)
+      for region, item in orders:
+          by_region[region].add(item)
+      counts = Counter(item for _, item in orders)
+      print(len(by_region["EU"]), len(by_region["APAC"]), counts["tea"], counts["milk"], len(by_region))
+      """, verify="stdout"),
+
     # ---------- 2.1.5 PEP 8 and PEP 257 ----------
     Q("b2-040", "2.1.5", 1,
       "Which pair of names follows PEP 8?",
@@ -531,6 +606,32 @@ QUESTIONS = [
        3: "Wildcard imports hide where names come from."},
       "Standard library first, then third-party, then local modules, each group separated by a blank line, one import per line.",
       "Syllabus 2.1.5 · PEP 8", ["pep8", "imports"]),
+
+    Q("b2-045", "2.1.5", 3,
+      "This script runs correctly. Which three things in it break PEP 8? Select three.",
+      ["`import os, sys` on one line",
+       "Only one blank line between `MAX_ROWS = 500` and `def load_rows`",
+       "`if limit == None:`",
+       "`MAX_ROWS` written in upper case",
+       "No spaces around `=` in `limit=MAX_ROWS`",
+       "`load_rows` written in snake_case"],
+      [0, 1, 2],
+      {3: "Module-level constants are written in UPPER_CASE_WITH_UNDERSCORES.",
+       4: "PEP 8 asks for no spaces around `=` in an unannotated default value.",
+       5: "Function names are lowercase with underscores."},
+      "PEP 8 wants one import per line, two blank lines around top-level function and class definitions, and `is None` rather than `== None`. The constant's case, the default-value spacing and the function name are all correct.",
+      "Syllabus 2.1.5 · PEP 8", ["pep8", "style"],
+      code="""
+      import os, sys
+
+      MAX_ROWS = 500
+
+      def load_rows(path, limit=MAX_ROWS):
+          if limit == None:
+              limit = MAX_ROWS
+          with open(path) as f:
+              return f.read().splitlines()[:limit]
+      """, verify="runs"),
 
     # ---------- 2.2.1 Modules and pip ----------
     Q("b2-050", "2.2.1", 1,
@@ -611,6 +712,39 @@ QUESTIONS = [
 
       print(m.floor(2.7) + root(16))
       """, verify="stdout"),
+
+    Q("b2-057", "2.2.1", 3,
+      "A project folder holds the two files below. What happens when `python analysis.py` is run?",
+      ["An AttributeError is raised: `import statistics` loads the local statistics.py, which has no `mean`",
+       "It prints `3`, because the standard library always takes priority",
+       "An ImportError is raised, because two modules share a name",
+       "Python combines both modules, so it prints `3`"],
+      0,
+      {1: "The script's own folder comes first on `sys.path`, so the local file wins over the standard library.",
+       2: "There is no name-clash error: Python simply imports the first `statistics` it finds.",
+       3: "Python imports one module per name; it never combines files."},
+      "Python searches the script's folder before the standard library, so a local file named after a standard module hides it. Don't name your own files `statistics.py`, `random.py`, `csv.py` and so on.",
+      "Syllabus 2.2.1 · Python docs (sys.path)", ["imports", "sys-path"],
+      code="""
+      # statistics.py (written by the analyst)
+      def summarize(values):
+          return min(values), max(values)
+
+      # analysis.py
+      import statistics
+      print(statistics.mean([2, 4]))
+      """,
+      verify={"py": """
+      import os, subprocess, sys, tempfile
+      folder = tempfile.mkdtemp()
+      with open(os.path.join(folder, "statistics.py"), "w") as f:
+          f.write("def summarize(values):\\n    return min(values), max(values)\\n")
+      with open(os.path.join(folder, "analysis.py"), "w") as f:
+          f.write("import statistics\\nprint(statistics.mean([2, 4]))\\n")
+      env = {k: v for k, v in os.environ.items() if k != "PYTHONSAFEPATH"}
+      r = subprocess.run([sys.executable, "analysis.py"], cwd=folder, capture_output=True, text=True, env=env)
+      assert "AttributeError" in r.stderr and "mean" in r.stderr, r.stderr
+      """}),
 
     # ---------- 2.2.2 Exceptions ----------
     Q("b2-060", "2.2.2", 3,
@@ -741,6 +875,42 @@ QUESTIONS = [
        4: "It runs last, after try/except/else."},
       "`finally` always runs on the way out of the try statement, making it the place for cleanup such as closing files or connections.",
       "Syllabus 2.2.2", ["exceptions", "finally"]),
+
+    Q("b2-067", "2.2.2", 3,
+      "What does this code print?",
+      ["`40 log ValueError DataQualityError type`",
+       "`40 log ValueError DataQualityError ValueError`",
+       "`40 ValueError DataQualityError type`",
+       "`40 log ValueError 150 type`"],
+      0,
+      {1: "`int(None)` raises TypeError, which the inner `except ValueError` doesn't catch; the caller's `except TypeError` prints \"type\".",
+       2: "The inner handler prints \"log\" before the bare `raise` passes the same ValueError on to the caller.",
+       3: "150 passes `int()` but fails the `age > 120` check, which raises DataQualityError."},
+      "\"40\" parses. \"abc\" raises ValueError: the inner handler logs it and re-raises it, and the caller prints its name. \"150\" raises the custom DataQualityError, caught by the tuple. `int(None)` raises TypeError, which skips the inner handler and the tuple and lands in `except TypeError`.",
+      "Syllabus 2.2.2 · Python docs", ["exceptions", "re-raise", "custom-exception"],
+      code="""
+      class DataQualityError(Exception):
+          pass
+
+      def parse_age(text):
+          try:
+              age = int(text)
+          except ValueError:
+              print("log", end=" ")
+              raise
+          if age > 120:
+              raise DataQualityError(age)
+          return age
+
+      for t in ["40", "abc", "150", None]:
+          try:
+              print(parse_age(t), end=" ")
+          except (ValueError, DataQualityError) as e:
+              print(type(e).__name__, end=" ")
+          except TypeError:
+              print("type", end=" ")
+      print()
+      """, verify="stdout"),
 
     # ---------- 2.3.1 Classes ----------
     Q("b2-070", "2.3.1", 2,
@@ -880,6 +1050,33 @@ QUESTIONS = [
        3: "Python allows it; encapsulation is a design choice."},
       "Setters (or properties) encapsulate state: every change passes through one place that enforces the rules.",
       "Syllabus 2.3.1", ["encapsulation", "setters"]),
+
+    Q("b2-077", "2.3.1", 3,
+      "What does this code print?",
+      ["`A1 @ 2.50 [Sku(code='A1', price=2.5)] True False`",
+       "`A1 @ 2.50 [A1 @ 2.50] True False`",
+       "`Sku(code='A1', price=2.5) [Sku(code='A1', price=2.5)] True False`",
+       "`A1 @ 2.50 [Sku(code='A1', price=2.5)] False False`"],
+      0,
+      {1: "A list shows its items with `__repr__`, not `__str__`.",
+       2: "`print(a)` uses the class's own `__str__`.",
+       3: "`@dataclass` writes an `__eq__` that compares the fields, so two objects with the same code and price are equal."},
+      "`print` uses `__str__` (written by hand here); a list displays its items with `__repr__`, which `@dataclass` generated. The generated `__eq__` compares fields, so `==` is True, while `is` asks whether they are the same object: False.",
+      "Syllabus 2.3.1, 2.3.3 · Python docs (dataclasses)", ["dataclass", "repr", "str"],
+      code="""
+      from dataclasses import dataclass
+
+      @dataclass
+      class Sku:
+          code: str
+          price: float
+
+          def __str__(self):
+              return f"{self.code} @ {self.price:.2f}"
+
+      a = Sku("A1", 2.5)
+      print(a, [a], a == Sku("A1", 2.5), a is Sku("A1", 2.5))
+      """, verify="stdout"),
 
     # ---------- 2.3.2 Inheritance, composition, polymorphism ----------
     Q("b2-080", "2.3.2", 2,
@@ -1256,6 +1453,73 @@ QUESTIONS = [
       """, lang="sql", setup=SHOP, tables=["customers", "orders"],
       verify={"py": "assert len(run_sql(setup, code)) == 6"}),
 
+    Q("b2-160", "2.4.1", 2,
+      "What does the last row of this query's result contain?",
+      ["`('Dev', 0)`", "`('Dev', None)`", "`('Cara', 50.0)`", "`('Ana', 200.0)`"],
+      0,
+      {1: "`SUM` over Dev's NULL order totals is NULL, but `COALESCE` replaces it with 0.",
+       2: "The LEFT JOIN keeps Dev, who has no orders, so Cara isn't last.",
+       3: "Ana ties with Ben at 200 and the tie is broken by name, A to Z, so Ana comes first."},
+      "The LEFT JOIN keeps Dev with NULL order columns. `SUM` of nothing but NULLs is NULL, and `COALESCE(x, 0)` returns its first non-NULL argument, 0. Sorted by `spent` from highest to lowest, Dev (0) comes last.",
+      "Syllabus 2.4.1 · SQLite docs", ["sql", "coalesce", "left-join"],
+      code="""
+      SELECT c.name, COALESCE(SUM(o.total), 0) AS spent
+      FROM customers AS c
+      LEFT JOIN orders AS o ON o.customer_id = c.id
+      GROUP BY c.name
+      ORDER BY spent DESC, c.name;
+      """, lang="sql", setup=SHOP, tables=["customers", "orders"],
+      verify={"py": """
+      rows = run_sql(setup, code)
+      assert rows[-1] == ('Dev', 0) and rows[0] == ('Ana', 200.0), rows
+      """}),
+
+    Q("b2-161", "2.4.1", 3,
+      "How many rows does this query return?",
+      ["4", "5", "3", "6"],
+      0,
+      {1: "Bread and Bagel both give ('bakery', 'mid'), and `DISTINCT` keeps that row once.",
+       2: "Milk's NULL price makes `BETWEEN` unknown, so `CASE` falls through to `ELSE`: dairy still appears, as 'other'.",
+       3: "Cake is left out: its name doesn't start with B and bakery isn't in the `IN` list."},
+      "The WHERE keeps Apple, Avocado, Bread, Bagel and Milk. `BETWEEN 1.5 AND 3` includes both ends, so Bread (3.0) and Bagel (1.5) are 'mid', Avocado is 'mid', Apple is 'other', and Milk (NULL) goes to ELSE. `DISTINCT` collapses the two bakery rows: (bakery, mid), (dairy, other), (fruit, mid), (fruit, other).",
+      "Syllabus 2.4.1 · SQLite docs", ["sql", "case", "between", "distinct"],
+      code="""
+      SELECT DISTINCT category,
+             CASE WHEN price BETWEEN 1.5 AND 3 THEN 'mid' ELSE 'other' END AS band
+      FROM products
+      WHERE name LIKE 'B%' OR category IN ('dairy', 'fruit')
+      ORDER BY category, band;
+      """, lang="sql", tables=["products"],
+      setup="""
+      CREATE TABLE products (name TEXT, category TEXT, price REAL);
+      INSERT INTO products VALUES ('Apple', 'fruit', 1.2), ('Avocado', 'fruit', 2.5),
+        ('Bread', 'bakery', 3.0), ('Bagel', 'bakery', 1.5), ('Cake', 'bakery', 12.0), ('Milk', 'dairy', NULL);
+      """,
+      verify={"py": """
+      rows = run_sql(setup, code)
+      assert rows == [('bakery', 'mid'), ('dairy', 'other'), ('fruit', 'mid'), ('fruit', 'other')], rows
+      """}),
+
+    Q("b2-162", "2.4.1", 2,
+      "What is the last row of this query's result?",
+      ["`(14, None)`", "`(None, 'Dev')`", "`(13, 'Cara')`", "`(14, 'Dev')`"],
+      0,
+      {1: "A RIGHT JOIN keeps every row of the right table (orders); Dev has no orders, so Dev doesn't appear.",
+       2: "Order 14 has no matching customer but is still kept, and it sorts after 13.",
+       3: "Order 14 belongs to customer 5, who doesn't exist, so its customer columns are NULL."},
+      "A RIGHT JOIN keeps every order and fills in the customer where one matches. Order 14 points at customer 5, who doesn't exist, so its `name` is NULL (None in Python). It is the mirror image of `orders LEFT JOIN customers`.",
+      "Syllabus 2.4.1 · SQLite docs", ["sql", "right-join"],
+      code="""
+      SELECT o.id, c.name
+      FROM customers AS c
+      RIGHT JOIN orders AS o ON o.customer_id = c.id
+      ORDER BY o.id;
+      """, lang="sql", setup=SHOP, tables=["customers", "orders"],
+      verify={"py": """
+      rows = run_sql(setup, code)
+      assert len(rows) == 5 and rows[-1] == (14, None), rows
+      """}),
+
     # ---------- 2.4.2 CRUD ----------
     Q("b2-110", "2.4.2", 1,
       "Which SQL statement performs the \"Update\" in CRUD?",
@@ -1443,6 +1707,29 @@ QUESTIONS = [
       con.execute("INSERT INTO p VALUES ('tea', 2.5)")
       row = con.execute("SELECT * FROM p").fetchone()
       print(row["name"], row[1], row.keys())
+      """, verify="stdout"),
+
+    Q("b2-126", "2.4.3", 3,
+      "What does this code print?",
+      ["`0`", "`1`", "`2`", "A ProgrammingError is raised, because the `with` block closed the connection"],
+      0,
+      {1: "Leaving the `with` block with an exception rolls back the whole transaction, including the first INSERT.",
+       2: "The second INSERT fails (two values for a one-column table), so it never adds a row.",
+       3: "`with con:` commits or rolls back, but it doesn't close the connection, so the last query works."},
+      "The second INSERT raises OperationalError. Because it leaves the `with` block, the open transaction is rolled back and the first INSERT is undone too. The CREATE TABLE ran before that transaction began, so the table still exists, empty, and the connection is still open.",
+      "Syllabus 2.4.3 · Python sqlite3 docs", ["sqlite3", "transactions", "context-manager"],
+      code="""
+      import sqlite3
+
+      con = sqlite3.connect(":memory:")
+      con.execute("CREATE TABLE t (n INTEGER)")
+      try:
+          with con:
+              con.execute("INSERT INTO t VALUES (1)")
+              con.execute("INSERT INTO t VALUES ('x', 2)")
+      except sqlite3.OperationalError:
+          pass
+      print(con.execute("SELECT COUNT(*) FROM t").fetchone()[0])
       """, verify="stdout"),
 
     # ---------- 2.4.4 Parameterized queries ----------
@@ -1740,4 +2027,28 @@ QUESTIONS = [
        4: "Hard-coded passwords are a separate security risk."},
       "Parameterization prevents injection; least privilege limits what an attacker could do if something slips through.",
       "Syllabus 2.4.6", ["sql-injection", "defence-in-depth"]),
+
+    Q("b2-155", "2.4.6", 3,
+      "Users type a `region` and pick a column to sort by (`sort_col`). Which sqlite3 code is safe from SQL injection and sorts by the chosen column?",
+      ["col = sort_col if sort_col in {\"name\", \"total\"} else \"name\"\ncon.execute(f\"SELECT * FROM sales WHERE region = ? ORDER BY {col}\", (region,))",
+       "`con.execute(\"SELECT * FROM sales WHERE region = ? ORDER BY ?\", (region, sort_col))`",
+       "`con.execute(f\"SELECT * FROM sales WHERE region = ? ORDER BY {sort_col}\", (region,))`",
+       "col = sort_col if sort_col in {\"name\", \"total\"} else \"name\"\ncon.execute(f\"SELECT * FROM sales WHERE region = '{region}' ORDER BY {col}\")"],
+      0,
+      {1: "A placeholder can only stand for a value: `ORDER BY ?` sorts by a constant string, so the rows come back unsorted.",
+       2: "`sort_col` goes into the SQL text unchecked, so a crafted value can change the query.",
+       3: "The column is checked, but `region` is pasted into the SQL text, so it is injectable."},
+      "Values go in placeholders. Identifiers such as column names can't be parameterized, so they are checked against a fixed allow-list before being placed in the SQL.",
+      "Syllabus 2.4.6, 2.4.4", ["sql-injection", "allow-list", "placeholders"], optlang="python",
+      verify={"py": """
+      import sqlite3
+      con = sqlite3.connect(":memory:")
+      con.execute("CREATE TABLE sales (name TEXT, region TEXT, total REAL)")
+      con.executemany("INSERT INTO sales VALUES (?, ?, ?)", [("b", "EU", 1), ("a", "EU", 3), ("c", "EU", 2)])
+      ns = {"con": con, "region": "EU", "sort_col": "total"}
+      setup_line, call = opt(0).splitlines()
+      exec(setup_line, ns)
+      assert [r[2] for r in eval(call, ns).fetchall()] == [1, 2, 3]
+      assert [r[2] for r in eval(opt(1), ns).fetchall()] == [1, 3, 2]
+      """}),
 ]

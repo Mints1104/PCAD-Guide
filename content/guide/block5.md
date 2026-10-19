@@ -145,6 +145,7 @@ fig.tight_layout()
 | Legend | `label=` on each plotted series, then `ax.legend(loc=, fontsize=, facecolor=, framealpha=, frameon=, title=, ncol=)`; `bbox_to_anchor=(1.02, 1), loc="upper left"` moves it outside the plot |
 | Annotation | `ax.annotate(text, xy=point, xytext=text_position, arrowprops={...})`; `ax.text(x, y, text)` for plain text |
 | Reference line | `ax.axhline(y)` / `ax.axvline(x)` |
+| Gridlines | `ax.grid(True, axis="y", linestyle=":", alpha=0.5)`: light gridlines help readers read values; heavy ones are clutter |
 | Axis range and ticks | `ax.set_xlim`, `ax.set_ylim`; `ax.tick_params(axis="x", rotation=45)` or `plt.xticks(rotation=45)` |
 | Scatter colours | `color="tab:red"` for one colour; `c=values, cmap="viridis"` to colour by a numeric variable (add `fig.colorbar`); `alpha=0.5` for overlap; `s=` for marker size; `hue=` in Seaborn |
 | Layout | `fig.tight_layout()` stops labels overlapping |

@@ -232,6 +232,36 @@
   ]
  },
  {
+  "id": "b3-009",
+  "objective": "3.1.1",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "`2.31 0.73 20.6 23.4`",
+   "`2.31 0.23 21.5 22.5`",
+   "`2.19 0.69 20.6 23.4`",
+   "`2.31 0.73 17.5 26.5`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "The sample standard deviation is 2.31 and the standard error is 2.31 / √10 ≈ 0.73. The 95% interval for the mean is 22 ± 1.96 × 0.73, about 20.6 to 23.4. It describes uncertainty about the mean, so it is much narrower than the spread of the data.",
+  "why_wrong": [
+   "",
+   "The standard error divides by √n (√10 ≈ 3.16), not by n.",
+   "`ddof=1` gives the sample standard deviation, 2.31; 2.19 is the population value (ddof=0).",
+   "17.5 to 26.5 is the mean ± 1.96 standard deviations, a range for individual values, not for the mean."
+  ],
+  "source": "Syllabus 3.1.1",
+  "difficulty": 3,
+  "tags": [
+   "standard-error",
+   "confidence-interval"
+  ],
+  "code": "import numpy as np\n\nsample = np.array([20, 24, 22, 26, 18, 22, 24, 20, 22, 22])\ns = sample.std(ddof=1)\nse = s / np.sqrt(len(sample))\nmean = sample.mean()\nprint(round(s, 2), round(se, 2), round(mean - 1.96 * se, 1), round(mean + 1.96 * se, 1))",
+  "verify": "stdout"
+ },
+ {
   "id": "b3-010",
   "objective": "3.1.2",
   "type": "single",
@@ -461,6 +491,37 @@
    "outliers",
    "charts"
   ]
+ },
+ {
+  "id": "b3-018",
+  "objective": "3.1.2",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "`0.7 1.0`",
+   "`1.0 1.0`",
+   "`1.0 0.7`",
+   "`0.7 0.7`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Pearson's r measures how close the points are to a straight line, and the single value of 60 pulls it down to 0.7. Spearman's correlation compares ranks: y increases whenever x does, so it is exactly 1. Spearman suits relationships that are monotonic but not straight, and data with outliers.",
+  "why_wrong": [
+   "",
+   "The jump to 60 bends the points away from a straight line, so Pearson's r drops below 1.",
+   "Pearson is the one hurt by the extreme value; Spearman only uses the ranks.",
+   "y rises every time x rises, so the ranks match perfectly and Spearman's coefficient is 1."
+  ],
+  "source": "Syllabus 3.1.2 · pandas docs",
+  "difficulty": 2,
+  "tags": [
+   "pearson",
+   "spearman",
+   "outliers"
+  ],
+  "code": "import pandas as pd\n\nx = pd.Series([1, 2, 3, 4, 5, 6])\ny = pd.Series([1, 2, 3, 4, 5, 60])\nprint(round(x.corr(y), 2), round(x.corr(y, method=\"spearman\"), 2))",
+  "verify": "stdout"
  },
  {
   "id": "b3-020",

@@ -95,7 +95,8 @@
     ],
     "traps": [
       {"cue": "Which error means a third-party package isn't installed?", "answer": "ModuleNotFoundError (a subclass of ImportError)."},
-      {"cue": "Do `math`, `json` and `csv` need `pip install`?", "answer": "No. They are part of the standard library."}
+      {"cue": "Do `math`, `json` and `csv` need `pip install`?", "answer": "No. They are part of the standard library."},
+      {"cue": "Your project has its own file called `statistics.py`. What does `import statistics` load?", "answer": "Your file: the script's folder is searched before the standard library, so the real module is hidden and `statistics.mean` raises AttributeError."}
     ],
     "terms": ["Standard library", "pip", "Virtual environment"],
     "maps": []

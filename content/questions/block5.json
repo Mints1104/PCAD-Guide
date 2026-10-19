@@ -170,6 +170,36 @@
   ]
  },
  {
+  "id": "b5-007",
+  "objective": "5.1.1",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "`[20, 40]`",
+   "`[60, 40]`",
+   "`[3, 1]`",
+   "`[10, 40, 20, 30]`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`sns.barplot` draws one bar per category whose height is the mean of `y`: Oslo (10 + 20 + 30) / 3 = 20 and Rome 40. `errorbar=None` only removes the error bars.",
+  "why_wrong": [
+   "",
+   "`barplot` shows the mean of each category by default, not the sum (pass `estimator=\"sum\"` for totals).",
+   "Counting rows per category is what `sns.countplot` does.",
+   "Seaborn combines the rows that share a category into one bar."
+  ],
+  "source": "Syllabus 5.1.1 · Seaborn docs",
+  "difficulty": 3,
+  "tags": [
+   "seaborn",
+   "barplot"
+  ],
+  "code": "import matplotlib\nmatplotlib.use(\"Agg\")\nimport pandas as pd\nimport seaborn as sns\n\ndf = pd.DataFrame({\"city\": [\"Oslo\", \"Rome\", \"Oslo\", \"Oslo\"], \"sales\": [10, 40, 20, 30]})\nax = sns.barplot(data=df, x=\"city\", y=\"sales\", errorbar=None)\nprint([round(bar.get_height()) for bar in ax.patches])",
+  "verify": "stdout"
+ },
+ {
   "id": "b5-010",
   "objective": "5.1.2",
   "type": "single",
@@ -713,6 +743,35 @@
   "tags": [
    "palettes",
    "sequential"
+  ]
+ },
+ {
+  "id": "b5-036",
+  "objective": "5.2.1",
+  "type": "single",
+  "stem": "A churn slide for the operations director is titled \"Logistic regression coefficients (L2, C=1.0)\" and shows a table of 14 coefficients to four decimals, shaded red and green. Which revision serves this audience best?",
+  "options": [
+   "Title it with the finding (\"Late deliveries are the biggest driver of churn\"), show the top three drivers as a sorted bar chart in business terms with one colour-blind-safe highlight, and move the coefficient table to an appendix",
+   "Keep the table, and add a paragraph explaining L2 regularization and the `C` parameter",
+   "Replace the table with a 3D pie chart of all 14 coefficients",
+   "Keep the table and its red/green shading, but round the coefficients to two decimals"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "For a non-technical decision-maker: a title that states the takeaway, only the few numbers that drive the decision, in business terms, a chart that makes the ranking obvious, accessible colours, and the methodology moved out of the way.",
+  "why_wrong": [
+   "",
+   "The director needs the finding and its impact, not the method; technical detail belongs in an appendix or a peer review.",
+   "A 14-slice 3D pie is hard to read, and coefficients (some negative) aren't parts of a whole.",
+   "Rounding helps a little, but the slide still has no takeaway, too much detail, and colours many viewers can't tell apart."
+  ],
+  "source": "Syllabus 5.2.1",
+  "difficulty": 3,
+  "tags": [
+   "audience",
+   "slides",
+   "accessibility"
   ]
  },
  {

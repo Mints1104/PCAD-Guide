@@ -104,6 +104,25 @@ QUESTIONS = [
       "Two variables considered jointly form a bivariate distribution; three or more make it multivariate.",
       "Syllabus 3.1.1", ["bivariate", "distributions"]),
 
+    Q("b3-009", "3.1.1", 3,
+      "What does this code print?",
+      ["`2.31 0.73 20.6 23.4`", "`2.31 0.23 21.5 22.5`", "`2.19 0.69 20.6 23.4`", "`2.31 0.73 17.5 26.5`"],
+      0,
+      {1: "The standard error divides by √n (√10 ≈ 3.16), not by n.",
+       2: "`ddof=1` gives the sample standard deviation, 2.31; 2.19 is the population value (ddof=0).",
+       3: "17.5 to 26.5 is the mean ± 1.96 standard deviations, a range for individual values, not for the mean."},
+      "The sample standard deviation is 2.31 and the standard error is 2.31 / √10 ≈ 0.73. The 95% interval for the mean is 22 ± 1.96 × 0.73, about 20.6 to 23.4. It describes uncertainty about the mean, so it is much narrower than the spread of the data.",
+      "Syllabus 3.1.1", ["standard-error", "confidence-interval"],
+      code="""
+      import numpy as np
+
+      sample = np.array([20, 24, 22, 26, 18, 22, 24, 20, 22, 22])
+      s = sample.std(ddof=1)
+      se = s / np.sqrt(len(sample))
+      mean = sample.mean()
+      print(round(s, 2), round(se, 2), round(mean - 1.96 * se, 1), round(mean + 1.96 * se, 1))
+      """, verify="stdout"),
+
     # ---------- 3.1.2 Relationships ----------
     Q("b3-010", "3.1.2", 1,
       "Pearson's r between hours of overtime and job-satisfaction score is −0.85. How is this best described?",
@@ -206,6 +225,23 @@ QUESTIONS = [
        4: "A heatmap of correlations summarizes relationships between variables."},
       "Box plots mark outliers explicitly; histograms show isolated bars far from the rest.",
       "Syllabus 3.1.2", ["outliers", "charts"]),
+
+    Q("b3-018", "3.1.2", 2,
+      "What does this code print?",
+      ["`0.7 1.0`", "`1.0 1.0`", "`1.0 0.7`", "`0.7 0.7`"],
+      0,
+      {1: "The jump to 60 bends the points away from a straight line, so Pearson's r drops below 1.",
+       2: "Pearson is the one hurt by the extreme value; Spearman only uses the ranks.",
+       3: "y rises every time x rises, so the ranks match perfectly and Spearman's coefficient is 1."},
+      "Pearson's r measures how close the points are to a straight line, and the single value of 60 pulls it down to 0.7. Spearman's correlation compares ranks: y increases whenever x does, so it is exactly 1. Spearman suits relationships that are monotonic but not straight, and data with outliers.",
+      "Syllabus 3.1.2 · pandas docs", ["pearson", "spearman", "outliers"],
+      code="""
+      import pandas as pd
+
+      x = pd.Series([1, 2, 3, 4, 5, 6])
+      y = pd.Series([1, 2, 3, 4, 5, 60])
+      print(round(x.corr(y), 2), round(x.corr(y, method="spearman"), 2))
+      """, verify="stdout"),
 
     # ---------- 3.2.1 Bootstrapping ----------
     Q("b3-020", "3.2.1", 1,

@@ -191,7 +191,7 @@ Ann 90
 Bob 75
 ```
 
-Cy has no score to pair with, so he is left out.
+Cy has no score to pair with, so that name is left out.
 
 **Choosing between two values in one line.** `value_if_true if condition else value_if_false` is a compact `if`/`else` that produces a value:
 
@@ -278,7 +278,7 @@ print({item: price * 10 for item, price in prices.items()})
 
 > **Trap.** `range(1, 10, 3)` gives 1, 4, 7, never 10. Count the loop body's executions carefully.
 
-> **Trap.** An `if` that assigns to a global name inside a function makes that name local everywhere in the function; reading it earlier raises `UnboundLocalError`.
+> **Trap.** An assignment to a name anywhere inside a function, even inside an `if` that never runs, makes that name local for the whole function; reading it before the assignment raises `UnboundLocalError`.
 
 ## 2.1.2 Analyze and create Python functions
 
@@ -957,6 +957,8 @@ Run pip inside a virtual environment (`python -m venv .venv`) so each project ke
 
 > **Trap.** After `from math import sqrt`, the name `math` is not defined; only `sqrt` is.
 
+> **Trap.** Python looks in the script's own folder before the standard library. A file of your own called `statistics.py` or `csv.py` hides the real module, so `import statistics` loads your file and `statistics.mean` raises `AttributeError`.
+
 ## 2.2.2 Apply basic exception handling
 
 **Syllabus asks:** implement exception handling, predict and mitigate common errors, and read error messages to diagnose problems.
@@ -1104,7 +1106,7 @@ TypeError - int() argument must be a string, a bytes-like object or a real numbe
 ```python
 def set_price(value):
     if value < 0:
-        raise ValueError("price must be positive")
+        raise ValueError("price cannot be negative")
     return value
 
 print(set_price(5))
@@ -1117,7 +1119,7 @@ except ValueError as e:
 
 ```text
 5
-ValueError: price must be positive
+ValueError: price cannot be negative
 ```
 
 **Re-raising.** Inside an `except` block, `raise` on its own sends the **same** error on to the caller. It is useful when you want to note something (a log message) but still let the error through.
@@ -1706,7 +1708,7 @@ True False
 True True
 ```
 
-Use `is` only to check for `None` (`if x is None:`), or for `True` and `False`. For numbers and strings always use `==`: Python sometimes reuses the same object for small numbers and short strings, so `is` can seem to work in one case and fail in another.
+Use `is` to check for `None` (`if x is None:`), not to compare values. PEP 8 also advises against `x is True` and `x == True`: write `if x:`. For numbers and strings always use `==`: Python sometimes reuses the same object for small numbers and short strings, so `is` can seem to work in one case and fail in another.
 
 **Copying a list.** Since `b = a` only adds a second name, you need an explicit copy to get an independent list. `a.copy()`, `list(a)` and `a[:]` all make one.
 
@@ -1806,12 +1808,12 @@ LIMIT    5;
 
 <div class="dg jd">
 <p class="dg-title">The same two tables, four joins</p>
-<p class="jd-intro">Each join below uses <code>ON orders.customer_id = customers.id</code>. Ana appears twice in every result because she has two orders.</p>
+<p class="jd-intro">Each join below uses <code>ON orders.customer_id = customers.id</code>. Ana appears twice in every result because Ana has two orders.</p>
 <div class="jd-sources"><table class="jt"><caption>customers (left table)</caption><thead><tr><th>id</th><th>name</th></tr></thead><tbody><tr><td>1</td><td>Ana</td></tr><tr><td>2</td><td>Ben</td></tr><tr class="jd-l"><td>3</td><td>Cy</td></tr></tbody></table><table class="jt"><caption>orders (right table)</caption><thead><tr><th>customer_id</th><th>total</th></tr></thead><tbody><tr><td>1</td><td>50</td></tr><tr><td>1</td><td>70</td></tr><tr><td>2</td><td>20</td></tr><tr class="jd-r"><td>9</td><td>15</td></tr></tbody></table></div>
 <p class="jd-legend"><span class="jd-key jd-key-l">Cy: a customer with no orders</span> <span class="jd-key jd-key-r">Order 9: an order with no customer</span></p>
 <div class="jd-grid">
 <div class="jd-card"><table class="jt"><thead><tr><th>id</th><th>name</th><th>customer_id</th><th>total</th></tr></thead><tbody><tr><td>1</td><td>Ana</td><td>1</td><td>50</td></tr><tr><td>1</td><td>Ana</td><td>1</td><td>70</td></tr><tr><td>2</td><td>Ben</td><td>2</td><td>20</td></tr></tbody></table><p class="jd-name">INNER JOIN</p><p class="jd-why">Only pairs where <code>customer_id</code> equals <code>id</code>. Cy has no orders and order 9's customer doesn't exist, so both disappear. <b>3 rows.</b></p></div>
-<div class="jd-card"><table class="jt"><thead><tr><th>id</th><th>name</th><th>customer_id</th><th>total</th></tr></thead><tbody><tr><td>1</td><td>Ana</td><td>1</td><td>50</td></tr><tr><td>1</td><td>Ana</td><td>1</td><td>70</td></tr><tr><td>2</td><td>Ben</td><td>2</td><td>20</td></tr><tr class="jd-l"><td>3</td><td>Cy</td><td class="jd-null">NULL</td><td class="jd-null">NULL</td></tr></tbody></table><p class="jd-name">LEFT JOIN</p><p class="jd-why">Every row of the left table (customers) is kept. Cy matches no order, so his order columns are NULL. Order 9 is still dropped: it is on the right and matches no one. <b>4 rows.</b></p></div>
+<div class="jd-card"><table class="jt"><thead><tr><th>id</th><th>name</th><th>customer_id</th><th>total</th></tr></thead><tbody><tr><td>1</td><td>Ana</td><td>1</td><td>50</td></tr><tr><td>1</td><td>Ana</td><td>1</td><td>70</td></tr><tr><td>2</td><td>Ben</td><td>2</td><td>20</td></tr><tr class="jd-l"><td>3</td><td>Cy</td><td class="jd-null">NULL</td><td class="jd-null">NULL</td></tr></tbody></table><p class="jd-name">LEFT JOIN</p><p class="jd-why">Every row of the left table (customers) is kept. Cy matches no order, so Cy's order columns are NULL. Order 9 is still dropped: it is on the right and matches no one. <b>4 rows.</b></p></div>
 <div class="jd-card"><table class="jt"><thead><tr><th>id</th><th>name</th><th>customer_id</th><th>total</th></tr></thead><tbody><tr><td>1</td><td>Ana</td><td>1</td><td>50</td></tr><tr><td>1</td><td>Ana</td><td>1</td><td>70</td></tr><tr><td>2</td><td>Ben</td><td>2</td><td>20</td></tr><tr class="jd-r"><td class="jd-null">NULL</td><td class="jd-null">NULL</td><td>9</td><td>15</td></tr></tbody></table><p class="jd-name">RIGHT JOIN</p><p class="jd-why">The mirror image: every row of the right table (orders) is kept. Order 9 matches no customer, so its customer columns are NULL. Cy is dropped. <b>4 rows.</b></p></div>
 <div class="jd-card"><table class="jt"><thead><tr><th>id</th><th>name</th><th>customer_id</th><th>total</th></tr></thead><tbody><tr><td>1</td><td>Ana</td><td>1</td><td>50</td></tr><tr><td>1</td><td>Ana</td><td>1</td><td>70</td></tr><tr><td>2</td><td>Ben</td><td>2</td><td>20</td></tr><tr class="jd-l"><td>3</td><td>Cy</td><td class="jd-null">NULL</td><td class="jd-null">NULL</td></tr><tr class="jd-r"><td class="jd-null">NULL</td><td class="jd-null">NULL</td><td>9</td><td>15</td></tr></tbody></table><p class="jd-name">FULL OUTER JOIN</p><p class="jd-why">Everything from both sides: the three matches, plus Cy and order 9, each with NULLs on the side it's missing. <b>5 rows.</b></p></div>
 </div>
@@ -1869,7 +1871,7 @@ print(left)
 [('Ana', 50.0), ('Ana', 70.0), ('Ben', 20.0), ('Cy', None)]
 ```
 
-Every customer from the left table (`customers`) is kept. Cy has no order, so his `total` is `NULL`. Order 9 is still missing, because it is on the right side and has no match.
+Every customer from the left table (`customers`) is kept. Cy has no order, so Cy's `total` is `NULL`. Order 9 is still missing, because it is on the right side and has no match.
 
 **Counting and adding up: aggregates.** `COUNT`, `SUM`, `AVG`, `MIN` and `MAX` turn many rows into one value. `COUNT(*)` counts rows; `COUNT(column)` counts only the rows where that column isn't `NULL`. The others skip `NULL`s too.
 
@@ -2101,6 +2103,30 @@ print(con.execute("""
 ```text
 [('Apple', 'low'), ('Bread', 'low'), ('Cake', 'high')]
 ```
+
+**Functions on single values.** Besides aggregates, SQL has functions that work on one value in each row: `UPPER` and `LOWER` change the case, `LENGTH` counts characters, `ROUND(x, n)` rounds to n decimal places, and `COALESCE(a, b, …)` returns the first argument that isn't `NULL`, which turns a missing value into a default. `AS` names the result column.
+
+```python
+import sqlite3
+
+con = sqlite3.connect(":memory:")
+con.executescript("""
+CREATE TABLE products (name TEXT, price REAL, discount REAL);
+INSERT INTO products VALUES ('apple', 1.234, 0.1), ('bread', 3.0, NULL);
+""")
+
+print(con.execute("""
+    SELECT UPPER(name) AS item, LENGTH(name) AS letters,
+           ROUND(price, 1) AS price, COALESCE(discount, 0) AS discount
+    FROM products
+""").fetchall())
+```
+
+```text
+[('APPLE', 5, 1.2, 0.1), ('BREAD', 5, 3.0, 0)]
+```
+
+Bread's discount is `NULL`, so `COALESCE` returns 0 instead. The same function fixes totals after a `LEFT JOIN`: for a customer with no orders, `SUM(o.total)` is `NULL`, while `COALESCE(SUM(o.total), 0)` is 0.
 
 ### Exam traps
 

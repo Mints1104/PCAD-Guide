@@ -293,6 +293,8 @@ df["age"] = df["age"].fillna(df.groupby("region")["age"].transform("mean"))
 
 **Outliers.** Detect with a box plot, the **IQR rule** (below Q1 − 1.5·IQR or above Q3 + 1.5·IQR) or **z-scores** (|z| > 3). Then decide: a data-entry error (fix or remove) or a genuine extreme value (keep, cap, or transform, for example with a log). Never delete outliers only because they are inconvenient.
 
+**Outlier detection depends on good collection.** The IQR and z-score rules are worked out from the data itself, so errors in the data move the cut-offs. Values typed in the wrong unit (hours instead of minutes) or placeholder values such as `0` or `-999` drag Q1, Q3, the mean and the standard deviation, so real outliers can slip under the limits and normal values can be flagged. A sample collected from the wrong group changes what counts as unusual in the first place. Fix units, entry errors and sentinel values first, then look for outliers.
+
 **Numeric vs categorical.** Numeric columns: ranges, summary statistics, IQR and z-scores. Categorical columns: `value_counts()`, allowed-value lists, case and whitespace differences, rare categories and typos. Statistics such as z-scores make no sense for categories.
 
 ### Exam traps

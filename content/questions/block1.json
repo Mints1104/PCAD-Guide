@@ -545,6 +545,34 @@
   ]
  },
  {
+  "id": "b1-025",
+  "objective": "1.1.3",
+  "type": "single",
+  "stem": "A retailer wants to keep five years of raw clickstream JSON and product images for future machine-learning work, and also give finance consistent SQL dashboards built from cleaned sales data. Which storage design fits both needs?",
+  "options": [
+   "Land all raw data in a cloud data lake, then load cleaned, modeled sales tables into a data warehouse (or lakehouse tables) for the dashboards",
+   "Load everything, including the images, into the warehouse with a fixed schema defined up front",
+   "Keep everything in the data lake and point the finance dashboards at the raw JSON files",
+   "Run the dashboards on the production OLTP order database and archive the rest as Excel files"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "The two needs call for both layers: a lake (schema-on-read) keeps raw data of every type cheaply for later use, and a warehouse (schema-on-write) serves cleaned, consistent tables for SQL reporting. Many teams build this as a lake plus a warehouse, or as a lakehouse.",
+  "why_wrong": [
+   "",
+   "A warehouse is schema-on-write: images and evolving raw JSON don't fit a fixed schema, and storing them there is costly.",
+   "Raw, ungoverned files give inconsistent numbers; dashboards need cleaned, modeled tables.",
+   "Heavy reports slow the transactional system, and Excel can't hold years of clickstream data."
+  ],
+  "source": "Syllabus 1.1.3",
+  "difficulty": 3,
+  "tags": [
+   "data-lake",
+   "data-warehouse"
+  ]
+ },
+ {
   "id": "b1-030",
   "objective": "1.2.1",
   "type": "single",
@@ -657,6 +685,37 @@
   "tags": [
    "unstructured",
    "storage"
+  ]
+ },
+ {
+  "id": "b1-034",
+  "objective": "1.2.1",
+  "type": "multi",
+  "stem": "A support-ticket export has the columns `ticket_id`, `created_at`, `priority` (low, medium, high) and `description` (free text written by customers). Which two statements are correct? Select two.",
+  "options": [
+   "`ticket_id`, `created_at` and `priority` can be filtered and grouped directly with SQL or pandas",
+   "Counting complaint topics needs a text-processing step that turns `description` into structured features first",
+   "Because the file is a CSV, every column is structured data ready for analysis",
+   "The whole file is unstructured data, because one column holds free text",
+   "`description` should be min-max scaled before analysis"
+  ],
+  "answer": [
+   0,
+   1
+  ],
+  "explanation": "One file can mix both kinds. The typed columns are structured and can be queried at once; the free-text column is unstructured content that needs processing (keyword or topic extraction, sentiment scoring) before it can be counted or grouped.",
+  "why_wrong": [
+   "",
+   "",
+   "The CSV is only the container; the free text inside `description` has no predefined structure.",
+   "Three columns have a fixed meaning and type; only the text column is unstructured.",
+   "Scaling applies to numbers; free text has to be turned into features (keywords, topics, sentiment) first."
+  ],
+  "source": "Syllabus 1.2.1",
+  "difficulty": 3,
+  "tags": [
+   "structured",
+   "unstructured"
   ]
  },
  {
@@ -1356,6 +1415,37 @@
   ]
  },
  {
+  "id": "b1-067",
+  "objective": "1.2.4",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "`['qty', 'size_M', 'size_S']`",
+   "`['qty', 'size_M', 'size_L']`",
+   "`['qty', 'size_L', 'size_M', 'size_S']`",
+   "`['size', 'qty', 'size_M', 'size_S']`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "The categories are sorted (L, M, S) and `drop_first=True` drops the first, `size_L`. A row with 0 in both remaining columns is an L. Dropping one column avoids redundant columns that confuse linear models.",
+  "why_wrong": [
+   "",
+   "`drop_first` drops the first category in sorted order (L), not the first value in the data (S).",
+   "That is the result without `drop_first=True`.",
+   "`get_dummies` replaces the original `size` column with the indicator columns."
+  ],
+  "source": "Syllabus 1.2.4 · pandas docs",
+  "difficulty": 2,
+  "tags": [
+   "one-hot",
+   "get_dummies",
+   "drop_first"
+  ],
+  "code": "import pandas as pd\n\ndf = pd.DataFrame({\"size\": [\"S\", \"M\", \"L\", \"M\"], \"qty\": [1, 2, 3, 4]})\nprint(pd.get_dummies(df, columns=[\"size\"], drop_first=True, dtype=int).columns.tolist())",
+  "verify": "stdout"
+ },
+ {
   "id": "b1-070",
   "objective": "1.3.1",
   "type": "single",
@@ -1849,6 +1939,36 @@
   ]
  },
  {
+  "id": "b1-096",
+  "objective": "1.4.1",
+  "type": "single",
+  "stem": "A DataFrame is written to CSV and read straight back. What does this code print?",
+  "options": [
+   "`['Unnamed: 0', 'sku', 'qty'] (2, 3)`",
+   "`['sku', 'qty'] (2, 2)`",
+   "`['index', 'sku', 'qty'] (2, 3)`",
+   "`['sku', 'qty'] (3, 2)`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`to_csv` writes the row index as an unnamed first column by default, and reading the file back turns it into a column called `Unnamed: 0`. Write with `index=False`, or read with `index_col=0`.",
+  "why_wrong": [
+   "",
+   "That's what `to_csv(buf, index=False)` would give; by default the index is written too.",
+   "The index column has no header in the file, so pandas names it `Unnamed: 0`, not `index`.",
+   "The header line becomes the column names, not a data row, so there are still 2 rows."
+  ],
+  "source": "Syllabus 1.4.1 · pandas docs",
+  "difficulty": 3,
+  "tags": [
+   "csv",
+   "to_csv"
+  ],
+  "code": "import io\nimport pandas as pd\n\ndf = pd.DataFrame({\"sku\": [\"A1\", \"B2\"], \"qty\": [3, 5]})\nbuf = io.StringIO()\ndf.to_csv(buf)\nbuf.seek(0)\nback = pd.read_csv(buf)\nprint(back.columns.tolist(), back.shape)",
+  "verify": "stdout"
+ },
+ {
   "id": "b1-100",
   "objective": "1.4.2",
   "type": "single",
@@ -1993,6 +2113,36 @@
    "tidy-data",
    "organization"
   ]
+ },
+ {
+  "id": "b1-105",
+  "objective": "1.4.2",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "`[4, 2, 0]`",
+   "`[0, 1, 2]`",
+   "`[0, 2, 4]`",
+   "`[4, 2, 0, 1]`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`~isin([\"UK\"])` drops row 3 and `total >= 100` drops row 1. The remaining rows 0 (120), 2 (150) and 4 (200) are sorted from largest to smallest, and each keeps its original index label.",
+  "why_wrong": [
+   "",
+   "Sorting doesn't renumber the rows: each row keeps its original label.",
+   "These are the right rows, but in their original order; `ascending=False` puts the largest total first.",
+   "Row 1 (US, 80) fails `total >= 100`, so the `&` drops it."
+  ],
+  "source": "Syllabus 1.4.2",
+  "difficulty": 3,
+  "tags": [
+   "filtering",
+   "sorting"
+  ],
+  "code": "import pandas as pd\n\ndf = pd.DataFrame({\"region\": [\"EU\", \"US\", \"EU\", \"UK\", \"US\"],\n                   \"total\": [120, 80, 150, 60, 200]})\nout = df[~df[\"region\"].isin([\"UK\"]) & (df[\"total\"] >= 100)].sort_values(\"total\", ascending=False)\nprint(out.index.tolist())",
+  "verify": "stdout"
  },
  {
   "id": "b1-110",
@@ -2198,6 +2348,37 @@
   ]
  },
  {
+  "id": "b1-117",
+  "objective": "1.4.3",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "`['/a.pdf', '/b.pdf'] ['Annual report', None]`",
+   "`['/a.pdf', '/b.pdf', '/c.pdf'] ['Annual report', None, None]`",
+   "`['/a.pdf'] ['Annual report']`",
+   "A KeyError is raised, because the second link has no `title`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "The CSS selector `#docs a.doc` means \"`<a>` tags with class `doc` inside the element with id `docs`\": the Annual and Budget links. `a[\"href\"]` reads an attribute that exists; `a.get(\"title\")` returns None where it is missing.",
+  "why_wrong": [
+   "",
+   "`#docs a.doc` only matches links inside the element whose id is `docs`; the \"Outside\" link isn't in it.",
+   "`class=\"doc pdf\"` has two classes, and `.doc` matches any element that has `doc` among them.",
+   "`.get(\"title\")` returns None for a missing attribute; only `a[\"title\"]` would raise KeyError."
+  ],
+  "source": "Syllabus 1.4.3 · BeautifulSoup docs",
+  "difficulty": 3,
+  "tags": [
+   "beautifulsoup",
+   "css-selectors",
+   "attributes"
+  ],
+  "code": "from bs4 import BeautifulSoup\n\nhtml = '''<div id=\"docs\">\n  <a class=\"doc\" href=\"/a.pdf\" title=\"Annual report\">Annual</a>\n  <a class=\"doc pdf\" href=\"/b.pdf\">Budget</a>\n  <a class=\"ad\" href=\"/buy\" title=\"Buy\">Buy now</a>\n</div>\n<a class=\"doc\" href=\"/c.pdf\">Outside</a>'''\nsoup = BeautifulSoup(html, \"html.parser\")\nlinks = soup.select(\"#docs a.doc\")\nprint([a[\"href\"] for a in links], [a.get(\"title\") for a in links])",
+  "verify": "stdout"
+ },
+ {
   "id": "b1-120",
   "objective": "1.4.4",
   "type": "single",
@@ -2310,6 +2491,34 @@
   "tags": [
    "spreadsheets",
    "formatting"
+  ]
+ },
+ {
+  "id": "b1-124",
+  "objective": "1.4.4",
+  "type": "single",
+  "stem": "Cell D2 contains `=B2*C$1`. The formula is copied to E3, one column right and one row down. What does E3 contain?",
+  "options": [
+   "`=C3*D$1`",
+   "`=B3*C$1`",
+   "`=C3*C$1`",
+   "`=C3*D$2`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "A `$` fixes only the part it stands in front of. `B2` is fully relative, so it moves one column and one row to C3. `C$1` has a relative column and a fixed row, so it becomes D$1.",
+  "why_wrong": [
+   "",
+   "Relative column letters shift too: copying one column right turns B into C.",
+   "Only the row of `C$1` is fixed; its column has no `$`, so C becomes D.",
+   "`$1` locks the row, so it stays 1."
+  ],
+  "source": "Syllabus 1.4.4",
+  "difficulty": 3,
+  "tags": [
+   "spreadsheet",
+   "cell-references"
   ]
  },
  {
@@ -2542,6 +2751,37 @@
    "imputation"
   ],
   "code": "import numpy as np\nimport pandas as pd\n\ns = pd.Series([12, 18, np.nan, 25, 10_000, np.nan])\nprint(s.fillna(s.mean()).round(1).tolist())",
+  "verify": "stdout"
+ },
+ {
+  "id": "b1-138",
+  "objective": "1.4.5",
+  "type": "single",
+  "stem": "The EU file writes dates as day/month/year; the US file uses ISO dates. What does this code print?",
+  "options": [
+   "`[7, 9]`",
+   "`[9]`",
+   "`[]`",
+   "A ValueError is raised"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "With `format=\"%d/%m/%Y\"`, 03/04/2025 is 3 April. Both date columns now hold the same two datetimes, so the merge matches both rows. Without the explicit format, pandas would read the EU dates month-first and the 3 April rows would silently fail to match.",
+  "why_wrong": [
+   "",
+   "That is what happens without `format=`: pandas reads 03/04/2025 month-first as 4 March, so only 4 April matches.",
+   "Both columns become real datetimes for 3 and 4 April 2025, so both rows match.",
+   "Both formats parse cleanly: the EU one with the explicit format, the ISO one automatically."
+  ],
+  "source": "Syllabus 1.4.5 · pandas docs",
+  "difficulty": 3,
+  "tags": [
+   "dates",
+   "to_datetime",
+   "merge"
+  ],
+  "code": "import pandas as pd\n\neu = pd.DataFrame({\"date\": [\"03/04/2025\", \"04/04/2025\"], \"eu\": [10, 12]})\nus = pd.DataFrame({\"date\": [\"2025-04-03\", \"2025-04-04\"], \"us\": [7, 9]})\neu[\"date\"] = pd.to_datetime(eu[\"date\"], format=\"%d/%m/%Y\")\nus[\"date\"] = pd.to_datetime(us[\"date\"])\nprint(eu.merge(us, on=\"date\")[\"us\"].tolist())",
   "verify": "stdout"
  }
 ]

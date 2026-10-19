@@ -502,6 +502,26 @@ QUESTIONS = [
       "DataFrames hold labeled columns that can each have their own dtype.",
       "Syllabus 4.1.5", ["data-structures", "dataframe"]),
 
+    Q("b4-047", "4.1.5", 3,
+      "The analyst wants to subtract each row's mean from that row. What happens when this code runs?",
+      ["A ValueError is raised: shapes (2, 3) and (2,) can't be broadcast",
+       "It prints `[[-1. 0. 1.] [-1. 0. 1.]]`",
+       "It prints `[[-1.5 -1.5 -1.5] [1.5 1.5 1.5]]`",
+       "It prints an array of shape (2, 2)"],
+      0,
+      {1: "That is the intended result, but it needs the row means as a column: `m.mean(axis=1, keepdims=True)` or `m.mean(axis=1)[:, None]`.",
+       2: "That would be subtracting the column means (`axis=0`), and this code fails before printing anyway.",
+       3: "These shapes can't broadcast to any result; NumPy raises an error."},
+      "`m.mean(axis=1)` has shape (2,). Broadcasting compares shapes from the right: 3 against 2 don't match and neither is 1, so NumPy raises ValueError. Keeping the axis with `m.mean(axis=1, keepdims=True)` gives shape (2, 1), which stretches across each row.",
+      "Syllabus 4.1.5 · NumPy broadcasting docs", ["numpy", "broadcasting", "axis"],
+      code="""
+      import numpy as np
+
+      m = np.array([[1, 2, 3],
+                    [4, 5, 6]])
+      print(m - m.mean(axis=1))
+      """, verify="raises:ValueError"),
+
     # ---------- 4.1.6 Grouping ----------
     Q("b4-050", "4.1.6", 2,
       "What does this code print?",
@@ -694,6 +714,25 @@ QUESTIONS = [
        3: "Half the orders exceed the median, 310, not the mean."},
       "When the mean is much larger than the median, large values in the right tail are dragging the mean upward.",
       "Syllabus 4.2.1, 3.1.1", ["skew", "describe"]),
+
+    Q("b4-065", "4.2.1", 3,
+      "What does this code print?",
+      ["`[11.0, 1.41, 2.0]`", "`[7.33, 6.43, 3.0]`", "`[11.0, 1.0, 2.0]`", "`[11.0, 1.41, 3.0]`"],
+      0,
+      {1: "pandas skips NaN; it doesn't treat it as 0.",
+       2: "1.0 is the population standard deviation (ddof=0); pandas' `std` uses ddof=1.",
+       3: "`count` counts non-missing values only, so store A has 2."},
+      "Store A's sales are 10, 12 and NaN. pandas skips the NaN: mean 11.0, sample standard deviation √((1² + 1²) / 1) ≈ 1.41, and count 2.",
+      "Syllabus 4.2.1 · pandas docs", ["groupby", "std", "nan"],
+      code="""
+      import numpy as np
+      import pandas as pd
+
+      df = pd.DataFrame({"store": ["A", "A", "A", "B", "B"],
+                         "sales": [10, 12, np.nan, 30, 50]})
+      summary = df.groupby("store")["sales"].agg(["mean", "std", "count"])
+      print(summary.round(2).loc["A"].tolist())
+      """, verify="stdout"),
 
     # ---------- 4.2.2 Test datasets ----------
     Q("b4-070", "4.2.2", 1,
@@ -898,4 +937,22 @@ QUESTIONS = [
        3: "Assuming a straight-line relationship is itself a source of bias, however exactly the line is fitted."},
       "A straight-line model can't bend to follow complex patterns (bias) but changes little between training samples (low variance). Add features if it underfits; regularize if many features make it overfit.",
       "Syllabus 4.2.3", ["bias-variance", "linear-regression"]),
+
+    Q("b4-089", "4.2.3", 3,
+      "Class 1 means \"fraud\". What does this code print?",
+      ["`2 1 2 0.67 0.5`", "`2 1 2 0.5 0.67`", "`2 2 1 0.67 0.5`", "`2 1 2 0.7 0.7`"],
+      0,
+      {1: "Precision and recall are swapped: precision divides by predicted frauds (2 + 1), recall by actual frauds (2 + 2).",
+       2: "fp counts genuine transactions flagged as fraud (1, the fifth row); fn counts missed frauds (2).",
+       3: "0.7 is the accuracy (7 of 10 right); precision and recall look only at the fraud class."},
+      "Two frauds were caught (tp = 2), one genuine transaction was flagged (fp = 1) and two frauds were missed (fn = 2). Precision = tp / (tp + fp) = 2/3 ≈ 0.67; recall = tp / (tp + fn) = 2/4 = 0.5. The model misses half the fraud, which its 70% accuracy hides.",
+      "Syllabus 4.2.3 · scikit-learn docs", ["precision", "recall", "confusion-matrix"],
+      code="""
+      from sklearn.metrics import confusion_matrix, precision_score, recall_score
+
+      y_true = [1, 1, 1, 1, 0, 0, 0, 0, 0, 0]
+      y_pred = [1, 1, 0, 0, 1, 0, 0, 0, 0, 0]
+      tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
+      print(tp, fp, fn, round(precision_score(y_true, y_pred), 2), recall_score(y_true, y_pred))
+      """, verify="stdout"),
 ]

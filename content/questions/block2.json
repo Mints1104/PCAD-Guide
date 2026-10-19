@@ -209,6 +209,38 @@
   "verify": "stdout"
  },
  {
+  "id": "b2-008",
+  "objective": "2.1.1",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "`1-Ann-90; 2-Bob-75; done`",
+   "`0-Ann-90; 1-Bob-75; done`",
+   "`1-Ann-90; 2-Bob-75; 3-Cy-None; done`",
+   "1 Ann 90\n2 Bob 75\ndone"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`zip` pairs the names with the two scores and stops there; `enumerate(..., start=1)` numbers the pairs from 1; `sep` goes between the printed values and `end` replaces the newline, so the final `print` continues the same line.",
+  "why_wrong": [
+   "",
+   "`start=1` makes `enumerate` count from 1.",
+   "`zip` stops at the shorter list, so Cy (who has no score) is dropped without any error.",
+   "`sep=\"-\"` joins the values with dashes, and `end=\"; \"` keeps everything on one line."
+  ],
+  "source": "Syllabus 2.1.1 · Python docs",
+  "difficulty": 3,
+  "tags": [
+   "zip",
+   "enumerate",
+   "print"
+  ],
+  "code": "names = [\"Ann\", \"Bob\", \"Cy\"]\nscores = [90, 75]\nfor i, (name, score) in enumerate(zip(names, scores), start=1):\n    print(i, name, score, sep=\"-\", end=\"; \")\nprint(\"done\")",
+  "optlang": "text",
+  "verify": "stdout"
+ },
+ {
   "id": "b2-010",
   "objective": "2.1.2",
   "type": "single",
@@ -422,6 +454,37 @@
   "verify": "raises:TypeError"
  },
  {
+  "id": "b2-017",
+  "objective": "2.1.2",
+  "type": "single",
+  "stem": "Given `def scale(x, /, factor=2, *, offset=0):`, which call raises a TypeError?",
+  "options": [
+   "`scale(x=3)`",
+   "`scale(3, 4)`",
+   "`scale(3, offset=1)`",
+   "`scale(3, factor=4, offset=1)`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Parameters before `/` are positional-only, so `x` can't be passed as `x=3`. Parameters after `*` are keyword-only. Those in between, here `factor`, can be passed either way.",
+  "why_wrong": [
+   "",
+   "`factor` sits between `/` and `*`, so it can be passed by position.",
+   "`offset` is keyword-only and is passed by name, which is what it requires.",
+   "`factor` can also be passed by name, and `offset` is passed by name as required."
+  ],
+  "source": "Syllabus 2.1.2 · Python docs",
+  "difficulty": 3,
+  "tags": [
+   "positional-only",
+   "keyword-only"
+  ],
+  "verify": {
+   "py": "def scale(x, /, factor=2, *, offset=0):\n    return x * factor + offset\nresults = []\nfor i in range(4):\n    try:\n        eval(opt(i))\n        results.append(False)\n    except TypeError:\n        results.append(True)\nassert results == [True, False, False, False], results"
+  }
+ },
+ {
   "id": "b2-020",
   "objective": "2.1.3",
   "type": "single",
@@ -593,6 +656,34 @@
   "tags": [
    "ecosystem",
    "evaluation"
+  ]
+ },
+ {
+  "id": "b2-026",
+  "objective": "2.1.3",
+  "type": "single",
+  "stem": "An analyst must (1) read 30 Excel workbooks into one table, (2) predict which customers will churn and estimate accuracy with cross-validation, and (3) give a regulator a p-value for each predictor. Which set of tools fits?",
+  "options": [
+   "pandas (with openpyxl) for the workbooks, scikit-learn for the churn model and cross-validation, statsmodels for the p-values",
+   "NumPy for the workbooks, Seaborn for the model, SciPy for the p-values",
+   "pandas for the workbooks, then statsmodels for everything else, because it also provides cross-validation and pipelines",
+   "BeautifulSoup for the workbooks, then scikit-learn for the model and its p-values"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`pd.read_excel` (which uses openpyxl) and `pd.concat` combine the workbooks; scikit-learn handles prediction and `cross_val_score`; statsmodels reports coefficients with p-values and confidence intervals.",
+  "why_wrong": [
+   "",
+   "NumPy doesn't read Excel files, and Seaborn draws charts; it doesn't fit predictive models.",
+   "statsmodels reports inference statistics, but cross-validation, pipelines and predictive evaluation are scikit-learn's job.",
+   "BeautifulSoup parses HTML, not Excel, and scikit-learn's models don't report p-values."
+  ],
+  "source": "Syllabus 2.1.3",
+  "difficulty": 3,
+  "tags": [
+   "ecosystem",
+   "library-choice"
   ]
  },
  {
@@ -868,6 +959,37 @@
   "verify": "stdout"
  },
  {
+  "id": "b2-039",
+  "objective": "2.1.4",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "`2 0 2 0 3`",
+   "`2 0 2 0 2`",
+   "`3 0 2 0 2`",
+   "A KeyError is raised for \"APAC\""
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "EU's set holds {tea, jam} (2). Looking up \"APAC\" creates an empty set (0) and adds the key. The Counter has tea twice and returns 0 for the unseen \"milk\". The arguments are evaluated left to right, so `len(by_region)` sees EU, US and APAC: 3.",
+  "why_wrong": [
+   "",
+   "Reading `by_region[\"APAC\"]` creates that key with an empty set, so the dict has 3 keys by the time `len(by_region)` runs.",
+   "EU's items go into a set, so the repeated \"tea\" is stored once: EU has 2 distinct items.",
+   "A `defaultdict` never raises KeyError for a missing key; it creates the key with a default value."
+  ],
+  "source": "Syllabus 2.1.4 · Python docs (collections)",
+  "difficulty": 3,
+  "tags": [
+   "defaultdict",
+   "counter",
+   "set"
+  ],
+  "code": "from collections import Counter, defaultdict\n\norders = [(\"EU\", \"tea\"), (\"US\", \"jam\"), (\"EU\", \"jam\"), (\"EU\", \"tea\")]\nby_region = defaultdict(set)\nfor region, item in orders:\n    by_region[region].add(item)\ncounts = Counter(item for _, item in orders)\nprint(len(by_region[\"EU\"]), len(by_region[\"APAC\"]), counts[\"tea\"], counts[\"milk\"], len(by_region))",
+  "verify": "stdout"
+ },
+ {
   "id": "b2-040",
   "objective": "2.1.5",
   "type": "single",
@@ -1009,6 +1131,42 @@
    "pep8",
    "imports"
   ]
+ },
+ {
+  "id": "b2-045",
+  "objective": "2.1.5",
+  "type": "multi",
+  "stem": "This script runs correctly. Which three things in it break PEP 8? Select three.",
+  "options": [
+   "`import os, sys` on one line",
+   "Only one blank line between `MAX_ROWS = 500` and `def load_rows`",
+   "`if limit == None:`",
+   "`MAX_ROWS` written in upper case",
+   "No spaces around `=` in `limit=MAX_ROWS`",
+   "`load_rows` written in snake_case"
+  ],
+  "answer": [
+   0,
+   1,
+   2
+  ],
+  "explanation": "PEP 8 wants one import per line, two blank lines around top-level function and class definitions, and `is None` rather than `== None`. The constant's case, the default-value spacing and the function name are all correct.",
+  "why_wrong": [
+   "",
+   "",
+   "",
+   "Module-level constants are written in UPPER_CASE_WITH_UNDERSCORES.",
+   "PEP 8 asks for no spaces around `=` in an unannotated default value.",
+   "Function names are lowercase with underscores."
+  ],
+  "source": "Syllabus 2.1.5 · PEP 8",
+  "difficulty": 3,
+  "tags": [
+   "pep8",
+   "style"
+  ],
+  "code": "import os, sys\n\nMAX_ROWS = 500\n\ndef load_rows(path, limit=MAX_ROWS):\n    if limit == None:\n        limit = MAX_ROWS\n    with open(path) as f:\n        return f.read().splitlines()[:limit]",
+  "verify": "runs"
  },
  {
   "id": "b2-050",
@@ -1210,6 +1368,38 @@
   ],
   "code": "import math as m\nfrom math import sqrt as root\n\nprint(m.floor(2.7) + root(16))",
   "verify": "stdout"
+ },
+ {
+  "id": "b2-057",
+  "objective": "2.2.1",
+  "type": "single",
+  "stem": "A project folder holds the two files below. What happens when `python analysis.py` is run?",
+  "options": [
+   "An AttributeError is raised: `import statistics` loads the local statistics.py, which has no `mean`",
+   "It prints `3`, because the standard library always takes priority",
+   "An ImportError is raised, because two modules share a name",
+   "Python combines both modules, so it prints `3`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Python searches the script's folder before the standard library, so a local file named after a standard module hides it. Don't name your own files `statistics.py`, `random.py`, `csv.py` and so on.",
+  "why_wrong": [
+   "",
+   "The script's own folder comes first on `sys.path`, so the local file wins over the standard library.",
+   "There is no name-clash error: Python simply imports the first `statistics` it finds.",
+   "Python imports one module per name; it never combines files."
+  ],
+  "source": "Syllabus 2.2.1 · Python docs (sys.path)",
+  "difficulty": 3,
+  "tags": [
+   "imports",
+   "sys-path"
+  ],
+  "code": "# statistics.py (written by the analyst)\ndef summarize(values):\n    return min(values), max(values)\n\n# analysis.py\nimport statistics\nprint(statistics.mean([2, 4]))",
+  "verify": {
+   "py": "import os, subprocess, sys, tempfile\nfolder = tempfile.mkdtemp()\nwith open(os.path.join(folder, \"statistics.py\"), \"w\") as f:\n    f.write(\"def summarize(values):\\n    return min(values), max(values)\\n\")\nwith open(os.path.join(folder, \"analysis.py\"), \"w\") as f:\n    f.write(\"import statistics\\nprint(statistics.mean([2, 4]))\\n\")\nenv = {k: v for k, v in os.environ.items() if k != \"PYTHONSAFEPATH\"}\nr = subprocess.run([sys.executable, \"analysis.py\"], cwd=folder, capture_output=True, text=True, env=env)\nassert \"AttributeError\" in r.stderr and \"mean\" in r.stderr, r.stderr"
+  }
  },
  {
   "id": "b2-060",
@@ -1424,6 +1614,37 @@
   ]
  },
  {
+  "id": "b2-067",
+  "objective": "2.2.2",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "`40 log ValueError DataQualityError type`",
+   "`40 log ValueError DataQualityError ValueError`",
+   "`40 ValueError DataQualityError type`",
+   "`40 log ValueError 150 type`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "\"40\" parses. \"abc\" raises ValueError: the inner handler logs it and re-raises it, and the caller prints its name. \"150\" raises the custom DataQualityError, caught by the tuple. `int(None)` raises TypeError, which skips the inner handler and the tuple and lands in `except TypeError`.",
+  "why_wrong": [
+   "",
+   "`int(None)` raises TypeError, which the inner `except ValueError` doesn't catch; the caller's `except TypeError` prints \"type\".",
+   "The inner handler prints \"log\" before the bare `raise` passes the same ValueError on to the caller.",
+   "150 passes `int()` but fails the `age > 120` check, which raises DataQualityError."
+  ],
+  "source": "Syllabus 2.2.2 · Python docs",
+  "difficulty": 3,
+  "tags": [
+   "exceptions",
+   "re-raise",
+   "custom-exception"
+  ],
+  "code": "class DataQualityError(Exception):\n    pass\n\ndef parse_age(text):\n    try:\n        age = int(text)\n    except ValueError:\n        print(\"log\", end=\" \")\n        raise\n    if age > 120:\n        raise DataQualityError(age)\n    return age\n\nfor t in [\"40\", \"abc\", \"150\", None]:\n    try:\n        print(parse_age(t), end=\" \")\n    except (ValueError, DataQualityError) as e:\n        print(type(e).__name__, end=\" \")\n    except TypeError:\n        print(\"type\", end=\" \")\nprint()",
+  "verify": "stdout"
+ },
+ {
   "id": "b2-070",
   "objective": "2.3.1",
   "type": "single",
@@ -1628,6 +1849,37 @@
    "encapsulation",
    "setters"
   ]
+ },
+ {
+  "id": "b2-077",
+  "objective": "2.3.1",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "`A1 @ 2.50 [Sku(code='A1', price=2.5)] True False`",
+   "`A1 @ 2.50 [A1 @ 2.50] True False`",
+   "`Sku(code='A1', price=2.5) [Sku(code='A1', price=2.5)] True False`",
+   "`A1 @ 2.50 [Sku(code='A1', price=2.5)] False False`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`print` uses `__str__` (written by hand here); a list displays its items with `__repr__`, which `@dataclass` generated. The generated `__eq__` compares fields, so `==` is True, while `is` asks whether they are the same object: False.",
+  "why_wrong": [
+   "",
+   "A list shows its items with `__repr__`, not `__str__`.",
+   "`print(a)` uses the class's own `__str__`.",
+   "`@dataclass` writes an `__eq__` that compares the fields, so two objects with the same code and price are equal."
+  ],
+  "source": "Syllabus 2.3.1, 2.3.3 · Python docs (dataclasses)",
+  "difficulty": 3,
+  "tags": [
+   "dataclass",
+   "repr",
+   "str"
+  ],
+  "code": "from dataclasses import dataclass\n\n@dataclass\nclass Sku:\n    code: str\n    price: float\n\n    def __str__(self):\n        return f\"{self.code} @ {self.price:.2f}\"\n\na = Sku(\"A1\", 2.5)\nprint(a, [a], a == Sku(\"A1\", 2.5), a is Sku(\"A1\", 2.5))",
+  "verify": "stdout"
  },
  {
   "id": "b2-080",
@@ -2802,6 +3054,299 @@
   }
  },
  {
+  "id": "b2-160",
+  "objective": "2.4.1",
+  "type": "single",
+  "stem": "What does the last row of this query's result contain?",
+  "options": [
+   "`('Dev', 0)`",
+   "`('Dev', None)`",
+   "`('Cara', 50.0)`",
+   "`('Ana', 200.0)`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "The LEFT JOIN keeps Dev with NULL order columns. `SUM` of nothing but NULLs is NULL, and `COALESCE(x, 0)` returns its first non-NULL argument, 0. Sorted by `spent` from highest to lowest, Dev (0) comes last.",
+  "why_wrong": [
+   "",
+   "`SUM` over Dev's NULL order totals is NULL, but `COALESCE` replaces it with 0.",
+   "The LEFT JOIN keeps Dev, who has no orders, so Cara isn't last.",
+   "Ana ties with Ben at 200 and the tie is broken by name, A to Z, so Ana comes first."
+  ],
+  "source": "Syllabus 2.4.1 · SQLite docs",
+  "difficulty": 2,
+  "tags": [
+   "sql",
+   "coalesce",
+   "left-join"
+  ],
+  "code": "SELECT c.name, COALESCE(SUM(o.total), 0) AS spent\nFROM customers AS c\nLEFT JOIN orders AS o ON o.customer_id = c.id\nGROUP BY c.name\nORDER BY spent DESC, c.name;",
+  "lang": "sql",
+  "setup": "CREATE TABLE customers (id INTEGER PRIMARY KEY, name TEXT, region TEXT);\nINSERT INTO customers VALUES (1, 'Ana', 'EU'), (2, 'Ben', 'US'), (3, 'Cara', 'EU'), (4, 'Dev', 'APAC');\nCREATE TABLE orders (id INTEGER PRIMARY KEY, customer_id INTEGER, total REAL, status TEXT);\nINSERT INTO orders VALUES (10, 1, 120, 'paid'), (11, 1, 80, 'paid'), (12, 2, 200, 'refunded'),\n                          (13, 3, 50, 'paid'), (14, 5, 70, 'paid');",
+  "tables": [
+   {
+    "name": "customers",
+    "columns": [
+     "id",
+     "name",
+     "region"
+    ],
+    "rows": [
+     [
+      1,
+      "Ana",
+      "EU"
+     ],
+     [
+      2,
+      "Ben",
+      "US"
+     ],
+     [
+      3,
+      "Cara",
+      "EU"
+     ],
+     [
+      4,
+      "Dev",
+      "APAC"
+     ]
+    ]
+   },
+   {
+    "name": "orders",
+    "columns": [
+     "id",
+     "customer_id",
+     "total",
+     "status"
+    ],
+    "rows": [
+     [
+      10,
+      1,
+      120.0,
+      "paid"
+     ],
+     [
+      11,
+      1,
+      80.0,
+      "paid"
+     ],
+     [
+      12,
+      2,
+      200.0,
+      "refunded"
+     ],
+     [
+      13,
+      3,
+      50.0,
+      "paid"
+     ],
+     [
+      14,
+      5,
+      70.0,
+      "paid"
+     ]
+    ]
+   }
+  ],
+  "verify": {
+   "py": "rows = run_sql(setup, code)\nassert rows[-1] == ('Dev', 0) and rows[0] == ('Ana', 200.0), rows"
+  }
+ },
+ {
+  "id": "b2-161",
+  "objective": "2.4.1",
+  "type": "single",
+  "stem": "How many rows does this query return?",
+  "options": [
+   "4",
+   "5",
+   "3",
+   "6"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "The WHERE keeps Apple, Avocado, Bread, Bagel and Milk. `BETWEEN 1.5 AND 3` includes both ends, so Bread (3.0) and Bagel (1.5) are 'mid', Avocado is 'mid', Apple is 'other', and Milk (NULL) goes to ELSE. `DISTINCT` collapses the two bakery rows: (bakery, mid), (dairy, other), (fruit, mid), (fruit, other).",
+  "why_wrong": [
+   "",
+   "Bread and Bagel both give ('bakery', 'mid'), and `DISTINCT` keeps that row once.",
+   "Milk's NULL price makes `BETWEEN` unknown, so `CASE` falls through to `ELSE`: dairy still appears, as 'other'.",
+   "Cake is left out: its name doesn't start with B and bakery isn't in the `IN` list."
+  ],
+  "source": "Syllabus 2.4.1 · SQLite docs",
+  "difficulty": 3,
+  "tags": [
+   "sql",
+   "case",
+   "between",
+   "distinct"
+  ],
+  "code": "SELECT DISTINCT category,\n       CASE WHEN price BETWEEN 1.5 AND 3 THEN 'mid' ELSE 'other' END AS band\nFROM products\nWHERE name LIKE 'B%' OR category IN ('dairy', 'fruit')\nORDER BY category, band;",
+  "lang": "sql",
+  "setup": "CREATE TABLE products (name TEXT, category TEXT, price REAL);\nINSERT INTO products VALUES ('Apple', 'fruit', 1.2), ('Avocado', 'fruit', 2.5),\n  ('Bread', 'bakery', 3.0), ('Bagel', 'bakery', 1.5), ('Cake', 'bakery', 12.0), ('Milk', 'dairy', NULL);",
+  "tables": [
+   {
+    "name": "products",
+    "columns": [
+     "name",
+     "category",
+     "price"
+    ],
+    "rows": [
+     [
+      "Apple",
+      "fruit",
+      1.2
+     ],
+     [
+      "Avocado",
+      "fruit",
+      2.5
+     ],
+     [
+      "Bread",
+      "bakery",
+      3.0
+     ],
+     [
+      "Bagel",
+      "bakery",
+      1.5
+     ],
+     [
+      "Cake",
+      "bakery",
+      12.0
+     ],
+     [
+      "Milk",
+      "dairy",
+      null
+     ]
+    ]
+   }
+  ],
+  "verify": {
+   "py": "rows = run_sql(setup, code)\nassert rows == [('bakery', 'mid'), ('dairy', 'other'), ('fruit', 'mid'), ('fruit', 'other')], rows"
+  }
+ },
+ {
+  "id": "b2-162",
+  "objective": "2.4.1",
+  "type": "single",
+  "stem": "What is the last row of this query's result?",
+  "options": [
+   "`(14, None)`",
+   "`(None, 'Dev')`",
+   "`(13, 'Cara')`",
+   "`(14, 'Dev')`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "A RIGHT JOIN keeps every order and fills in the customer where one matches. Order 14 points at customer 5, who doesn't exist, so its `name` is NULL (None in Python). It is the mirror image of `orders LEFT JOIN customers`.",
+  "why_wrong": [
+   "",
+   "A RIGHT JOIN keeps every row of the right table (orders); Dev has no orders, so Dev doesn't appear.",
+   "Order 14 has no matching customer but is still kept, and it sorts after 13.",
+   "Order 14 belongs to customer 5, who doesn't exist, so its customer columns are NULL."
+  ],
+  "source": "Syllabus 2.4.1 · SQLite docs",
+  "difficulty": 2,
+  "tags": [
+   "sql",
+   "right-join"
+  ],
+  "code": "SELECT o.id, c.name\nFROM customers AS c\nRIGHT JOIN orders AS o ON o.customer_id = c.id\nORDER BY o.id;",
+  "lang": "sql",
+  "setup": "CREATE TABLE customers (id INTEGER PRIMARY KEY, name TEXT, region TEXT);\nINSERT INTO customers VALUES (1, 'Ana', 'EU'), (2, 'Ben', 'US'), (3, 'Cara', 'EU'), (4, 'Dev', 'APAC');\nCREATE TABLE orders (id INTEGER PRIMARY KEY, customer_id INTEGER, total REAL, status TEXT);\nINSERT INTO orders VALUES (10, 1, 120, 'paid'), (11, 1, 80, 'paid'), (12, 2, 200, 'refunded'),\n                          (13, 3, 50, 'paid'), (14, 5, 70, 'paid');",
+  "tables": [
+   {
+    "name": "customers",
+    "columns": [
+     "id",
+     "name",
+     "region"
+    ],
+    "rows": [
+     [
+      1,
+      "Ana",
+      "EU"
+     ],
+     [
+      2,
+      "Ben",
+      "US"
+     ],
+     [
+      3,
+      "Cara",
+      "EU"
+     ],
+     [
+      4,
+      "Dev",
+      "APAC"
+     ]
+    ]
+   },
+   {
+    "name": "orders",
+    "columns": [
+     "id",
+     "customer_id",
+     "total",
+     "status"
+    ],
+    "rows": [
+     [
+      10,
+      1,
+      120.0,
+      "paid"
+     ],
+     [
+      11,
+      1,
+      80.0,
+      "paid"
+     ],
+     [
+      12,
+      2,
+      200.0,
+      "refunded"
+     ],
+     [
+      13,
+      3,
+      50.0,
+      "paid"
+     ],
+     [
+      14,
+      5,
+      70.0,
+      "paid"
+     ]
+    ]
+   }
+  ],
+  "verify": {
+   "py": "rows = run_sql(setup, code)\nassert len(rows) == 5 and rows[-1] == (14, None), rows"
+  }
+ },
+ {
   "id": "b2-110",
   "objective": "2.4.2",
   "type": "single",
@@ -3159,6 +3704,37 @@
    "row-factory"
   ],
   "code": "import sqlite3\n\ncon = sqlite3.connect(\":memory:\")\ncon.row_factory = sqlite3.Row\ncon.execute(\"CREATE TABLE p (name TEXT, price REAL)\")\ncon.execute(\"INSERT INTO p VALUES ('tea', 2.5)\")\nrow = con.execute(\"SELECT * FROM p\").fetchone()\nprint(row[\"name\"], row[1], row.keys())",
+  "verify": "stdout"
+ },
+ {
+  "id": "b2-126",
+  "objective": "2.4.3",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "`0`",
+   "`1`",
+   "`2`",
+   "A ProgrammingError is raised, because the `with` block closed the connection"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "The second INSERT raises OperationalError. Because it leaves the `with` block, the open transaction is rolled back and the first INSERT is undone too. The CREATE TABLE ran before that transaction began, so the table still exists, empty, and the connection is still open.",
+  "why_wrong": [
+   "",
+   "Leaving the `with` block with an exception rolls back the whole transaction, including the first INSERT.",
+   "The second INSERT fails (two values for a one-column table), so it never adds a row.",
+   "`with con:` commits or rolls back, but it doesn't close the connection, so the last query works."
+  ],
+  "source": "Syllabus 2.4.3 · Python sqlite3 docs",
+  "difficulty": 3,
+  "tags": [
+   "sqlite3",
+   "transactions",
+   "context-manager"
+  ],
+  "code": "import sqlite3\n\ncon = sqlite3.connect(\":memory:\")\ncon.execute(\"CREATE TABLE t (n INTEGER)\")\ntry:\n    with con:\n        con.execute(\"INSERT INTO t VALUES (1)\")\n        con.execute(\"INSERT INTO t VALUES ('x', 2)\")\nexcept sqlite3.OperationalError:\n    pass\nprint(con.execute(\"SELECT COUNT(*) FROM t\").fetchone()[0])",
   "verify": "stdout"
  },
  {
@@ -3658,5 +4234,38 @@
    "sql-injection",
    "defence-in-depth"
   ]
+ },
+ {
+  "id": "b2-155",
+  "objective": "2.4.6",
+  "type": "single",
+  "stem": "Users type a `region` and pick a column to sort by (`sort_col`). Which sqlite3 code is safe from SQL injection and sorts by the chosen column?",
+  "options": [
+   "col = sort_col if sort_col in {\"name\", \"total\"} else \"name\"\ncon.execute(f\"SELECT * FROM sales WHERE region = ? ORDER BY {col}\", (region,))",
+   "`con.execute(\"SELECT * FROM sales WHERE region = ? ORDER BY ?\", (region, sort_col))`",
+   "`con.execute(f\"SELECT * FROM sales WHERE region = ? ORDER BY {sort_col}\", (region,))`",
+   "col = sort_col if sort_col in {\"name\", \"total\"} else \"name\"\ncon.execute(f\"SELECT * FROM sales WHERE region = '{region}' ORDER BY {col}\")"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Values go in placeholders. Identifiers such as column names can't be parameterized, so they are checked against a fixed allow-list before being placed in the SQL.",
+  "why_wrong": [
+   "",
+   "A placeholder can only stand for a value: `ORDER BY ?` sorts by a constant string, so the rows come back unsorted.",
+   "`sort_col` goes into the SQL text unchecked, so a crafted value can change the query.",
+   "The column is checked, but `region` is pasted into the SQL text, so it is injectable."
+  ],
+  "source": "Syllabus 2.4.6, 2.4.4",
+  "difficulty": 3,
+  "tags": [
+   "sql-injection",
+   "allow-list",
+   "placeholders"
+  ],
+  "optlang": "python",
+  "verify": {
+   "py": "import sqlite3\ncon = sqlite3.connect(\":memory:\")\ncon.execute(\"CREATE TABLE sales (name TEXT, region TEXT, total REAL)\")\ncon.executemany(\"INSERT INTO sales VALUES (?, ?, ?)\", [(\"b\", \"EU\", 1), (\"a\", \"EU\", 3), (\"c\", \"EU\", 2)])\nns = {\"con\": con, \"region\": \"EU\", \"sort_col\": \"total\"}\nsetup_line, call = opt(0).splitlines()\nexec(setup_line, ns)\nassert [r[2] for r in eval(call, ns).fetchall()] == [1, 2, 3]\nassert [r[2] for r in eval(opt(1), ns).fetchall()] == [1, 3, 2]"
+  }
  }
 ]

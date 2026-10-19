@@ -18,7 +18,7 @@ Block 3 is the smallest block: 4 items, 8.3% of the exam, one per objective. It 
 | Standard deviation | √variance, in the data's own units | Yes |
 | IQR | Q3 − Q1, the spread of the middle 50% | No |
 
-**Population vs sample.** Population variance divides by N; sample variance divides by **n − 1** (Bessel's correction), because a sample underestimates spread. The `ddof` argument ("delta degrees of freedom") sets the divisor to n − ddof.
+**Population vs sample.** Population variance divides by N; sample variance divides by **n − 1** (Bessel's correction), because dividing a sample's squared deviations by n tends to underestimate the population's variance. The `ddof` argument ("delta degrees of freedom") sets the divisor to n − ddof.
 
 ```python
 import numpy as np

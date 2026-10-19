@@ -256,6 +256,19 @@ QUESTIONS = [
       "Cloud storage offers elastic, pay-as-you-go capacity and durability through replication, and lets storage and compute scale separately.",
       "Syllabus 1.1.3", ["cloud-storage", "storage"]),
 
+    Q("b1-025", "1.1.3", 3,
+      "A retailer wants to keep five years of raw clickstream JSON and product images for future machine-learning work, and also give finance consistent SQL dashboards built from cleaned sales data. Which storage design fits both needs?",
+      ["Land all raw data in a cloud data lake, then load cleaned, modeled sales tables into a data warehouse (or lakehouse tables) for the dashboards",
+       "Load everything, including the images, into the warehouse with a fixed schema defined up front",
+       "Keep everything in the data lake and point the finance dashboards at the raw JSON files",
+       "Run the dashboards on the production OLTP order database and archive the rest as Excel files"],
+      0,
+      {1: "A warehouse is schema-on-write: images and evolving raw JSON don't fit a fixed schema, and storing them there is costly.",
+       2: "Raw, ungoverned files give inconsistent numbers; dashboards need cleaned, modeled tables.",
+       3: "Heavy reports slow the transactional system, and Excel can't hold years of clickstream data."},
+      "The two needs call for both layers: a lake (schema-on-read) keeps raw data of every type cheaply for later use, and a warehouse (schema-on-write) serves cleaned, consistent tables for SQL reporting. Many teams build this as a lake plus a warehouse, or as a lakehouse.",
+      "Syllabus 1.1.3", ["data-lake", "data-warehouse"]),
+
     # ---------- 1.2.1 Structured vs unstructured ----------
     Q("b1-030", "1.2.1", 1,
       "Which of these is semi-structured data?",
@@ -306,6 +319,20 @@ QUESTIONS = [
        3: "The lack of a schema changes both where it lives and how it is found."},
       "Without a schema you can't query columns directly, so unstructured data lives in object stores and lakes and is located via metadata, tags or search indexes.",
       "Syllabus 1.2.1", ["unstructured", "storage"]),
+
+    Q("b1-034", "1.2.1", 3,
+      "A support-ticket export has the columns `ticket_id`, `created_at`, `priority` (low, medium, high) and `description` (free text written by customers). Which two statements are correct? Select two.",
+      ["`ticket_id`, `created_at` and `priority` can be filtered and grouped directly with SQL or pandas",
+       "Counting complaint topics needs a text-processing step that turns `description` into structured features first",
+       "Because the file is a CSV, every column is structured data ready for analysis",
+       "The whole file is unstructured data, because one column holds free text",
+       "`description` should be min-max scaled before analysis"],
+      [0, 1],
+      {2: "The CSV is only the container; the free text inside `description` has no predefined structure.",
+       3: "Three columns have a fixed meaning and type; only the text column is unstructured.",
+       4: "Scaling applies to numbers; free text has to be turned into features (keywords, topics, sentiment) first."},
+      "One file can mix both kinds. The typed columns are structured and can be queried at once; the free-text column is unstructured content that needs processing (keyword or topic extraction, sentiment scoring) before it can be counted or grouped.",
+      "Syllabus 1.2.1", ["structured", "unstructured"]),
 
     # ---------- 1.2.2 Erroneous data ----------
     Q("b1-040", "1.2.2", 2,
@@ -641,6 +668,25 @@ QUESTIONS = [
       "Exclude when imputation would invent answers (a missing target) or when there is too little information to estimate values (a mostly empty column).",
       "Syllabus 1.2.4", ["imputation", "exclusion"]),
 
+    Q("b1-067", "1.2.4", 2,
+      "What does this code print?",
+      ["`['qty', 'size_M', 'size_S']`",
+       "`['qty', 'size_M', 'size_L']`",
+       "`['qty', 'size_L', 'size_M', 'size_S']`",
+       "`['size', 'qty', 'size_M', 'size_S']`"],
+      0,
+      {1: "`drop_first` drops the first category in sorted order (L), not the first value in the data (S).",
+       2: "That is the result without `drop_first=True`.",
+       3: "`get_dummies` replaces the original `size` column with the indicator columns."},
+      "The categories are sorted (L, M, S) and `drop_first=True` drops the first, `size_L`. A row with 0 in both remaining columns is an L. Dropping one column avoids redundant columns that confuse linear models.",
+      "Syllabus 1.2.4 · pandas docs", ["one-hot", "get_dummies", "drop_first"],
+      code="""
+      import pandas as pd
+
+      df = pd.DataFrame({"size": ["S", "M", "L", "M"], "qty": [1, 2, 3, 4]})
+      print(pd.get_dummies(df, columns=["size"], drop_first=True, dtype=int).columns.tolist())
+      """, verify="stdout"),
+
     # ---------- 1.3.1 Validation ----------
     Q("b1-070", "1.3.1", 1,
       "A rule states that a booking's `end_date` must be on or after its `start_date`. Which type of validation check is this?",
@@ -883,6 +929,30 @@ QUESTIONS = [
       "XML represents a tree of nested elements with attributes, which is exactly this structure.",
       "Syllabus 1.4.1", ["xml", "file-formats"]),
 
+    Q("b1-096", "1.4.1", 3,
+      "A DataFrame is written to CSV and read straight back. What does this code print?",
+      ["`['Unnamed: 0', 'sku', 'qty'] (2, 3)`",
+       "`['sku', 'qty'] (2, 2)`",
+       "`['index', 'sku', 'qty'] (2, 3)`",
+       "`['sku', 'qty'] (3, 2)`"],
+      0,
+      {1: "That's what `to_csv(buf, index=False)` would give; by default the index is written too.",
+       2: "The index column has no header in the file, so pandas names it `Unnamed: 0`, not `index`.",
+       3: "The header line becomes the column names, not a data row, so there are still 2 rows."},
+      "`to_csv` writes the row index as an unnamed first column by default, and reading the file back turns it into a column called `Unnamed: 0`. Write with `index=False`, or read with `index_col=0`.",
+      "Syllabus 1.4.1 · pandas docs", ["csv", "to_csv"],
+      code="""
+      import io
+      import pandas as pd
+
+      df = pd.DataFrame({"sku": ["A1", "B2"], "qty": [3, 5]})
+      buf = io.StringIO()
+      df.to_csv(buf)
+      buf.seek(0)
+      back = pd.read_csv(buf)
+      print(back.columns.tolist(), back.shape)
+      """, verify="stdout"),
+
     # ---------- 1.4.2 Accessing datasets ----------
     Q("b1-100", "1.4.2", 2,
       "What happens when this code runs?",
@@ -957,6 +1027,24 @@ QUESTIONS = [
        3: "A single row hides both variables in column names."},
       "Tidy data has each variable as a column and each observation (a city in a month) as a row.",
       "Syllabus 1.4.2", ["tidy-data", "organization"]),
+
+    Q("b1-105", "1.4.2", 3,
+      "What does this code print?",
+      ["`[4, 2, 0]`", "`[0, 1, 2]`", "`[0, 2, 4]`", "`[4, 2, 0, 1]`"],
+      0,
+      {1: "Sorting doesn't renumber the rows: each row keeps its original label.",
+       2: "These are the right rows, but in their original order; `ascending=False` puts the largest total first.",
+       3: "Row 1 (US, 80) fails `total >= 100`, so the `&` drops it."},
+      "`~isin([\"UK\"])` drops row 3 and `total >= 100` drops row 1. The remaining rows 0 (120), 2 (150) and 4 (200) are sorted from largest to smallest, and each keeps its original index label.",
+      "Syllabus 1.4.2", ["filtering", "sorting"],
+      code="""
+      import pandas as pd
+
+      df = pd.DataFrame({"region": ["EU", "US", "EU", "UK", "US"],
+                         "total": [120, 80, 150, 60, 200]})
+      out = df[~df["region"].isin(["UK"]) & (df["total"] >= 100)].sort_values("total", ascending=False)
+      print(out.index.tolist())
+      """, verify="stdout"),
 
     # ---------- 1.4.3 Extracting data ----------
     Q("b1-110", "1.4.3", 3,
@@ -1061,6 +1149,32 @@ QUESTIONS = [
       "`pd.read_html` returns a list with one DataFrame per `<table>` found.",
       "Syllabus 1.4.3 · pandas: read_html", ["read-html", "html"]),
 
+    Q("b1-117", "1.4.3", 3,
+      "What does this code print?",
+      ["`['/a.pdf', '/b.pdf'] ['Annual report', None]`",
+       "`['/a.pdf', '/b.pdf', '/c.pdf'] ['Annual report', None, None]`",
+       "`['/a.pdf'] ['Annual report']`",
+       "A KeyError is raised, because the second link has no `title`"],
+      0,
+      {1: "`#docs a.doc` only matches links inside the element whose id is `docs`; the \"Outside\" link isn't in it.",
+       2: "`class=\"doc pdf\"` has two classes, and `.doc` matches any element that has `doc` among them.",
+       3: "`.get(\"title\")` returns None for a missing attribute; only `a[\"title\"]` would raise KeyError."},
+      "The CSS selector `#docs a.doc` means \"`<a>` tags with class `doc` inside the element with id `docs`\": the Annual and Budget links. `a[\"href\"]` reads an attribute that exists; `a.get(\"title\")` returns None where it is missing.",
+      "Syllabus 1.4.3 · BeautifulSoup docs", ["beautifulsoup", "css-selectors", "attributes"],
+      code="""
+      from bs4 import BeautifulSoup
+
+      html = '''<div id="docs">
+        <a class="doc" href="/a.pdf" title="Annual report">Annual</a>
+        <a class="doc pdf" href="/b.pdf">Budget</a>
+        <a class="ad" href="/buy" title="Buy">Buy now</a>
+      </div>
+      <a class="doc" href="/c.pdf">Outside</a>'''
+      soup = BeautifulSoup(html, "html.parser")
+      links = soup.select("#docs a.doc")
+      print([a["href"] for a in links], [a.get("title") for a in links])
+      """, verify="stdout"),
+
     # ---------- 1.4.4 Spreadsheets ----------
     Q("b1-120", "1.4.4", 1,
       "A tax rate sits in cell B1. The formula `=A2*B1` in C2 gives wrong results when filled down to C3:C100. What should C2 contain?",
@@ -1105,6 +1219,16 @@ QUESTIONS = [
        3: "No rounding happens unless a formula rounds."},
       "Number formatting is cosmetic: formulas use the underlying values (the result then displays with the cell's format).",
       "Syllabus 1.4.4", ["spreadsheets", "formatting"]),
+
+    Q("b1-124", "1.4.4", 3,
+      "Cell D2 contains `=B2*C$1`. The formula is copied to E3, one column right and one row down. What does E3 contain?",
+      ["`=C3*D$1`", "`=B3*C$1`", "`=C3*C$1`", "`=C3*D$2`"],
+      0,
+      {1: "Relative column letters shift too: copying one column right turns B into C.",
+       2: "Only the row of `C$1` is fixed; its column has no `$`, so C becomes D.",
+       3: "`$1` locks the row, so it stays 1."},
+      "A `$` fixes only the part it stands in front of. `B2` is fully relative, so it moves one column and one row to C3. `C$1` has a relative column and a fixed row, so it becomes D$1.",
+      "Syllabus 1.4.4", ["spreadsheet", "cell-references"]),
 
     # ---------- 1.4.5 Preparing data ----------
     Q("b1-130", "1.4.5", 2,
@@ -1228,5 +1352,24 @@ QUESTIONS = [
 
       s = pd.Series([12, 18, np.nan, 25, 10_000, np.nan])
       print(s.fillna(s.mean()).round(1).tolist())
+      """, verify="stdout"),
+
+    Q("b1-138", "1.4.5", 3,
+      "The EU file writes dates as day/month/year; the US file uses ISO dates. What does this code print?",
+      ["`[7, 9]`", "`[9]`", "`[]`", "A ValueError is raised"],
+      0,
+      {1: "That is what happens without `format=`: pandas reads 03/04/2025 month-first as 4 March, so only 4 April matches.",
+       2: "Both columns become real datetimes for 3 and 4 April 2025, so both rows match.",
+       3: "Both formats parse cleanly: the EU one with the explicit format, the ISO one automatically."},
+      "With `format=\"%d/%m/%Y\"`, 03/04/2025 is 3 April. Both date columns now hold the same two datetimes, so the merge matches both rows. Without the explicit format, pandas would read the EU dates month-first and the 3 April rows would silently fail to match.",
+      "Syllabus 1.4.5 · pandas docs", ["dates", "to_datetime", "merge"],
+      code="""
+      import pandas as pd
+
+      eu = pd.DataFrame({"date": ["03/04/2025", "04/04/2025"], "eu": [10, 12]})
+      us = pd.DataFrame({"date": ["2025-04-03", "2025-04-04"], "us": [7, 9]})
+      eu["date"] = pd.to_datetime(eu["date"], format="%d/%m/%Y")
+      us["date"] = pd.to_datetime(us["date"])
+      print(eu.merge(us, on="date")["us"].tolist())
       """, verify="stdout"),
 ]

@@ -60,6 +60,8 @@ Every key term in the guide, A to Z. Terms link here from each objective's essen
 
 **Confounder** — a third variable that influences both variables in a correlation, creating an association without a direct causal link.
 
+**Confusion matrix** — a table counting a classifier's true positives, false positives, false negatives and true negatives (`sklearn.metrics.confusion_matrix`).
+
 **Constructor** — the `__init__` method that runs when an object is created and sets its initial attributes.
 
 **Continuous data** — numeric data that can take any value within a range, such as weight or time.
@@ -254,6 +256,8 @@ Every key term in the guide, A to Z. Terms link here from each objective's essen
 
 **Polymorphism** — different classes providing the same method name so one call works on any of them.
 
+**Precision** — of all the cases a model flagged as positive, the share that really were positive: tp / (tp + fp).
+
 **Primary key** — a column (or columns) whose values uniquely identify each row and cannot be NULL.
 
 **Pseudonymization** — replacing identifiers with tokens that can be reversed with a separate key; the data remains personal data.
@@ -271,6 +275,8 @@ Every key term in the guide, A to Z. Terms link here from each objective's essen
 **Range check** — validating that a value falls between allowed minimum and maximum limits.
 
 **Rate limiting** — restricting how many requests are sent (or accepted) per unit of time.
+
+**Recall** — of all the real positive cases, the share a model caught: tp / (tp + fn).
 
 **Regularization** — penalizing model complexity (for example large coefficients) to reduce overfitting.
 

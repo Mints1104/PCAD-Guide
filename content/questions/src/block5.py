@@ -76,6 +76,26 @@ QUESTIONS = [
       "When x values repeat, `lineplot` plots the mean at each x and shades a 95% confidence interval (`errorbar=None` removes it).",
       "Syllabus 5.1.1 · Seaborn: lineplot", ["seaborn", "lineplot"]),
 
+    Q("b5-007", "5.1.1", 3,
+      "What does this code print?",
+      ["`[20, 40]`", "`[60, 40]`", "`[3, 1]`", "`[10, 40, 20, 30]`"],
+      0,
+      {1: "`barplot` shows the mean of each category by default, not the sum (pass `estimator=\"sum\"` for totals).",
+       2: "Counting rows per category is what `sns.countplot` does.",
+       3: "Seaborn combines the rows that share a category into one bar."},
+      "`sns.barplot` draws one bar per category whose height is the mean of `y`: Oslo (10 + 20 + 30) / 3 = 20 and Rome 40. `errorbar=None` only removes the error bars.",
+      "Syllabus 5.1.1 · Seaborn docs", ["seaborn", "barplot"],
+      code="""
+      import matplotlib
+      matplotlib.use("Agg")
+      import pandas as pd
+      import seaborn as sns
+
+      df = pd.DataFrame({"city": ["Oslo", "Rome", "Oslo", "Oslo"], "sales": [10, 40, 20, 30]})
+      ax = sns.barplot(data=df, x="city", y="sales", errorbar=None)
+      print([round(bar.get_height()) for bar in ax.patches])
+      """, verify="stdout"),
+
     # ---------- 5.1.2 Choosing charts ----------
     Q("b5-010", "5.1.2", 1,
       "Management asks how monthly revenue has changed over the last 24 months. Which chart fits best?",
@@ -337,6 +357,19 @@ QUESTIONS = [
        3: "Random hue order breaks the low-to-high reading."},
       "Ordered values from low to high use a sequential palette (for example viridis).",
       "Syllabus 5.2.1", ["palettes", "sequential"]),
+
+    Q("b5-036", "5.2.1", 3,
+      "A churn slide for the operations director is titled \"Logistic regression coefficients (L2, C=1.0)\" and shows a table of 14 coefficients to four decimals, shaded red and green. Which revision serves this audience best?",
+      ["Title it with the finding (\"Late deliveries are the biggest driver of churn\"), show the top three drivers as a sorted bar chart in business terms with one colour-blind-safe highlight, and move the coefficient table to an appendix",
+       "Keep the table, and add a paragraph explaining L2 regularization and the `C` parameter",
+       "Replace the table with a 3D pie chart of all 14 coefficients",
+       "Keep the table and its red/green shading, but round the coefficients to two decimals"],
+      0,
+      {1: "The director needs the finding and its impact, not the method; technical detail belongs in an appendix or a peer review.",
+       2: "A 14-slice 3D pie is hard to read, and coefficients (some negative) aren't parts of a whole.",
+       3: "Rounding helps a little, but the slide still has no takeaway, too much detail, and colours many viewers can't tell apart."},
+      "For a non-technical decision-maker: a title that states the takeaway, only the few numbers that drive the decision, in business terms, a chart that makes the ranking obvious, accessible colours, and the methodology moved out of the way.",
+      "Syllabus 5.2.1", ["audience", "slides", "accessibility"]),
 
     # ---------- 5.2.2 Evidence ----------
     Q("b5-040", "5.2.2", 2,

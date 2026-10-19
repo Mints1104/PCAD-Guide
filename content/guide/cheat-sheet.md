@@ -229,7 +229,7 @@ The distinctions the exam leans on most, one table each. Read it the evening bef
 |---|---|---|
 | NaN in `mean` | Skipped | Returns nan (use `nanmean`) |
 | `std` / `var` ddof | 1 (sample) | 0 (population) |
-| `mode` | Series (can be several) | `scipy.stats.mode` |
+| `mode` | Series (can be several) | No `np.mode`; use `scipy.stats.mode` |
 
 ## Broadcasting
 

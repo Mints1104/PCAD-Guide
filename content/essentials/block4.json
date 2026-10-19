@@ -138,7 +138,8 @@
       {"cue": "What are the signs of underfitting?", "fact": "Low scores on both training and test data: the model is too simple (high bias). Fix with better features or a more flexible model, or less regularization.", "why": "The mirror-image item."},
       {"cue": "What is the bias-variance trade-off?", "fact": "Expected error = bias² + variance + irreducible noise; more complexity lowers bias but raises variance, and the best model balances the two.", "why": "Direct definition items."},
       {"cue": "What are the tendencies of linear and logistic regression?", "fact": "Both are low-variance, higher-bias models: stable and interpretable, but they underfit curved relationships unless you add features; regularization (smaller `C` in LogisticRegression) curbs overfitting.", "why": "The syllabus asks for linear and logistic regression tendencies."},
-      {"cue": "Why can accuracy mislead on imbalanced classes?", "fact": "With 95% negatives, always predicting \"negative\" scores 95% accuracy; check precision, recall and F1 instead.", "why": "The syllabus asks how to prevent model accuracy issues."}
+      {"cue": "Why can accuracy mislead on imbalanced classes?", "fact": "With 95% negatives, always predicting \"negative\" scores 95% accuracy; check precision, recall and F1 instead.", "why": "The syllabus asks how to prevent model accuracy issues."},
+      {"cue": "What do precision and recall measure?", "fact": "Precision = tp / (tp + fp): the share of flagged cases that were right. Recall = tp / (tp + fn): the share of real positives that were caught. F1 combines the two.", "why": "Code items print a confusion matrix or these scores and ask what the model misses."}
     ],
     "traps": [
       {"cue": "Will more training data fix a model that underfits?", "answer": "Not much. Underfitting comes from a model too simple for the pattern; add features or complexity."},

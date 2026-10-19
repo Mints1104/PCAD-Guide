@@ -624,7 +624,7 @@ x
 
 ### Core facts
 
-**What a NumPy array is.** A NumPy array is a grid of numbers that are all the same type. It can have one dimension (a row of numbers), two (a table), or more. Arrays are much faster than Python lists for maths.
+**What a NumPy array is.** A NumPy array is a grid of numbers that are all the same type. It can have one dimension (a row of numbers), two (a table), or more. Arrays are much faster than Python lists for maths: the numbers sit side by side in one block of memory, all of one type, and the loops over them run in compiled code instead of Python.
 
 **Describing an array.** Four attributes tell you its layout:
 
@@ -793,6 +793,24 @@ except ValueError as e:
 
 ```text
 ValueError: operands could not be broadcast together with shapes (2,3) (2,)
+```
+
+The same error appears when subtracting each row's mean, because `a.mean(axis=1)` has shape (2,). `keepdims=True` keeps the averaged axis with size 1, giving shape (2, 1), which stretches across each row:
+
+```python
+import numpy as np
+
+a = np.array([[1, 2, 3],
+              [4, 5, 6]])
+row_means = a.mean(axis=1, keepdims=True)
+print(row_means.shape)
+print(a - row_means)
+```
+
+```text
+(2, 1)
+[[-1.  0.  1.]
+ [-1.  0.  1.]]
 ```
 
 **One type per array.** All elements must share one type, so mixing types converts them. A float makes everything a float, and a string makes everything a string:
@@ -1449,6 +1467,27 @@ A one-level tree is too simple and scores poorly on both sets (underfitting). Th
 **Linear and logistic regression tendencies.** Both are low-variance, higher-bias models: stable and interpretable, but they underfit curved relationships unless you add features such as polynomial terms or interactions. With many features and few rows they can overfit too; regularization (Ridge, Lasso; `C` in `LogisticRegression`, where a smaller `C` means stronger regularization) reins that in.
 
 **Preventing accuracy problems.** Split before preprocessing; use cross-validation; scale inside a pipeline; check class balance (with 95% negatives, a model that always says "negative" is 95% accurate, so look at precision, recall and F1); compare training and test scores.
+
+**Beyond accuracy: the confusion matrix.** A yes/no model makes four kinds of result: true positives (tp, caught), false positives (fp, false alarms), false negatives (fn, missed) and true negatives (tn). **Precision** = tp / (tp + fp): of everything flagged, the share that was right. **Recall** = tp / (tp + fn): of the real positives, the share that was caught. **F1** combines the two (their harmonic mean).
+
+```python
+from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, precision_score, recall_score
+
+y_true = [1, 1, 1, 0, 0, 0, 0, 0]     # 1 = fraud
+y_pred = [1, 0, 0, 1, 0, 0, 0, 0]
+
+print(confusion_matrix(y_true, y_pred))     # rows: actual 0, 1; columns: predicted 0, 1
+print(accuracy_score(y_true, y_pred), precision_score(y_true, y_pred),
+      round(recall_score(y_true, y_pred), 2), round(f1_score(y_true, y_pred), 2))
+```
+
+```text
+[[4 1]
+ [2 1]]
+0.625 0.5 0.33 0.4
+```
+
+The bottom row is the 3 real frauds: 2 missed (fn) and 1 caught (tp). The top row is the 5 genuine cases: 4 passed (tn) and 1 false alarm (fp). Accuracy is 62.5%, but the model catches only 1 of the 3 frauds (recall 0.33), and half its alarms are wrong (precision 0.5). When missing a positive is costly (fraud, disease), watch recall; when false alarms are costly, watch precision.
 
 ### Exam traps
 
