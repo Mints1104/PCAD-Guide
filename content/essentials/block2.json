@@ -24,13 +24,15 @@
       {"cue": "What makes a parameter required or optional?", "fact": "A parameter without a default is required; one with a default is optional; in the definition, parameters with defaults must come after those without.", "why": "`def f(a=1, b):` is a SyntaxError."},
       {"cue": "What do `*args`, `**kwargs` and a bare `*` do?", "fact": "`*args` collects extra positional arguments into a tuple; `**kwargs` collects extra keyword arguments into a dict; parameters after a bare `*` are keyword-only.", "why": "Items ask what type `args` or `kwargs` has inside the function."},
       {"cue": "What does a function return if it has no return statement?", "fact": "`None`.", "why": "Code items assign the result of a printing function and then print it."},
-      {"cue": "Why is `def f(x, items=[])` dangerous?", "fact": "Default values are evaluated once, at definition time, so the same list is shared across calls; use `None` and create the list inside.", "why": "Output items show the list growing across calls."}
+      {"cue": "Why is `def f(x, items=[])` dangerous?", "fact": "Default values are evaluated once, at definition time, so the same list is shared across calls; use `None` and create the list inside.", "why": "Output items show the list growing across calls."},
+      {"cue": "What do `lambda` and `key=` do in `sorted(rows, key=lambda r: (-r[1], r[0]))`?", "fact": "`lambda r: ...` is a one-expression function; `key=` applies it to each item and sorts by the results. A tuple key sorts by several parts in turn, and a minus sign reverses a numeric part. `min`, `max` and `list.sort` take `key=` too.", "why": "Output items sort records by a key function and ask for the order or the item `max` picks."}
     ],
     "traps": [
       {"cue": "What error do you get when a required argument is missing?", "answer": "TypeError: f() missing 1 required positional argument."},
-      {"cue": "Can a keyword-only parameter be passed positionally?", "answer": "No. Parameters after `*` must be passed by name, otherwise Python raises a TypeError."}
+      {"cue": "Can a keyword-only parameter be passed positionally?", "answer": "No. Parameters after `*` must be passed by name, otherwise Python raises a TypeError."},
+      {"cue": "Is `sorted(words, key=len())` correct?", "answer": "No. Pass the function itself, `key=len`; `len()` is called at once and raises TypeError."}
     ],
-    "terms": [],
+    "terms": ["Lambda", "Key function"],
     "maps": []
   },
   {
@@ -51,19 +53,25 @@
   },
   {
     "objective": "2.1.4",
-    "oneLine": "Lists change, tuples don't, sets hold unique items with fast membership tests, dicts map keys to values, and strings are immutable text.",
+    "oneLine": "Lists change, tuples don't, sets hold unique items with fast membership tests, dicts map keys to values, and strings are immutable text you slice, clean and format.",
     "know": [
       {"cue": "Which built-in structures are mutable?", "fact": "Lists, dicts and sets are mutable; tuples and strings are immutable (a tuple can still contain a mutable list).", "why": "Items ask which structure can be a dict key or which call raises a TypeError."},
       {"cue": "Which structure is best for fast membership tests and removing duplicates?", "fact": "A set: `x in s` is fast on average, and `set(items)` drops duplicates (but loses order).", "why": "\"Check thousands of IDs against a blocklist\" points to a set."},
       {"cue": "How do `d[key]` and `d.get(key, default)` differ?", "fact": "`d[key]` raises KeyError for a missing key; `d.get(key, default)` returns the default (None if omitted).", "why": "Output items test missing-key behaviour."},
       {"cue": "How do `list.sort()` and `sorted()` differ?", "fact": "`lst.sort()` sorts in place and returns None; `sorted(iterable)` returns a new list and leaves the original unchanged.", "why": "`x = lst.sort()` leaving `x` as None is a classic trap."},
-      {"cue": "How do `append` and `extend` differ?", "fact": "`append(x)` adds one item (even if x is a list); `extend(iterable)` adds each item of the iterable.", "why": "Expect to predict a list's length after one of them."}
+      {"cue": "How do `append` and `extend` differ?", "fact": "`append(x)` adds one item (even if x is a list); `extend(iterable)` adds each item of the iterable.", "why": "Expect to predict a list's length after one of them."},
+      {"cue": "What do `s[-1]`, `s[1:4]`, `s[:2]` and `s[::-1]` return?", "fact": "Positions start at 0 and negative ones count from the end: `s[-1]` is the last item, `s[1:4]` is positions 1 to 3 (the stop is excluded), `s[:2]` the first two, and `s[::-1]` the sequence reversed. The same rules apply to lists, tuples and strings.", "why": "Slicing is the most common way an output item hides an off-by-one."},
+      {"cue": "Which string methods clean and inspect text?", "fact": "`strip`, `lower`/`upper`/`title`, `replace`, `split`/`join`, `startswith`/`endswith`, `find` (−1 if missing) or `index` (ValueError if missing), `count`, `isdigit`, and `x in s`. They all return new values; the string itself never changes.", "why": "Code items chain several methods and ask for the printed result."},
+      {"cue": "What do the f-string specs `:.2f`, `:,`, `:.1%`, `:>8` and `:03` do?", "fact": "Two decimal places; a thousands separator; a percentage (×100) with one decimal; right-align in a width of 8; pad with zeros to 3 digits. Specs combine: `f\"{x:,.2f}\"` gives `1,234.50`.", "why": "Expect to pick the f-string that produces a given report line."}
     ],
     "traps": [
       {"cue": "What is `type({})`?", "answer": "dict. An empty set is written `set()`."},
-      {"cue": "Is `(5)` a tuple?", "answer": "No, it is the integer 5. A one-item tuple needs a comma: `(5,)`."}
+      {"cue": "Is `(5)` a tuple?", "answer": "No, it is the integer 5. A one-item tuple needs a comma: `(5,)`."},
+      {"cue": "A list has 3 items. What do `nums[5]` and `nums[5:]` do?", "answer": "`nums[5]` raises IndexError; `nums[5:]` returns `[]`. Slices never go out of range."},
+      {"cue": "How do `\"a  b\".split()` and `\"a  b\".split(\" \")` differ?", "answer": "`split()` splits on any run of whitespace: `['a', 'b']`. `split(\" \")` splits on each single space, so a double space leaves an empty string: `['a', '', 'b']`."},
+      {"cue": "What is `round(2.5)`?", "answer": "2. Python rounds exact halves to the even number, so `round(3.5)` is 4."}
     ],
-    "terms": ["Mutable", "Immutable", "Hashable"],
+    "terms": ["Mutable", "Immutable", "Hashable", "Slicing", "f-string"],
     "maps": ["data-structure"]
   },
   {
@@ -91,12 +99,16 @@
       {"cue": "Why is `from module import *` discouraged?", "fact": "It pulls every public name into your namespace, hides where names come from and can silently overwrite your own names.", "why": "PEP 8 and readability questions use it as the wrong answer."},
       {"cue": "What are the pip commands to install, pin, upgrade and remove a package?", "fact": "`pip install pkg`, `pip install pkg==1.2.3`, `pip install --upgrade pkg` and `pip uninstall pkg`; `pip freeze > requirements.txt` records versions.", "why": "Direct recall; `pip update` is a common fake option."},
       {"cue": "How does Python find a local module?", "fact": "`import cleaning` looks for `cleaning.py` in the script's directory and the other folders on `sys.path`; a folder of modules forms a package (`from utils.cleaning import fix`).", "why": "Items describe a project layout and ask for the right import."},
-      {"cue": "What does `if __name__ == \"__main__\":` do?", "fact": "It runs the guarded block only when the file is executed directly, not when it is imported as a module.", "why": "Also: a module's top-level code runs once, on first import."}
+      {"cue": "What does `if __name__ == \"__main__\":` do?", "fact": "It runs the guarded block only when the file is executed directly, not when it is imported as a module.", "why": "Also: a module's top-level code runs once, on first import."},
+      {"cue": "How do you turn text into a date, and a date into text?", "fact": "`datetime.strptime(\"15/07/2025\", \"%d/%m/%Y\")` parses text with format codes; `dt.strftime(\"%Y-%m-%d\")` formats a datetime as text. Adding a `timedelta(days=30)` moves a date; subtracting two dates gives a timedelta whose `.days` is the gap.", "why": "The candidate profile names the `datetime` module; items mix up parse and format, or the codes `%m` and `%M`."},
+      {"cue": "What do the file modes \"r\", \"w\" and \"a\" do?", "fact": "\"r\" (the default) reads and fails if the file is missing; \"w\" creates the file or empties it first; \"a\" adds to the end. `with open(path, mode, encoding=\"utf-8\") as f:` closes the file for you; looping over `f` gives lines that still end in `\\n`, and every value read is a string.", "why": "Output items write and append to a file, then ask what reading it gives."},
+      {"cue": "What does `csv.DictReader` return?", "fact": "One dict per row, keyed by the header, with every value as a string; convert with `int()` or `float()` before doing arithmetic. Open CSV files with `newline=\"\"`.", "why": "Adding two values read from a CSV joins strings instead of numbers: a classic trap."}
     ],
     "traps": [
       {"cue": "Which error means a third-party package isn't installed?", "answer": "ModuleNotFoundError (a subclass of ImportError)."},
       {"cue": "Do `math`, `json` and `csv` need `pip install`?", "answer": "No. They are part of the standard library."},
-      {"cue": "Your project has its own file called `statistics.py`. What does `import statistics` load?", "answer": "Your file: the script's folder is searched before the standard library, so the real module is hidden and `statistics.mean` raises AttributeError."}
+      {"cue": "Your project has its own file called `statistics.py`. What does `import statistics` load?", "answer": "Your file: the script's folder is searched before the standard library, so the real module is hidden and `statistics.mean` raises AttributeError."},
+      {"cue": "What happens to a file's contents when you `open` it with \"w\"?", "answer": "They are erased the moment it opens, before anything is written. Use \"a\" to add to the end."}
     ],
     "terms": ["Standard library", "pip", "Virtual environment"],
     "maps": []

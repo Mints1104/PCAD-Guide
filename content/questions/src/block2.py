@@ -152,6 +152,19 @@ QUESTIONS = [
       print("done")
       """, verify="stdout"),
 
+    Q("b2-009", "2.1.1", 3,
+      "What does this code print?",
+      ["`2 4 0.12 4`", "`3 4 0.13 5`", "`2 4 0.13 4`", "`3 4 0.13 4.5`"],
+      0,
+      {1: "Python doesn't round halves up: exact halves go to the even neighbour, so 2.5 becomes 2 and 4.5 becomes 4.",
+       2: "0.125 is stored exactly in binary, so it is a true half and rounds to the even 0.12.",
+       3: "`round(2.5)` is 2, and `:.0f` shows no decimal places, so 4.5 prints as 4."},
+      "Exact halves round to the even neighbour (\"banker's rounding\"): 2.5 → 2, 3.5 → 4, 0.125 → 0.12 and, with the `.0f` format spec, 4.5 → 4.",
+      "Syllabus 2.1.1 · Python docs (round)", ["round", "floats"],
+      code="""
+      print(round(2.5), round(3.5), round(0.125, 2), f"{4.5:.0f}")
+      """, verify="stdout"),
+
     # ---------- 2.1.2 Functions ----------
     Q("b2-010", "2.1.2", 2,
       "What does this code print?",
@@ -302,6 +315,44 @@ QUESTIONS = [
           except TypeError:
               results.append(True)
       assert results == [True, False, False, False], results
+      """}),
+
+    Q("b2-018", "2.1.2", 3,
+      "What does this code print?",
+      ["['Ben', 'Cy', 'Ana', 'Dee']\nDee Ana",
+       "['Dee', 'Ana', 'Ben', 'Cy']\nDee Ana",
+       "['Cy', 'Ben', 'Ana', 'Dee']\nDee Ana",
+       "['Ben', 'Cy', 'Ana', 'Dee']\nDee Dee"],
+      0,
+      {1: "The minus sign sorts the scores from high to low.",
+       2: "Ties on score are broken by the second part of the key, the name, A to Z: Ben before Cy.",
+       3: "`max` returns the first of several equal maximums: Ana, Ben and Dee all have 3-letter names, and Ana comes first."},
+      "The key `(-score, name)` sorts by score from high to low, then by name: Ben (61), Cy (61), Ana (52), Dee (47). `min` by score picks Dee (47). `max` by name length finds a tie at 3 letters and returns the first, Ana.",
+      "Syllabus 2.1.2, 2.1.4 · Python docs (sorting)", ["lambda", "key-function", "sorted"], optlang="text",
+      code="""
+      staff = [("Ana", "EU", 52), ("Ben", "US", 61), ("Cy", "EU", 61), ("Dee", "US", 47)]
+      print([s[0] for s in sorted(staff, key=lambda s: (-s[2], s[0]))])
+      print(min(staff, key=lambda s: s[2])[0], max(staff, key=lambda s: len(s[0]))[0])
+      """, verify="stdout"),
+
+    Q("b2-019", "2.1.2", 2,
+      "Which call sorts the list `words` from the shortest word to the longest?",
+      ["`sorted(words, key=len)`", "`sorted(words, key=len())`", "`sorted(words, len)`", "`sorted(len(words))`"],
+      0,
+      {1: "`len()` is called immediately, with no argument, and raises TypeError; pass the function itself.",
+       2: "`sorted` takes only one positional argument; `key` must be passed by name.",
+       3: "`len(words)` is a single number, and a number can't be sorted."},
+      "`key=` takes a function. `sorted` calls `len` on each word and orders the words by those lengths.",
+      "Syllabus 2.1.2 · Python docs (sorted)", ["key-function", "sorted"],
+      verify={"py": """
+      words = ["banana", "fig", "kiwi"]
+      assert eval(opt(0)) == ["fig", "kiwi", "banana"]
+      for i in (1, 2, 3):
+          try:
+              eval(opt(i))
+              raise AssertionError(f"option {i} ran")
+          except TypeError:
+              pass
       """}),
 
     # ---------- 2.1.3 Ecosystem ----------
@@ -547,6 +598,96 @@ QUESTIONS = [
       print(len(by_region["EU"]), len(by_region["APAC"]), counts["tea"], counts["milk"], len(by_region))
       """, verify="stdout"),
 
+    Q("b2-170", "2.1.4", 2,
+      "What does this code print?",
+      ["`[20, 30, 40] [50, 60] [10, 30, 50] 4`",
+       "`[20, 30, 40, 50] [50, 60] [10, 30, 50] 4`",
+       "`[20, 30, 40] [60] [10, 30, 50] 4`",
+       "`[20, 30, 40] [50, 60] [20, 40, 60] 4`"],
+      0,
+      {1: "A slice stops before the stop position, so `nums[1:4]` is positions 1, 2 and 3.",
+       2: "`nums[-2:]` starts two from the end and runs to the end: the last two items.",
+       3: "With no start, a step slice begins at position 0: 10, 30, 50."},
+      "`nums[1:4]` takes positions 1 to 3; `nums[-2:]` the last two; `nums[::2]` every second item from the start; and `nums[2:99]` stops quietly at the end, leaving 4 items.",
+      "Syllabus 2.1.4 · Python docs", ["slicing", "list"],
+      code="""
+      nums = [10, 20, 30, 40, 50, 60]
+      print(nums[1:4], nums[-2:], nums[::2], len(nums[2:99]))
+      """, verify="stdout"),
+
+    Q("b2-171", "2.1.4", 3,
+      "What does this code print?",
+      ["`analyst 12 5202 True`", "`analyst_ 12 2025 True`", "`-analys 12 5202 True`", "`analyst 13 5202 True`"],
+      0,
+      {1: "`s[5:12]` stops before position 12, the underscore, and `[::-1]` reverses \"2025\".",
+       2: "Position 5 is \"A\" (the hyphen is position 4), so the slice is \"Analyst\".",
+       3: "`find` counts from 0: the underscore is at position 12."},
+      "Counting from 0, \"Analyst\" fills positions 5 to 11, so `s[5:12]` lowercased is \"analyst\". The underscore is at 12. Splitting on \"_\" gives \"2025\", reversed to \"5202\". The last four characters, \"2025\", are all digits.",
+      "Syllabus 2.1.4 · Python docs (str)", ["strings", "slicing", "string-methods"],
+      code="""
+      s = "Data-Analyst_2025"
+      print(s[5:12].lower(), s.find("_"), s.split("_")[1][::-1], s[-4:].isdigit())
+      """, verify="stdout"),
+
+    Q("b2-172", "2.1.4", 2,
+      "What does this code print?",
+      ["`1,234.6|40%|  ab|005`", "`1234.6|0.4%|ab  |005`", "`1,234.57|40%|  ab|5`", "`1,234.6|40.0%|ab  |005`"],
+      0,
+      {1: "`,` adds a thousands separator, `%` multiplies by 100, and `>` aligns to the right.",
+       2: "`.1f` keeps one decimal place, and `03` pads 5 with zeros to three digits.",
+       3: "`.0%` shows no decimal places, and `>4` pads on the left."},
+      "`,.1f` gives a thousands separator and one decimal place; `.0%` multiplies by 100 and shows no decimals; `>4` right-aligns in a width of 4; `03` pads with zeros to 3 digits.",
+      "Syllabus 2.1.4 · Python docs (format spec)", ["f-string", "formatting"],
+      code="""
+      print(f"{1234.567:,.1f}|{0.4:.0%}|{'ab':>4}|{5:03}")
+      """, verify="stdout"),
+
+    Q("b2-173", "2.1.4", 2,
+      "What does this code print?",
+      ["`['tea', 'jam', '', 'oat'] 3 ['tea', 'jam']`",
+       "`['tea', 'jam', 'oat'] 3 ['tea', 'jam']`",
+       "`['tea', 'jam', '', 'oat'] 2 ['tea', 'jam']`",
+       "`['tea', 'jam', '', 'oat'] 3 ['tea', '', 'jam']`"],
+      0,
+      {1: "`split(\",\")` keeps the empty piece between the two commas.",
+       2: "Splitting \"tea  jam\" on each single space gives 'tea', '' and 'jam': 3 pieces.",
+       3: "`split()` with no argument treats any run of whitespace as one separator and drops empty pieces."},
+      "A given separator splits at every occurrence, so neighbouring separators leave empty strings. `split()` with no argument splits on runs of whitespace and never returns empty pieces.",
+      "Syllabus 2.1.4 · Python docs (str.split)", ["strings", "split"],
+      code="""
+      line = "tea,jam,,oat"
+      print(line.split(","), len("tea  jam".split(" ")), "tea  jam".split())
+      """, verify="stdout"),
+
+    Q("b2-174", "2.1.4", 3,
+      "What happens when this code runs?",
+      ["It prints `[] ['a', 'b', 'c']`, then raises IndexError",
+       "It raises IndexError at the first `print`",
+       "It prints `[] ['a', 'b', 'c']`, then prints `None`",
+       "It prints `[] []`, then raises IndexError"],
+      0,
+      {1: "Slices never raise for out-of-range positions; they return whatever exists.",
+       2: "A list doesn't return None for a missing position; indexing past the end raises IndexError.",
+       3: "A slice start before the beginning is treated as position 0, so `letters[-5:]` is the whole list."},
+      "Slicing clamps out-of-range positions: `letters[5:]` is empty and `letters[-5:]` is everything. Indexing doesn't: `letters[5]` raises IndexError: list index out of range.",
+      "Syllabus 2.1.4 · Python docs", ["indexing", "slicing", "indexerror"],
+      code="""
+      letters = ["a", "b", "c"]
+      print(letters[5:], letters[-5:])
+      print(letters[5])
+      """,
+      verify={"py": """
+      import contextlib, io
+      buf = io.StringIO()
+      try:
+          with contextlib.redirect_stdout(buf):
+              exec(code, {})
+          raise AssertionError("no IndexError")
+      except IndexError:
+          pass
+      assert buf.getvalue().strip() == "[] ['a', 'b', 'c']", buf.getvalue()
+      """}),
+
     # ---------- 2.1.5 PEP 8 and PEP 257 ----------
     Q("b2-040", "2.1.5", 1,
       "Which pair of names follows PEP 8?",
@@ -744,6 +885,71 @@ QUESTIONS = [
       env = {k: v for k, v in os.environ.items() if k != "PYTHONSAFEPATH"}
       r = subprocess.run([sys.executable, "analysis.py"], cwd=folder, capture_output=True, text=True, env=env)
       assert "AttributeError" in r.stderr and "mean" in r.stderr, r.stderr
+      """}),
+
+    Q("b2-058", "2.2.1", 3,
+      "What does this code print?",
+      ["`2025-02-03 05 Mar 0`", "`2025-03-02 01 Apr 6`", "`2025-02-03 05 Mar 1`", "`2025-02-03 5 March 0`"],
+      0,
+      {1: "`%d/%m/%Y` reads the first number as the day, so the date is 3 February, not 2 March.",
+       2: "`weekday()` counts Monday as 0; `isoweekday()` is the one that counts Monday as 1.",
+       3: "`%d` pads the day to two digits and `%b` is the short month name."},
+      "`strptime` with `%d/%m/%Y` parses 3 February 2025, a Monday (`weekday()` 0). `strftime(\"%Y-%m-%d\")` writes it in ISO form, and 30 days later is 5 March, written as \"05 Mar\".",
+      "Syllabus 2.2.1 · Python docs (datetime)", ["datetime", "strptime", "strftime"],
+      code="""
+      from datetime import datetime, timedelta
+
+      d = datetime.strptime("03/02/2025", "%d/%m/%Y")
+      print(d.strftime("%Y-%m-%d"), (d + timedelta(days=30)).strftime("%d %b"), d.weekday())
+      """, verify="stdout"),
+
+    Q("b2-059", "2.2.1", 2,
+      "What does this code print?",
+      ["`['c', 'd']`", "`['a', 'b', 'c', 'd']`", "`['d']`", "`['c']`"],
+      0,
+      {1: "The second `\"w\"` open empties the file, wiping a and b.",
+       2: "`\"a\"` adds to what is already there, so c stays.",
+       3: "The last `\"a\"` open adds d after c."},
+      "\"w\" creates the file or empties it before writing; \"a\" appends. The second \"w\" erases a and b, leaving c, and the final append adds d.",
+      "Syllabus 2.2.1, 1.4.1 · Python docs (open)", ["files", "open", "file-modes"],
+      code="""
+      import os
+      import tempfile
+
+      path = os.path.join(tempfile.gettempdir(), "log.txt")
+      with open(path, "w") as f:
+          f.write("a\\n")
+      with open(path, "a") as f:
+          f.write("b\\n")
+      with open(path, "w") as f:
+          f.write("c\\n")
+      with open(path, "a") as f:
+          f.write("d\\n")
+      with open(path) as f:
+          print(f.read().split())
+      """, verify="stdout"),
+
+    Q("b2-175", "2.2.1", 1,
+      "Which line turns the text \"2025-07-15\" into a `datetime` object? (`datetime` was imported with `from datetime import datetime`.)",
+      ["`datetime.strptime(\"2025-07-15\", \"%Y-%m-%d\")`",
+       "`datetime.strftime(\"2025-07-15\", \"%Y-%m-%d\")`",
+       "`datetime.strptime(\"2025-07-15\", \"%d-%m-%Y\")`",
+       "`\"2025-07-15\".date()`"],
+      0,
+      {1: "`strftime` formats an existing datetime as text; it can't parse a string.",
+       2: "The codes must follow the text's order; \"2025\" isn't a valid day, so this raises ValueError.",
+       3: "Strings have no `.date()` method."},
+      "`strptime` (\"parse\") reads text using format codes that match it exactly; `strftime` (\"format\") goes the other way.",
+      "Syllabus 2.2.1 · Python docs (datetime)", ["datetime", "strptime"],
+      verify={"py": """
+      from datetime import datetime
+      assert eval(opt(0)) == datetime(2025, 7, 15)
+      for i in (1, 2, 3):
+          try:
+              eval(opt(i))
+              raise AssertionError(f"option {i} ran")
+          except (TypeError, ValueError, AttributeError):
+              pass
       """}),
 
     # ---------- 2.2.2 Exceptions ----------

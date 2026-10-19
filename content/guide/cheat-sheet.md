@@ -75,6 +75,50 @@ The distinctions the exam leans on most, one table each. Read it the evening bef
 | Falsy | `0`, `0.0`, `""`, `[]`, `{}`, `set()`, `None`, `False` |
 | `[1, 2] * 2` vs `np.array([1, 2]) * 2` | `[1, 2, 1, 2]` vs `[2 4]` |
 
+## Indexing, slicing and strings
+
+| Expression (`s = "Python"`) | Result |
+|---|---|
+| `s[0]`, `s[-1]` | `'P'`, `'n'` |
+| `s[1:4]`, `s[:2]`, `s[4:]` | `'yth'`, `'Py'`, `'on'` (stop excluded) |
+| `s[::2]`, `s[::-1]` | `'Pto'`, `'nohtyP'` |
+| `s[10]` / `s[10:]` | IndexError / `''` |
+| `"x".find("z")` / `"x".index("z")` | `-1` / ValueError |
+| `"a  b".split()` / `.split(" ")` | `['a', 'b']` / `['a', '', 'b']` |
+| `"-".join(["a", "b"])` | `'a-b'` |
+
+## f-string specs
+
+| Spec | `f"{1234.5:...}"` etc. |
+|---|---|
+| `.2f` | `1234.50` |
+| `,.2f` | `1,234.50` |
+| `.1%` (of 0.256) | `25.6%` |
+| `>6` / `<6` / `^6` | Right / left / centre in width 6 |
+| `03` (of 7) | `007` |
+| `round(2.5)`, `round(3.5)` | `2`, `4` (halves go to even) |
+
+## Sorting with a key
+
+| Call | Sorts or picks by |
+|---|---|
+| `sorted(words, key=len)` | Length (pass the function, not `len()`) |
+| `sorted(words, key=str.lower)` | Case-insensitive text |
+| `sorted(rows, key=lambda r: (-r[1], r[0]))` | Column 1 high to low, then column 0 A to Z |
+| `max(d, key=d.get)` | The dict key with the largest value |
+
+## datetime and files
+
+| Task | Code |
+|---|---|
+| Text → datetime | `datetime.strptime("15/07/2025", "%d/%m/%Y")` |
+| datetime → text | `dt.strftime("%Y-%m-%d")` |
+| Move a date / gap in days | `dt + timedelta(days=30)` / `(d2 - d1).days` |
+| Codes | `%Y` year, `%m` month, `%d` day, `%H:%M` time (`%M` is minutes) |
+| Read / write / append | `open(p)` / `open(p, "w")` (empties first) / `open(p, "a")` |
+| Lines of a file | `for line in f:` (each ends in `\n`) |
+| CSV rows as dicts | `csv.DictReader(f)` (all values are strings) |
+
 ## Data structures
 
 | | Ordered | Mutable | Duplicates | Empty |

@@ -488,6 +488,56 @@ print(add_item_safe("a"), add_item_safe("b"))
 ['a'] ['b']
 ```
 
+**`lambda`: a one-line function.** `lambda x: x * 2` is a function with no name: the parameters go before the colon, and the single expression after it is the return value. It is mostly used where a short function is passed to another function. (PEP 8 advises using `def` rather than assigning a lambda to a name.)
+
+**Key functions: sorting and choosing by something else.** `sorted`, `list.sort`, `min` and `max` take `key=`, a function that is applied to each item before comparing. A tuple key sorts by several things in turn, and a minus sign reverses a numeric part.
+
+```python
+orders = [("tea", 3, 2.5), ("jam", 1, 4.0), ("oat", 3, 5.0), ("fig", 2, 3.0)]
+
+print(sorted(orders, key=lambda o: o[2]))             # by price
+print(max(orders, key=lambda o: o[1] * o[2]))         # largest qty × price
+print(sorted(orders, key=lambda o: (-o[1], o[0])))    # qty high to low, then name A to Z
+```
+
+```text
+[('tea', 3, 2.5), ('fig', 2, 3.0), ('jam', 1, 4.0), ('oat', 3, 5.0)]
+('oat', 3, 5.0)
+[('oat', 3, 5.0), ('tea', 3, 2.5), ('fig', 2, 3.0), ('jam', 1, 4.0)]
+```
+
+`oat` and `tea` both have qty 3, so the second part of the key, the name, puts `oat` first.
+
+A key can also be an existing function. Pass the function itself, `key=len`, not the result of calling it, `key=len()`:
+
+```python
+words = ["banana", "apple", "Cherry", "fig"]
+print(sorted(words))                  # capitals sort before lowercase
+print(sorted(words, key=str.lower))   # compare lowercased copies
+print(sorted(words, key=len))         # shortest first; ties keep their order
+```
+
+```text
+['Cherry', 'apple', 'banana', 'fig']
+['apple', 'banana', 'Cherry', 'fig']
+['fig', 'apple', 'banana', 'Cherry']
+```
+
+**`map` and `filter`.** `map(f, items)` applies `f` to each item; `filter(f, items)` keeps the items where `f` returns True. Both give back a lazy object, so wrap them in `list()` to see the values. A list comprehension does the same job and is often clearer:
+
+```python
+prices = [2.5, 4.0, 1.0]
+print(list(map(lambda p: p * 2, prices)))
+print(list(filter(lambda p: p > 2, prices)))
+print([p * 2 for p in prices], [p for p in prices if p > 2])
+```
+
+```text
+[5.0, 8.0, 2.0]
+[2.5, 4.0]
+[5.0, 8.0, 2.0] [2.5, 4.0]
+```
+
 **Clear purpose.** One job per function, a descriptive verb name (`load_orders`, `clean_prices`), a docstring, and return values instead of printing inside the function, so the result can be reused and tested.
 
 ### Exam traps
@@ -495,6 +545,8 @@ print(add_item_safe("a"), add_item_safe("b"))
 > **Trap.** `def f(a=1, b):` is a `SyntaxError`: a required parameter cannot follow an optional one.
 
 > **Trap.** Mutable default arguments (`[]`, `{}`) keep their contents between calls. Use `None` and create the object inside.
+
+> **Trap.** `key=` takes a function, not a value: `sorted(words, key=len)` works, while `key=len()` raises `TypeError` before sorting starts.
 
 ## 2.1.3 Evaluate the Python data science ecosystem
 
@@ -564,6 +616,98 @@ print(t)
 {1, 2, 3, 4} {3} {1, 2}
 ['data', 'python', 'sql'] 2025-07-15
 (1, [2, 3, 4])
+```
+
+**Indexing: one item by position.** Lists, tuples and strings number their items from 0. A negative index counts from the end, so `-1` is the last item.
+
+```python
+letters = ["a", "b", "c", "d", "e"]
+word = "Python"
+
+print(letters[0], letters[2], letters[-1])
+print(word[0], word[-2])
+```
+
+```text
+a c e
+P o
+```
+
+An index past the end raises an `IndexError`:
+
+```python
+letters = ["a", "b", "c"]
+try:
+    letters[3]
+except IndexError as e:
+    print("IndexError:", e)
+```
+
+```text
+IndexError: list index out of range
+```
+
+**Slicing: a run of items.** `seq[start:stop]` takes the items from position `start` up to, but **not** including, `stop`. Leave out `start` to begin at the first item, or `stop` to run to the end. A slice is a new list (or string), and a slice that runs past the end never raises an error: it just stops at the last item.
+
+```python
+nums = [10, 20, 30, 40, 50]
+
+print(nums[1:3])      # positions 1 and 2
+print(nums[:2])       # the first two
+print(nums[3:])       # from position 3 to the end
+print(nums[-2:])      # the last two
+print(nums[1:99])     # a stop past the end is fine
+```
+
+```text
+[20, 30]
+[10, 20]
+[40, 50]
+[40, 50]
+[20, 30, 40, 50]
+```
+
+When both ends are inside the list, `nums[a:b]` holds `b - a` items: `nums[1:3]` has 2.
+
+**A step: `[start:stop:step]`.** A third number jumps that many positions each time. A negative step walks backwards, so `[::-1]` reverses.
+
+```python
+nums = [10, 20, 30, 40, 50]
+word = "Python"
+
+print(nums[::2])      # every second item
+print(nums[::-1])     # reversed
+print(word[1:5:2])    # positions 1 and 3
+print(word[::-1])
+```
+
+```text
+[10, 30, 50]
+[50, 40, 30, 20, 10]
+yh
+nohtyP
+```
+
+**Changing items.** A list can be changed through an index or a slice. Strings and tuples can't be changed, so you build a new one instead.
+
+```python
+nums = [10, 20, 30, 40, 50]
+nums[0] = 99
+nums[1:3] = [0]           # replace positions 1 and 2 with one item
+print(nums)
+
+word = "Python"
+try:
+    word[0] = "J"
+except TypeError as e:
+    print("TypeError:", e)
+print("J" + word[1:])     # build a new string instead
+```
+
+```text
+[99, 0, 40, 50]
+TypeError: 'str' object does not support item assignment
+Jython
 ```
 
 **Adding to a list: `append` and `extend`.** `append` adds **one** item to the end. `extend` takes a collection and adds **each** of its items.
@@ -734,6 +878,96 @@ data
 DATA
 ```
 
+**String methods.** Each of these returns a new value; none changes the original string.
+
+| Method | Example | Result |
+|---|---|---|
+| `upper()`, `lower()`, `title()` | `"tea bag".title()` | `'Tea Bag'` |
+| `strip()`, `lstrip()`, `rstrip()` | `"  x ".strip()` | `'x'` |
+| `replace(old, new)` | `"1,200".replace(",", "")` | `'1200'` |
+| `split(sep)` | `"a;b;c".split(";")` | `['a', 'b', 'c']` |
+| `sep.join(items)` | `"-".join(["a", "b"])` | `'a-b'` |
+| `startswith(x)`, `endswith(x)` | `"report.csv".endswith(".csv")` | `True` |
+| `find(x)` / `index(x)` | `"data".find("t")` | `2`; for a missing `x`, `find` gives `-1` and `index` raises `ValueError` |
+| `count(x)` | `"banana".count("a")` | `3` |
+| `isdigit()`, `isalpha()` | `"2025".isdigit()` | `True` |
+| `x in s` | `"ana" in "banana"` | `True` |
+
+```python
+code = "  INV-2025-0042 "
+clean = code.strip()
+
+print(clean.lower(), clean.split("-"))
+print(clean.startswith("INV"), clean.find("-"), clean.find("X"))
+print(clean.replace("-", "/"), "-".join(["2025", "07", "15"]))
+print("2025".isdigit(), "20.5".isdigit(), clean.count("0"))
+```
+
+```text
+inv-2025-0042 ['INV', '2025', '0042']
+True 3 -1
+INV/2025/0042 2025-07-15
+True False 3
+```
+
+`"20.5".isdigit()` is `False` because `.` isn't a digit, so `isdigit` can't check decimal numbers; try `float()` inside `try`/`except` instead (section 2.2.2).
+
+`split()` with no argument splits on any run of whitespace and drops empty pieces. `split(" ")` splits on every single space, so double spaces leave empty strings behind:
+
+```python
+text = "tea  jam "
+print(text.split())       # any run of spaces; empty pieces dropped
+print(text.split(" "))    # exactly one space each time
+```
+
+```text
+['tea', 'jam']
+['tea', '', 'jam', '']
+```
+
+**f-strings: putting values into text.** In `f"..."`, each `{expression}` is replaced by its value. A colon after the expression adds a **format spec** that controls how the value looks:
+
+| Spec | Example | Result |
+|---|---|---|
+| `.2f`: 2 decimal places | `f"{3.14159:.2f}"` | `3.14` |
+| `,`: thousands separator | `f"{1234567:,}"` | `1,234,567` |
+| `.1%`: percentage | `f"{0.256:.1%}"` | `25.6%` |
+| `>6`, `<6`, `^6`: align in a width | `f"{'ab':>6}"` | `'    ab'` |
+| `03`: pad with zeros | `f"{7:03}"` | `007` |
+| `=`: show the expression too | `f"{x=}"` | `x=5` |
+
+```python
+price = 1234.5
+share = 0.256
+item = "tea"
+
+print(f"{item}: {price:.2f}")
+print(f"{price:,.2f} | {share:.1%} | {7:03}")
+print(f"[{item:>6}] [{item:<6}] [{item:^7}]")
+print(f"{price * 2 = }")
+```
+
+```text
+tea: 1234.50
+1,234.50 | 25.6% | 007
+[   tea] [tea   ] [  tea  ]
+price * 2 = 2469.0
+```
+
+**Rounding.** `round(x, n)` returns a number; a format spec such as `:.2f` returns text. Both round a value exactly halfway to the **even** neighbour, and floats that look like halves often aren't stored exactly, so the results can surprise:
+
+```python
+print(round(2.5), round(3.5), round(-2.5))
+print(round(2.675, 2), f"{2.675:.2f}")
+```
+
+```text
+2 4 -2
+2.67 2.67
+```
+
+2.675 is stored as a float just below 2.675, so it rounds down.
+
 **One-item tuples need a comma.** Brackets alone just group things, like in maths. It's the comma that makes a tuple.
 
 ```python
@@ -788,6 +1022,14 @@ print(dict(by_region))
 > **Trap.** `{}` is an empty **dict**, not an empty set.
 
 > **Trap.** `lst.sort()` returns `None`. `x = lst.sort()` leaves `x` as `None`.
+
+> **Trap.** `nums[5]` on a 3-item list raises `IndexError`, but `nums[5:]` just returns `[]`. Slices never go out of range.
+
+> **Trap.** `s[1:4]` stops **before** position 4, so it has 3 items, not 4.
+
+> **Trap.** `"abc".find("z")` returns `-1`; `"abc".index("z")` raises `ValueError`. And `-1` used as an index means the last item, so an unchecked `find` result can quietly pick the wrong character.
+
+> **Trap.** `round(2.5)` is `2`, not `3`: Python rounds exact halves to the even number.
 
 ## 2.1.5 Explain and implement Python scripting best practices
 
@@ -937,6 +1179,141 @@ if __name__ == "__main__":          # true here, because this code is run direct
 hello
 ```
 
+**Dates and times: `datetime`.** A `date` holds a day, a `datetime` holds a day and a time, and a `timedelta` holds a length of time. `strptime` ("string parse time") reads text into a `datetime` using format codes; `strftime` ("string format time") writes a `datetime` out as text.
+
+| Code | Meaning | Example |
+|---|---|---|
+| `%Y` | Four-digit year | `2025` |
+| `%m` / `%d` | Month / day, two digits | `07` / `15` |
+| `%H`, `%M`, `%S` | Hour (24-hour clock), minute, second | `14`, `30`, `00` |
+| `%b` / `%B` | Month name, short / full | `Jul` / `July` |
+| `%a` / `%A` | Weekday name, short / full | `Tue` / `Tuesday` |
+
+```python
+from datetime import datetime, timedelta
+
+placed = datetime.strptime("15/07/2025 14:30", "%d/%m/%Y %H:%M")
+print(placed)
+print(placed.strftime("%Y-%m-%d"), placed.strftime("%A %d %B"))
+
+due = placed + timedelta(days=30)
+print(due.date(), (due - placed).days, due > placed)
+print(placed.year, placed.month, placed.weekday())    # weekday(): Monday is 0
+```
+
+```text
+2025-07-15 14:30:00
+2025-07-15 Tuesday 15 July
+2025-08-14 30 True
+2025 7 1
+```
+
+Adding a `timedelta` moves a date; subtracting two dates gives a `timedelta`, whose `.days` is the gap. If the text doesn't match the format exactly, `strptime` raises a `ValueError`:
+
+```python
+from datetime import datetime
+
+try:
+    datetime.strptime("2025-07-15", "%d/%m/%Y")
+except ValueError as e:
+    print("ValueError:", e)
+```
+
+```text
+ValueError: time data '2025-07-15' does not match format '%d/%m/%Y'
+```
+
+For ISO text such as `'2025-07-15'`, `date.fromisoformat` needs no format string (section 2.4.5). pandas uses the same format codes: `pd.to_datetime(s, format="%d/%m/%Y")` and `s.dt.strftime("%Y-%m")`.
+
+**Reading and writing files.** `open(path, mode)` opens a file. The mode decides what happens:
+
+| Mode | Does |
+|---|---|
+| `"r"` (the default) | Read; `FileNotFoundError` if the file doesn't exist |
+| `"w"` | Write; creates the file, or **empties** an existing one first |
+| `"a"` | Append; adds to the end, creating the file if needed |
+
+`with open(...) as f:` closes the file automatically at the end of the block, even after an error. Give `encoding="utf-8"` for text that might hold non-English characters. `os.path.join` builds a path with the right separator for the operating system, and `os.path.exists` checks that a file is there.
+
+```python
+import os
+import tempfile
+
+path = os.path.join(tempfile.gettempdir(), "visits.txt")   # folder + file name
+
+with open(path, "w", encoding="utf-8") as f:     # "w": create, or empty and rewrite
+    f.write("Oslo,12\n")
+    f.write("Rome,7\n")
+
+with open(path, "a", encoding="utf-8") as f:     # "a": add to the end
+    f.write("Lima,3\n")
+
+with open(path, encoding="utf-8") as f:          # "r" (read) is the default
+    for line in f:
+        city, visits = line.strip().split(",")
+        print(city, int(visits) * 2)
+
+print(os.path.exists(path), os.path.basename(path))
+```
+
+```text
+Oslo 24
+Rome 14
+Lima 6
+True visits.txt
+```
+
+Looping over a file gives one line at a time, each still ending in `"\n"`, which is why `strip()` comes first. Every value read from a text file is a string, so `int()` converts the counts. `write` doesn't add a newline for you.
+
+`f.read()` returns the whole file as one string, and `f.readlines()` returns a list of lines. Opening with `"w"` a second time wipes what was there:
+
+```python
+import os
+import tempfile
+
+path = os.path.join(tempfile.gettempdir(), "note.txt")
+with open(path, "w", encoding="utf-8") as f:
+    f.write("first\nsecond\n")
+with open(path, "w", encoding="utf-8") as f:      # "w" again: the old text is gone
+    f.write("third\n")
+
+with open(path, encoding="utf-8") as f:
+    print(repr(f.read()))                         # the whole file as one string
+with open(path, encoding="utf-8") as f:
+    print(f.readlines())                          # a list of lines
+```
+
+```text
+'third\n'
+['third\n']
+```
+
+**CSV files with the `csv` module.** `csv.writer` writes rows and quotes fields that need it; `csv.DictReader` reads each row as a dict keyed by the header. Every value comes back as a string. Open CSV files with `newline=""` so the module controls the line endings.
+
+```python
+import csv
+import os
+import tempfile
+
+path = os.path.join(tempfile.gettempdir(), "sales.csv")
+with open(path, "w", newline="", encoding="utf-8") as f:
+    writer = csv.writer(f)
+    writer.writerow(["region", "amount"])
+    writer.writerows([["EU", 120], ["US", 80]])
+
+with open(path, newline="", encoding="utf-8") as f:
+    rows = list(csv.DictReader(f))
+print(rows[0])
+print(sum(int(r["amount"]) for r in rows))
+```
+
+```text
+{'region': 'EU', 'amount': '120'}
+200
+```
+
+The number 120 went in as an integer and came back as the string `'120'`, so it needs `int()` before adding up.
+
 **pip.**
 
 | Command | Does |
@@ -954,6 +1331,10 @@ Run pip inside a virtual environment (`python -m venv .venv`) so each project ke
 ### Exam traps
 
 > **Trap.** `pip update pandas` is not a command. Upgrading is `pip install --upgrade pandas`.
+
+> **Trap.** `open(path, "w")` empties an existing file as soon as it opens. Use `"a"` to add to the end.
+
+> **Trap.** `strptime` turns text into a `datetime` (parse); `strftime` turns a `datetime` into text (format). The format must match the text exactly, or `strptime` raises `ValueError`.
 
 > **Trap.** After `from math import sqrt`, the name `math` is not defined; only `sqrt` is.
 

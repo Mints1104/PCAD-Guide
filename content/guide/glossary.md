@@ -118,6 +118,8 @@ Every key term in the guide, A to Z. Terms link here from each objective's essen
 
 ## F
 
+**f-string** — a string literal prefixed with `f` in which each `{expression}` is replaced by its value, optionally shaped by a format spec such as `{price:.2f}`.
+
 **Foreign key** — a column whose values must match primary-key values in another table, enforcing referential integrity.
 
 ## G
@@ -162,9 +164,15 @@ Every key term in the guide, A to Z. Terms link here from each objective's essen
 
 **JSON** — JavaScript Object Notation: a text format of nested objects (key-value pairs) and arrays.
 
+## K
+
+**Key function** — a function passed as `key=` to `sorted`, `min`, `max` or `list.sort`; items are compared by its result instead of by themselves.
+
 ## L
 
 **Label encoding** — replacing each category with an integer code.
+
+**Lambda** — a small unnamed function written as one expression, such as `lambda x: x * 2`; often passed as a key function.
 
 **Least privilege** — giving each user or account only the permissions it needs.
 
@@ -307,6 +315,8 @@ Every key term in the guide, A to Z. Terms link here from each objective's essen
 **SFJWGHOL** — mnemonic for SQL's written clause order: SELECT, FROM, JOIN, WHERE, GROUP BY, HAVING, ORDER BY, LIMIT.
 
 **Shallow copy** — a new container whose nested objects are still shared with the original.
+
+**Slicing** — taking a run of items from a list, tuple or string with `seq[start:stop:step]`; the stop position is excluded and out-of-range positions are allowed.
 
 **Split-apply-combine** — the groupby pattern: split data into groups, apply a function to each, combine the results.
 

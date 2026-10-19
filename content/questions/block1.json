@@ -1969,6 +1969,37 @@
   "verify": "stdout"
  },
  {
+  "id": "b1-097",
+  "objective": "1.4.1",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "`US 12080 2`",
+   "`US 200 2`",
+   "`US 12080 3`",
+   "`EU 200 2`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`csv.DictReader` turns each data row into a dict keyed by the header, and every value is text. Adding \"120\" and \"80\" joins them into \"12080\"; convert with `int()` first to get 200.",
+  "why_wrong": [
+   "",
+   "The `csv` module returns every value as a string, so `+` joins \"120\" and \"80\" instead of adding them.",
+   "`DictReader` uses the first line as the header, not as a data row, so there are 2 rows.",
+   "`rows[1]` is the second data row, US."
+  ],
+  "source": "Syllabus 1.4.1, 2.2.1 · Python docs (csv)",
+  "difficulty": 3,
+  "tags": [
+   "csv",
+   "dictreader",
+   "types"
+  ],
+  "code": "import csv\nimport io\n\ndata = \"region,amount\\nEU,120\\nUS,80\\n\"\nrows = list(csv.DictReader(io.StringIO(data)))\nprint(rows[1][\"region\"], rows[0][\"amount\"] + rows[1][\"amount\"], len(rows))",
+  "verify": "stdout"
+ },
+ {
   "id": "b1-100",
   "objective": "1.4.2",
   "type": "single",

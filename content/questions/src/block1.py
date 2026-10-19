@@ -953,6 +953,24 @@ QUESTIONS = [
       print(back.columns.tolist(), back.shape)
       """, verify="stdout"),
 
+    Q("b1-097", "1.4.1", 3,
+      "What does this code print?",
+      ["`US 12080 2`", "`US 200 2`", "`US 12080 3`", "`EU 200 2`"],
+      0,
+      {1: "The `csv` module returns every value as a string, so `+` joins \"120\" and \"80\" instead of adding them.",
+       2: "`DictReader` uses the first line as the header, not as a data row, so there are 2 rows.",
+       3: "`rows[1]` is the second data row, US."},
+      "`csv.DictReader` turns each data row into a dict keyed by the header, and every value is text. Adding \"120\" and \"80\" joins them into \"12080\"; convert with `int()` first to get 200.",
+      "Syllabus 1.4.1, 2.2.1 · Python docs (csv)", ["csv", "dictreader", "types"],
+      code="""
+      import csv
+      import io
+
+      data = "region,amount\\nEU,120\\nUS,80\\n"
+      rows = list(csv.DictReader(io.StringIO(data)))
+      print(rows[1]["region"], rows[0]["amount"] + rows[1]["amount"], len(rows))
+      """, verify="stdout"),
+
     # ---------- 1.4.2 Accessing datasets ----------
     Q("b1-100", "1.4.2", 2,
       "What happens when this code runs?",

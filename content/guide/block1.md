@@ -666,7 +666,7 @@ print([(b.get("id"), b.find("title").text) for b in root.findall("book")])
 [('1', 'Data'), ('2', 'SQL')]
 ```
 
-CSV details: a header row names the columns; a field containing the delimiter is quoted (`"Smith, Jane"`); every value is text until you convert it; `sep=";"` or `sep="\t"` for other delimiters; open files for the `csv` module with `newline=""`. Always state `encoding="utf-8"` when text might contain non-ASCII characters.
+CSV details: a header row names the columns; a field containing the delimiter is quoted (`"Smith, Jane"`); every value is text until you convert it; `sep=";"` or `sep="\t"` for other delimiters; open files for the `csv` module with `newline=""`. Always state `encoding="utf-8"` when text might contain non-ASCII characters. Section 2.2.1 shows `open` with its read, write and append modes, reading a TXT file line by line, and `csv.writer` / `csv.DictReader`.
 
 ### Exam traps
 
