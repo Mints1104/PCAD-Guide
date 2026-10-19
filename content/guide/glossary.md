@@ -334,6 +334,8 @@ Every key term in the guide, A to Z. Terms link here from each objective's essen
 
 **Structured data** — data organized in a fixed schema of rows and typed columns.
 
+**Subquery** — a `SELECT` written inside another SQL statement, in brackets, that supplies a value or a list of values to it.
+
 **Supervised learning** — machine learning from labeled examples to predict a known target.
 
 ## T
@@ -355,6 +357,8 @@ Every key term in the guide, A to Z. Terms link here from each objective's essen
 **Underfitting** — a model too simple to capture the pattern, scoring poorly on both training and test data (high bias).
 
 **Uniform distribution** — a distribution in which every value in an interval [a, b] is equally likely.
+
+**Unpacking** — assigning the items of a sequence to several names at once (`x, y = point`); a starred name (`*rest`) collects the leftovers into a list.
 
 **Unstructured data** — data with no predefined model, such as free text, images, audio and video.
 

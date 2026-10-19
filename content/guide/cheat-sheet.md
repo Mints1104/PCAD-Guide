@@ -87,6 +87,17 @@ The distinctions the exam leans on most, one table each. Read it the evening bef
 | `"a  b".split()` / `.split(" ")` | `['a', 'b']` / `['a', '', 'b']` |
 | `"-".join(["a", "b"])` | `'a-b'` |
 
+## Unpacking and dict methods
+
+| Code | Result |
+|---|---|
+| `first, *rest = [1, 2, 3]` | `first = 1`, `rest = [2, 3]` |
+| `x, y = (1, 2, 3)` | ValueError (too many values) |
+| `a, b = b, a` | Swap |
+| `d.update({"k": 1})` | Adds or overwrites `k` |
+| `d.setdefault(k, []).append(x)` | Group into lists in one line |
+| `d.pop(k, 0)` | Remove and return, or 0 if missing |
+
 ## f-string specs
 
 | Spec | `f"{1234.5:...}"` etc. |
@@ -246,6 +257,26 @@ The distinctions the exam leans on most, one table each. Read it the evening bef
 | `df.loc[0:2]` vs `df.iloc[0:2]` (default index) | 3 rows vs 2 rows |
 | `df.loc[mask, "col"] = v` | Conditional update |
 
+## More pandas and NumPy
+
+| Code | Does |
+|---|---|
+| `np.where(cond, "hit", "miss")` | Choose per element; `np.where(cond)` gives positions |
+| `s.apply(f)` / `df.apply(f, axis=1)` | `f` on each value / each row (slower than vectorized) |
+| `s.str.contains("x", case=False, na=False)` | Text filter, any case, missing = no match |
+| `df.nlargest(3, "col")` | Top 3 rows by `col`, sorted |
+| `a.merge(b, left_on="cust_id", right_on="id")` | Keys with different names; both kept |
+| `pd.json_normalize(records)` | Nested dicts → dotted columns |
+| `pd.json_normalize(data, record_path="items", meta="id")` | One row per list item, parent `id` copied |
+
+## SQL subqueries
+
+| Pattern | Meaning |
+|---|---|
+| `WHERE id IN (SELECT ...)` | Subquery returns a list |
+| `WHERE total > (SELECT AVG(total) ...)` | Subquery returns one value |
+| `JOIN orders ... JOIN items ...` | One `JOIN ... ON` per extra table |
+
 ## Combining and reshaping
 
 | Tool | Does | Default |
@@ -356,3 +387,5 @@ The distinctions the exam leans on most, one table each. Read it the evening bef
 | Legend | `label=` on series, `ax.legend(loc=, fontsize=, facecolor=)` |
 | Arrow to a point | `ax.annotate(text, xy=, xytext=, arrowprops=)` |
 | Save | `fig.savefig("f.png", dpi=150)` before `plt.show()` |
+| Size | `plt.subplots(figsize=(8, 4))` (inches: width, height) |
+| Style for every chart after | `plt.style.use("ggplot")`, `sns.set_theme(style="whitegrid")` |

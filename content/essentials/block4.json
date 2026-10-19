@@ -7,7 +7,8 @@
       {"cue": "How do you fill missing values with a different value per column?", "fact": "Pass a dict: `df.fillna({\"city\": \"Unknown\", \"sales\": 0})`; use `ffill()` / `bfill()` to carry values forward or back.", "why": "Expect to predict the column after filling."},
       {"cue": "What does `drop_duplicates()` compare?", "fact": "Whole rows by default, keeping the first occurrence; `subset=` compares only some columns and `keep=\"last\"` or `keep=False` changes which copies stay.", "why": "Row counts after de-duplication are common items."},
       {"cue": "What does a pandas method return when called with `inplace=True`?", "fact": "None: it modifies the DataFrame in place, so `df = df.dropna(inplace=True)` sets `df` to None.", "why": "`df = df.method(inplace=True)` leaves you holding None instead of a DataFrame."},
-      {"cue": "How do you change values that match a condition?", "fact": "`df.loc[mask, \"col\"] = value`; chained indexing like `df[mask][\"col\"] = value` modifies a temporary copy (and never `df` under pandas 3 copy-on-write).", "why": "Items show both and ask which updates the DataFrame."}
+      {"cue": "How do you change values that match a condition?", "fact": "`df.loc[mask, \"col\"] = value`; chained indexing like `df[mask][\"col\"] = value` modifies a temporary copy (and never `df` under pandas 3 copy-on-write).", "why": "Items show both and ask which updates the DataFrame."},
+      {"cue": "How do you filter on text and pick the top rows?", "fact": "`df[df[\"col\"].str.contains(\"tea\", case=False, na=False)]` keeps rows whose text includes \"tea\" in any case; `df.nlargest(3, \"sales\")` returns the 3 rows with the highest sales, sorted.", "why": "`str.contains` is case-sensitive by default, a frequent trap."}
     ],
     "traps": [
       {"cue": "Does `df.sort_values(\"x\")` change `df`?", "answer": "No, it returns a new sorted DataFrame. Assign it back."},
@@ -24,7 +25,8 @@
       {"cue": "How many rows does a left merge return?", "fact": "Every row of the left table, plus extra rows wherever a left key matches several right rows; unmatched rows get NaN in the right-hand columns.", "why": "Expect to count rows and NaNs."},
       {"cue": "What does `pd.concat` do along each axis?", "fact": "`axis=0` (default) stacks rows, aligning on column names (NaN where a column is missing); `axis=1` places frames side by side aligned on the index; `ignore_index=True` renumbers.", "why": "Items ask for the shape after concat."},
       {"cue": "How do `pivot` and `pivot_table` differ?", "fact": "`pivot` only reshapes and fails on duplicate index/column pairs; `pivot_table` aggregates duplicates with `aggfunc` (mean by default) and supports `fill_value` and `margins`.", "why": "Expect to pick the call that produces a given summary table."},
-      {"cue": "What does `melt` do?", "fact": "It converts wide data to long: `id_vars` stay as identifier columns, other columns become `variable`/`value` pairs (renamed with `var_name` and `value_name`).", "why": "Code items show a melted table and ask for its shape."}
+      {"cue": "What does `melt` do?", "fact": "It converts wide data to long: `id_vars` stay as identifier columns, other columns become `variable`/`value` pairs (renamed with `var_name` and `value_name`).", "why": "Code items show a melted table and ask for its shape."},
+      {"cue": "How do you merge on keys with different names?", "fact": "`a.merge(b, left_on=\"cust_id\", right_on=\"id\")`; both key columns stay in the result, so drop one if needed. Clashing non-key names get `_x`/`_y` or your `suffixes=`.", "why": "Items ask for the columns of a merge on differently named keys."}
     ],
     "traps": [
       {"cue": "Two tables share a column `amount` besides the key. What happens after merge?", "answer": "The clashing columns get suffixes `amount_x` and `amount_y` (change them with `suffixes=`)."},
@@ -41,7 +43,8 @@
       {"cue": "How does arithmetic between two Series work?", "fact": "It aligns on index labels, not positions; labels present in only one Series produce NaN.", "why": "Output items add two Series with different indexes."},
       {"cue": "Why prefer vectorized operations over loops?", "fact": "Vectorized operations (`s * 2`, `.str.upper()`, `np.log(s)`) run in optimized compiled code over the whole column, far faster than Python loops or row-wise `apply`.", "why": "Performance items reward the vectorized option."},
       {"cue": "What do `axis=0` and `axis=1` mean in a DataFrame aggregation?", "fact": "`axis=0` aggregates down the rows, giving one result per column; `axis=1` aggregates across columns, giving one result per row.", "why": "Expect to predict the length of `df.sum(axis=1)`."},
-      {"cue": "What do `set_index` and `reset_index` do?", "fact": "`set_index(\"col\")` makes a column the row index; `reset_index()` moves the index back into a column (`drop=True` discards it).", "why": "Items check which labels remain after reset_index."}
+      {"cue": "What do `set_index` and `reset_index` do?", "fact": "`set_index(\"col\")` makes a column the row index; `reset_index()` moves the index back into a column (`drop=True` discards it).", "why": "Items check which labels remain after reset_index."},
+      {"cue": "When do you use `apply`, and what does `axis=1` change?", "fact": "`s.apply(f)` calls `f` on each value; `df.apply(f, axis=1)` calls it on each row (as a Series), and without `axis=1` on each column. It loops in Python, so a vectorized expression is faster when one exists.", "why": "Performance items reward vectorization over `apply`; output items use `axis=1`."}
     ],
     "traps": [
       {"cue": "What is the shape of a Series with 5 values?", "answer": "(5,): a one-element tuple, because a Series is one-dimensional."}
@@ -74,7 +77,8 @@
       {"cue": "What does `a.sum(axis=0)` return for a 2-D array?", "fact": "One sum per column (it collapses the rows); `axis=1` gives one per row; no axis gives the grand total.", "why": "Expect to compute one of these."},
       {"cue": "How do lists and arrays differ under `*` and `+`?", "fact": "`[1, 2] * 2` repeats the list to `[1, 2, 1, 2]`; `np.array([1, 2]) * 2` multiplies element-wise to `[2, 4]`; `+` concatenates lists but adds arrays.", "why": "The same operator does different things to lists and arrays."},
       {"cue": "What happens when you mix types in one NumPy array?", "fact": "Everything is upcast to one dtype: ints and floats become float, and anything mixed with a string becomes a string array.", "why": "Items ask for an array's dtype."},
-      {"cue": "When do you choose an ndarray, a Series or a DataFrame?", "fact": "An ndarray for fast numeric math on one type; a Series for one labeled column; a DataFrame for a labeled table whose columns can have different types.", "why": "The syllabus asks you to evaluate each structure's use case."}
+      {"cue": "When do you choose an ndarray, a Series or a DataFrame?", "fact": "An ndarray for fast numeric math on one type; a Series for one labeled column; a DataFrame for a labeled table whose columns can have different types.", "why": "The syllabus asks you to evaluate each structure's use case."},
+      {"cue": "What does `np.where` do?", "fact": "`np.where(cond, a, b)` picks `a` where the condition is True and `b` where it is False, element by element, the vectorized way to build a column from a condition. `np.where(cond)` alone returns the positions where it is True.", "why": "Items build a label column with `np.where` and ask for the result."}
     ],
     "traps": [
       {"cue": "What does `np.mean` return for an array containing NaN?", "answer": "nan. Use `np.nanmean` to skip missing values."},

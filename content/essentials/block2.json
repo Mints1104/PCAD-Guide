@@ -62,7 +62,10 @@
       {"cue": "How do `append` and `extend` differ?", "fact": "`append(x)` adds one item (even if x is a list); `extend(iterable)` adds each item of the iterable.", "why": "Expect to predict a list's length after one of them."},
       {"cue": "What do `s[-1]`, `s[1:4]`, `s[:2]` and `s[::-1]` return?", "fact": "Positions start at 0 and negative ones count from the end: `s[-1]` is the last item, `s[1:4]` is positions 1 to 3 (the stop is excluded), `s[:2]` the first two, and `s[::-1]` the sequence reversed. The same rules apply to lists, tuples and strings.", "why": "Slicing is the most common way an output item hides an off-by-one."},
       {"cue": "Which string methods clean and inspect text?", "fact": "`strip`, `lower`/`upper`/`title`, `replace`, `split`/`join`, `startswith`/`endswith`, `find` (−1 if missing) or `index` (ValueError if missing), `count`, `isdigit`, and `x in s`. They all return new values; the string itself never changes.", "why": "Code items chain several methods and ask for the printed result."},
-      {"cue": "What do the f-string specs `:.2f`, `:,`, `:.1%`, `:>8` and `:03` do?", "fact": "Two decimal places; a thousands separator; a percentage (×100) with one decimal; right-align in a width of 8; pad with zeros to 3 digits. Specs combine: `f\"{x:,.2f}\"` gives `1,234.50`.", "why": "Expect to pick the f-string that produces a given report line."}
+      {"cue": "What do the f-string specs `:.2f`, `:,`, `:.1%`, `:>8` and `:03` do?", "fact": "Two decimal places; a thousands separator; a percentage (×100) with one decimal; right-align in a width of 8; pad with zeros to 3 digits. Specs combine: `f\"{x:,.2f}\"` gives `1,234.50`.", "why": "Expect to pick the f-string that produces a given report line."},
+      {"cue": "What do `x, y = point` and `first, *rest = items` do?", "fact": "Unpacking assigns one item per name; a starred name collects the leftovers into a list (possibly empty). The counts must match otherwise, or Python raises ValueError. `a, b = b, a` swaps two values.", "why": "Output items unpack sequences and ask what each name holds."},
+      {"cue": "What do `update`, `setdefault` and `pop` do to a dict?", "fact": "`d.update(other)` copies keys in, overwriting existing ones; `d.setdefault(k, default)` returns `d[k]`, inserting the default first if `k` is missing; `d.pop(k, default)` removes `k` and returns its value (or the default).", "why": "Grouping with `setdefault(k, []).append(x)` is a common pattern in code items."},
+      {"cue": "How do you read nested data such as a list of dicts?", "fact": "Chain lookups from the outside in (`orders[0][\"customer\"][\"city\"]`), and loop or use a comprehension with several `for` parts, read in the same order as nested loops.", "why": "JSON from APIs arrives in this shape before it becomes a table."}
     ],
     "traps": [
       {"cue": "What is `type({})`?", "answer": "dict. An empty set is written `set()`."},
@@ -71,7 +74,7 @@
       {"cue": "How do `\"a  b\".split()` and `\"a  b\".split(\" \")` differ?", "answer": "`split()` splits on any run of whitespace: `['a', 'b']`. `split(\" \")` splits on each single space, so a double space leaves an empty string: `['a', '', 'b']`."},
       {"cue": "What is `round(2.5)`?", "answer": "2. Python rounds exact halves to the even number, so `round(3.5)` is 4."}
     ],
-    "terms": ["Mutable", "Immutable", "Hashable", "Slicing", "f-string"],
+    "terms": ["Mutable", "Immutable", "Hashable", "Slicing", "f-string", "Unpacking"],
     "maps": ["data-structure"]
   },
   {
@@ -121,7 +124,8 @@
       {"cue": "Which `except` clause handles an exception?", "fact": "Clauses are checked top to bottom and the first matching one wins, so specific exceptions must come before general ones such as `Exception`.", "why": "Items put `except Exception` first and ask which clause runs."},
       {"cue": "What is the difference between ValueError and TypeError?", "fact": "ValueError: right type, bad value (`int(\"12a\")`); TypeError: wrong type for the operation (`\"3\" + 4`) or wrong arguments to a call.", "why": "These two are the easiest exceptions to mix up."},
       {"cue": "Which errors do missing keys, bad indexes and missing names raise?", "fact": "A missing dict key (or DataFrame column) raises KeyError, an out-of-range index raises IndexError, and an undefined name raises NameError.", "why": "Expect to name the exception a snippet raises."},
-      {"cue": "How do you read a traceback?", "fact": "From the bottom: the last line gives the exception type and message; the frames above show the call chain, most recent call last.", "why": "The syllabus asks you to interpret error messages."}
+      {"cue": "How do you read a traceback?", "fact": "From the bottom: the last line gives the exception type and message; the frames above show the call chain, most recent call last.", "why": "The syllabus asks you to interpret error messages."},
+      {"cue": "What does `assert condition, message` do, and when shouldn't you use it?", "fact": "It raises AssertionError with the message when the condition is false. Python skips asserts under `-O`, so use them for internal assumptions, not for validating input; raise ValueError for that.", "why": "Items ask what an assert raises, or which check always runs."}
     ],
     "traps": [
       {"cue": "Does `finally` run when the `try` block returns a value?", "answer": "Yes. `finally` runs before the function actually returns."},
@@ -185,14 +189,15 @@
       {"cue": "In what logical order does the database evaluate them?", "fact": "FROM/JOIN → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT, which is why WHERE can't use aggregates and ORDER BY can use SELECT aliases.", "why": "Explains why `WHERE COUNT(*) > 5` fails."},
       {"cue": "How do WHERE and HAVING differ?", "fact": "WHERE filters individual rows before grouping; HAVING filters groups after aggregation and can use aggregate functions.", "why": "Conditions on aggregates go in HAVING, never in WHERE."},
       {"cue": "Which rows do INNER, LEFT, RIGHT and FULL joins return?", "fact": "INNER: only matches; LEFT: all left rows plus matches; RIGHT: all right rows plus matches; FULL OUTER: all rows from both, with NULLs where there is no match.", "why": "Expect to count the rows a join returns."},
-      {"cue": "How do `COUNT(*)` and `COUNT(col)` differ?", "fact": "`COUNT(*)` counts rows; `COUNT(col)` counts non-NULL values in that column; SUM, AVG, MIN and MAX also ignore NULLs.", "why": "Result-count items hinge on NULLs."}
+      {"cue": "How do `COUNT(*)` and `COUNT(col)` differ?", "fact": "`COUNT(*)` counts rows; `COUNT(col)` counts non-NULL values in that column; SUM, AVG, MIN and MAX also ignore NULLs.", "why": "Result-count items hinge on NULLs."},
+      {"cue": "How do subqueries and three-table joins work?", "fact": "A subquery is a SELECT in brackets: `WHERE id IN (SELECT customer_id FROM orders WHERE total > 100)` uses a list, `WHERE total > (SELECT AVG(total) FROM orders)` a single value. Joining a third table adds another `JOIN ... ON` that links it to a table already in the query.", "why": "Scenario queries combine a filter on an aggregate or span customers, orders and order items."}
     ],
     "traps": [
       {"cue": "Why does `WHERE discount = NULL` return no rows?", "answer": "Any comparison with NULL is unknown, not true. Use `WHERE discount IS NULL`."},
       {"cue": "What happens to a LEFT JOIN when you filter the right table in WHERE?", "answer": "Unmatched rows have NULL there and are filtered out, so it behaves like an INNER JOIN. Move the condition into the ON clause."},
       {"cue": "Is `BETWEEN 10 AND 20` inclusive?", "answer": "Yes, both 10 and 20 are included."}
     ],
-    "terms": ["SFJWGHOL", "INNER JOIN", "LEFT JOIN", "HAVING"],
+    "terms": ["SFJWGHOL", "INNER JOIN", "LEFT JOIN", "HAVING", "Subquery"],
     "maps": ["sql-join", "sql-clause"]
   },
   {

@@ -246,6 +246,37 @@
   }
  },
  {
+  "id": "b4-009",
+  "objective": "4.1.1",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "`2 3 1`",
+   "`3 3 1`",
+   "`2 3 2`",
+   "A TypeError is raised because of the missing value"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "Case-sensitive, \"tea\" appears in \"teapot\" and \"Iced tea\" (2); with `case=False`, \"Green Tea\" matches too (3). `startswith(\"tea\")` matches only \"teapot\". Summing a boolean Series counts the Trues.",
+  "why_wrong": [
+   "",
+   "`str.contains` is case-sensitive by default, so \"Green Tea\" doesn't match \"tea\".",
+   "Only \"teapot\" starts with lowercase \"tea\".",
+   "`na=False` turns the missing value into False instead of NaN, so nothing fails."
+  ],
+  "source": "Syllabus 4.1.1 · pandas docs",
+  "difficulty": 3,
+  "tags": [
+   "str.contains",
+   "filtering",
+   "text"
+  ],
+  "code": "import pandas as pd\n\ns = pd.Series([\"Green Tea\", \"teapot\", None, \"Iced tea\", \"Jam\"])\nprint(s.str.contains(\"tea\", na=False).sum(),\n      s.str.contains(\"tea\", case=False, na=False).sum(),\n      s.str.startswith(\"tea\", na=False).sum())",
+  "verify": "stdout"
+ },
+ {
   "id": "b4-010",
   "objective": "4.1.2",
   "type": "single",
@@ -729,6 +760,36 @@
    "series",
    "dataframe"
   ]
+ },
+ {
+  "id": "b4-028",
+  "objective": "4.1.3",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "`[6, 60] [11, 22, 33] [1, 4, 9]`",
+   "`[11, 22, 33] [6, 60] [1, 4, 9]`",
+   "`[6, 60] [11, 22, 33] [2, 4, 6]`",
+   "`[66] [11, 22, 33] [1, 4, 9]`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`df.apply(sum)` sums each column (6 and 60); `axis=1` sums each row (11, 22, 33); `Series.apply` calls the function on every value.",
+  "why_wrong": [
+   "",
+   "Without `axis=1`, `apply` passes each column; with `axis=1`, each row.",
+   "`x ** 2` squares each value; it doesn't double it.",
+   "`df.apply(sum)` gives one result per column, not a grand total."
+  ],
+  "source": "Syllabus 4.1.3 · pandas docs",
+  "difficulty": 2,
+  "tags": [
+   "apply",
+   "axis"
+  ],
+  "code": "import pandas as pd\n\ndf = pd.DataFrame({\"a\": [1, 2, 3], \"b\": [10, 20, 30]})\nprint(df.apply(sum).tolist(), df.apply(sum, axis=1).tolist(), df[\"a\"].apply(lambda x: x ** 2).tolist())",
+  "verify": "stdout"
  },
  {
   "id": "b4-030",
@@ -1216,6 +1277,37 @@
   ],
   "code": "import numpy as np\n\nm = np.array([[1, 2, 3],\n              [4, 5, 6]])\nprint(m - m.mean(axis=1))",
   "verify": "raises:ValueError"
+ },
+ {
+  "id": "b4-048",
+  "objective": "4.1.5",
+  "type": "single",
+  "stem": "What does this code print?",
+  "options": [
+   "`['cool' 'warm' 'warm' 'cool'] [1 2] 31`",
+   "`['cool' 'warm' 'warm' 'cool'] [25 31] 31`",
+   "`['warm' 'cool' 'cool' 'warm'] [1 2] 31`",
+   "`['cool' 'warm' 'warm' 'cool'] [1 2] 56`"
+  ],
+  "answer": [
+   0
+  ],
+  "explanation": "`np.where(cond, a, b)` chooses element by element; `np.where(cond)` returns a tuple of index arrays, so `[0]` gives the positions 1 and 2; keeping values above 30 and zeroing the rest sums to 31.",
+  "why_wrong": [
+   "",
+   "With only a condition, `np.where` returns positions, not values.",
+   "The first value is used where the condition is True: temperatures above 20 are \"warm\".",
+   "Only 31 is above 30; 25 is replaced by 0."
+  ],
+  "source": "Syllabus 4.1.5 · NumPy docs",
+  "difficulty": 2,
+  "tags": [
+   "np.where",
+   "numpy",
+   "vectorization"
+  ],
+  "code": "import numpy as np\n\ntemps = np.array([12, 25, 31, 18])\nprint(np.where(temps > 20, \"warm\", \"cool\"), np.where(temps > 20)[0], np.where(temps > 30, temps, 0).sum())",
+  "verify": "stdout"
  },
  {
   "id": "b4-050",

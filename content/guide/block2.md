@@ -1017,6 +1017,81 @@ print(dict(by_region))
 {'EU': [10, 7], 'US': [5]}
 ```
 
+**Unpacking.** Assigning a sequence to several names takes it apart, one item per name. A name with a `*` collects whatever is left over into a list. Unpacking also swaps two values without a temporary variable.
+
+```python
+point = (3, 7)
+x, y = point
+first, *rest = [10, 20, 30, 40]
+*start, last = "abc"
+a, b = 1, 2
+a, b = b, a                    # swap
+print(x, y, first, rest, start, last, a, b)
+```
+
+```text
+3 7 10 [20, 30, 40] ['a', 'b'] c 2 1
+```
+
+The number of names must match the number of items (unless one name has a `*`), otherwise Python raises a `ValueError`:
+
+```python
+try:
+    x, y = (1, 2, 3)
+except ValueError as e:
+    print(type(e).__name__)
+```
+
+```text
+ValueError
+```
+
+Unpacking is what happens in `for name, score in zip(...)` and `for key, value in d.items()`.
+
+**More dict methods: `update`, `setdefault`, `pop`.** `update` copies another dict in, overwriting keys that already exist. `setdefault(key, default)` returns the key's value, first inserting `default` if the key is missing, which makes grouping into lists a one-liner. `pop(key, default)` removes a key and returns its value, or the default if it isn't there.
+
+```python
+prices = {"tea": 2.5, "jam": 4.0}
+prices.update({"jam": 4.5, "oat": 1.0})
+print(prices)
+
+groups = {}
+for region, rep in [("EU", "Ana"), ("US", "Ben"), ("EU", "Cy")]:
+    groups.setdefault(region, []).append(rep)
+print(groups)
+
+print(prices.pop("oat"), prices.pop("milk", 0), prices)
+```
+
+```text
+{'tea': 2.5, 'jam': 4.5, 'oat': 1.0}
+{'EU': ['Ana', 'Cy'], 'US': ['Ben']}
+1.0 0 {'tea': 2.5, 'jam': 4.5}
+```
+
+**Nested data: lists of dicts.** Data from APIs and JSON files usually arrives as a list of dicts, with more dicts and lists inside. Read it by chaining lookups from the outside in: `orders[0]["customer"]["city"]` is the first order, then its customer, then the city.
+
+```python
+orders = [
+    {"id": 1, "customer": {"name": "Ana", "city": "Oslo"},
+     "items": [{"sku": "A", "qty": 2}, {"sku": "B", "qty": 1}]},
+    {"id": 2, "customer": {"name": "Ben", "city": "Rome"},
+     "items": [{"sku": "A", "qty": 5}]},
+]
+
+print(orders[0]["customer"]["city"])
+print([o["id"] for o in orders if o["customer"]["city"] == "Rome"])
+print(sum(item["qty"] for o in orders for item in o["items"] if item["sku"] == "A"))
+```
+
+```text
+Oslo
+[2]
+7
+```
+
+The last line has two `for` parts, read in the same order as nested loops: for each order, for each item in that order. It adds up the quantity of SKU A across all orders: 2 + 5. To turn data like this into a table, use `pd.json_normalize` (section 1.4.1).
+
 ### Exam traps
 
 > **Trap.** `{}` is an empty **dict**, not an empty set.
@@ -1030,6 +1105,10 @@ print(dict(by_region))
 > **Trap.** `"abc".find("z")` returns `-1`; `"abc".index("z")` raises `ValueError`. And `-1` used as an index means the last item, so an unchecked `find` result can quietly pick the wrong character.
 
 > **Trap.** `round(2.5)` is `2`, not `3`: Python rounds exact halves to the even number.
+
+> **Trap.** In `first, *rest = [10]`, `rest` is an empty list `[]`, not an error; without the `*`, the counts must match exactly.
+
+> **Trap.** `d.setdefault(k, [])` returns the list stored under `k`, inserting it only if `k` was missing; `d.get(k, [])` returns a default without storing anything, so appending to it is lost.
 
 ## 2.1.5 Explain and implement Python scripting best practices
 
@@ -1545,6 +1624,27 @@ except DataQualityError as e:
 DataQualityError: age 150 is not plausible
 ```
 
+**`assert`: checking your own assumptions.** `assert condition, message` does nothing when the condition is true and raises `AssertionError` with the message when it is false. It is a quick guard for things that should never happen if the code is right.
+
+```python
+def mean(values):
+    assert len(values) > 0, "values must not be empty"
+    return sum(values) / len(values)
+
+print(mean([2, 4]))
+try:
+    mean([])
+except AssertionError as e:
+    print("AssertionError:", e)
+```
+
+```text
+3.0
+AssertionError: values must not be empty
+```
+
+Python skips every `assert` when it runs with the `-O` (optimize) option, so don't use `assert` to check user input or incoming data. Raise a `ValueError` for that instead, so the check always runs.
+
 | Exception | Typical cause |
 |---|---|
 | `ValueError` | Right type, bad value: `int("12a")`, `float("")` |
@@ -1564,6 +1664,8 @@ DataQualityError: age 150 is not plausible
 > **Trap.** `finally` runs even when the `try` or `except` block returns.
 
 > **Trap.** `except Exception:` placed before `except ValueError:` catches everything first; the `ValueError` clause never runs.
+
+> **Trap.** `assert` statements are skipped when Python runs with `-O`, so they can't be relied on to validate data. Raise an exception for checks that must always run.
 
 ## 2.3.1 Apply basic OOP to structure and model data
 
@@ -2509,6 +2611,52 @@ print(con.execute("""
 
 Bread's discount is `NULL`, so `COALESCE` returns 0 instead. The same function fixes totals after a `LEFT JOIN`: for a customer with no orders, `SUM(o.total)` is `NULL`, while `COALESCE(SUM(o.total), 0)` is 0.
 
+**Subqueries and joining three tables.** A **subquery** is a `SELECT` inside another query, in brackets. In `WHERE ... IN (SELECT ...)` it supplies a list of values; compared with `>` or `=` it must return a single value, such as an average. To combine more than two tables, add one `JOIN ... ON` per extra table; each `ON` links the new table to one already in the query.
+
+```python
+import sqlite3
+
+con = sqlite3.connect(":memory:")
+con.executescript("""
+CREATE TABLE customers (id INTEGER, name TEXT);
+CREATE TABLE orders (id INTEGER, customer_id INTEGER, total REAL);
+CREATE TABLE items (order_id INTEGER, sku TEXT, qty INTEGER);
+INSERT INTO customers VALUES (1, 'Ana'), (2, 'Ben'), (3, 'Cy');
+INSERT INTO orders VALUES (10, 1, 50), (11, 1, 200), (12, 2, 80);
+INSERT INTO items VALUES (10, 'tea', 2), (11, 'jam', 1), (11, 'tea', 5), (12, 'oat', 3);
+""")
+
+# customers with at least one order over 100
+print(con.execute("""
+    SELECT name FROM customers
+    WHERE id IN (SELECT customer_id FROM orders WHERE total > 100)
+""").fetchall())
+
+# orders above the average order total
+print(con.execute("""
+    SELECT id, total FROM orders
+    WHERE total > (SELECT AVG(total) FROM orders)
+""").fetchall())
+
+# tea units bought by each customer: customers -> orders -> items
+print(con.execute("""
+    SELECT c.name, SUM(i.qty) AS tea_units
+    FROM customers AS c
+    JOIN orders AS o ON o.customer_id = c.id
+    JOIN items AS i ON i.order_id = o.id
+    WHERE i.sku = 'tea'
+    GROUP BY c.name
+""").fetchall())
+```
+
+```text
+[('Ana',)]
+[(11, 200.0)]
+[('Ana', 7)]
+```
+
+The average order total is (50 + 200 + 80) / 3 = 110, so only order 11 is above it. In the three-table join, each item row is linked to its order and each order to its customer: Ana's tea items are 2 (order 10) and 5 (order 11). `NOT IN (SELECT ...)` gives the opposite list, for example customers who never placed an order.
+
 ### Exam traps
 
 > **Trap.** `WHERE COUNT(*) > 5` is an error; conditions on aggregates go in `HAVING`.
@@ -2516,6 +2664,8 @@ Bread's discount is `NULL`, so `COALESCE` returns 0 instead. The same function f
 > **Trap.** `WHERE col = NULL` matches nothing, because any comparison with NULL is unknown. Use `IS NULL`.
 
 > **Trap.** A LEFT JOIN followed by `WHERE right_table.col = 'x'` removes the unmatched (NULL) rows, turning it into an inner join. Put that condition in the `ON` clause to keep them.
+
+> **Trap.** A subquery compared with `=` or `>` must return one value. Use `IN (SELECT ...)` when it returns a list.
 
 ## 2.4.2 Execute fundamental SQL commands
 

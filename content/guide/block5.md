@@ -49,6 +49,8 @@ fig.savefig("dashboard.png", dpi=150)
 | Box plot | `ax.boxplot(values)` | `sns.boxplot(data=df, x="group", y="value")` |
 | Bar chart | `ax.bar(labels, heights)` / `ax.barh` | `sns.barplot` (shows the **mean** with an error bar), `sns.countplot` (counts rows) |
 | Heatmap | `ax.imshow(matrix)` | `sns.heatmap(df.corr(), annot=True)` |
+| Violin plot | `ax.violinplot(values)` | `sns.violinplot(data=df, x="group", y="value")`: a box plot's summary plus the shape of each distribution |
+| Pair plot | — | `sns.pairplot(df, hue="group")`: a scatter plot for every pair of numeric columns, with each column's distribution on the diagonal |
 
 - **Two Matplotlib styles.** The pyplot (state-based) style calls `plt.plot`, `plt.title` on the "current" figure. The object-oriented style creates `fig, ax = plt.subplots()` and calls methods on `ax`. Prefer the object-oriented style for anything with more than one chart.
 - `plt.subplots(nrows, ncols)` returns a figure and an array of Axes; index it as `axes[row, col]`.
@@ -149,8 +151,12 @@ fig.tight_layout()
 | Axis range and ticks | `ax.set_xlim`, `ax.set_ylim`; `ax.tick_params(axis="x", rotation=45)` or `plt.xticks(rotation=45)` |
 | Scatter colours | `color="tab:red"` for one colour; `c=values, cmap="viridis"` to colour by a numeric variable (add `fig.colorbar`); `alpha=0.5` for overlap; `s=` for marker size; `hue=` in Seaborn |
 | Layout | `fig.tight_layout()` stops labels overlapping |
+| Figure size | `plt.subplots(figsize=(8, 4))` or `plt.figure(figsize=(8, 4))`: width, then height, in inches |
+| Style / theme | `plt.style.use("ggplot")`; `sns.set_theme(style="whitegrid", palette="colorblind", font_scale=1.2)` |
 
 **Refining.** Write titles that state the takeaway, not just the topic. Put units in axis labels. Highlight the series that matters in a strong colour and push the rest to grey. Remove what doesn't help (heavy gridlines, borders, extra decimals). Label lines directly when a legend would make readers look back and forth.
+
+**Size and style.** `figsize=(width, height)` sets the figure's size in inches; a wide, short figure suits a time series, a square one suits a scatter plot. A **style** changes the look of every chart drawn after it: `plt.style.use("ggplot")` (or another name from `plt.style.available`) in Matplotlib, or `sns.set_theme(style="whitegrid", palette="colorblind", font_scale=1.2)` in Seaborn, which sets the background, gridlines, colours and text size together. Set it once at the top of a notebook so every chart in a report looks the same.
 
 **Exploration vs explanation.** Early charts are for you: plot distributions, relationships and breakdowns quickly to spot patterns and form hypotheses ("returns spike after promotions?"), then test them. Final charts are for others: one clear message, fully labeled.
 
@@ -159,6 +165,8 @@ fig.tight_layout()
 > **Trap.** `ax.legend()` shows nothing useful unless the plotted series were given `label=` values.
 
 > **Trap.** The legend's position argument is `loc` (for example `"upper left"` or `"best"`), and its background is `facecolor`.
+
+> **Trap.** `figsize` is (width, height) in inches, not pixels, and a style set with `plt.style.use` or `sns.set_theme` applies to every chart drawn afterwards, not only the next one.
 
 ## 5.2.1 Tailor communication to audience needs
 

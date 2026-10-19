@@ -654,6 +654,43 @@ dict ['a', 'b'] True None
 
 JSON → Python: object → `dict`, array → `list`, `true`/`false` → `True`/`False`, `null` → `None`. Python tuples become JSON arrays. `load`/`dump` work with files; `loads`/`dumps` work with **s**trings.
 
+**Flattening nested JSON into a table.** `pd.json_normalize` turns a list of JSON records into a DataFrame. Nested objects become columns named with dots, and a key that a record lacks becomes `NaN`:
+
+```python
+import pandas as pd
+
+records = [
+    {"id": 1, "customer": {"name": "Ana", "city": "Oslo"}, "total": 50},
+    {"id": 2, "customer": {"name": "Ben"}, "total": 80},
+]
+print(pd.json_normalize(records))
+```
+
+```text
+   id  total customer.name customer.city
+0   1     50           Ana          Oslo
+1   2     80           Ben           NaN
+```
+
+When each record holds a **list** of sub-records, such as the items in an order, `record_path` makes one row per sub-record and `meta` copies fields from the parent onto each row:
+
+```python
+import pandas as pd
+
+orders = [
+    {"id": 1, "items": [{"sku": "A", "qty": 2}, {"sku": "B", "qty": 1}]},
+    {"id": 2, "items": [{"sku": "A", "qty": 5}]},
+]
+print(pd.json_normalize(orders, record_path="items", meta="id"))
+```
+
+```text
+  sku  qty id
+0   A    2  1
+1   B    1  1
+2   A    5  2
+```
+
 ```python
 import xml.etree.ElementTree as ET
 

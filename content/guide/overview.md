@@ -17,7 +17,7 @@ PCAD™ (Certified Associate Data Analyst with Python) is the Python Institute's
 | Validity | 6 years |
 | Prerequisites | None formal. Recommended: PCAP and PCED, or equivalent experience |
 
-Source: pythoninstitute.org/pcad and /pcad-exam-syllabus, checked 28 Sep 2026. PCAD-31-02 went live on 15 July 2025 and replaced PCAD-31-01, which retired on 14 July 2025. The Python Institute's own course for it (PD101, Python for Data Analytics 101) is still in development.
+Source: pythoninstitute.org/pcad and /pcad-exam-syllabus, checked 19 Oct 2026. PCAD-31-02 went live on 15 July 2025 and replaced PCAD-31-01, which retired on 14 July 2025. The Python Institute's own course for it (PD101, Python for Data Analytics 101) is still in development.
 
 PCAD sits in the middle of the data analyst track: **PCED** (entry) → **PCAD** (associate) → **PCPD** (professional, in development).
 

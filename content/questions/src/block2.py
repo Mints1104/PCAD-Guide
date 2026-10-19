@@ -702,6 +702,68 @@ QUESTIONS = [
       assert buf.getvalue().strip() == "[] ['a', 'b', 'c']", buf.getvalue()
       """}),
 
+    Q("b2-176", "2.1.4", 3,
+      "What does this code print?",
+      ["`EU [120, 80] 95 1`", "`EU (120, 80) 95 1`", "`EU [120, 80] US 1`", "A ValueError is raised, because the tuples have different lengths"],
+      0,
+      {1: "A starred name always collects the leftovers into a list, even when unpacking a tuple.",
+       2: "`*_, last` puts everything except the final item into `_`, so `last` is 95.",
+       3: "A starred name absorbs any number of items, so different lengths are fine."},
+      "`head` is the first tuple and `tail` the list of the rest. Unpacking `head` gives \"EU\" and the list [120, 80]. `*_, last` on (\"US\", 95) keeps the final item, 95. `tail` holds one tuple.",
+      "Syllabus 2.1.4 · Python docs", ["unpacking", "tuples"],
+      code="""
+      data = [("EU", 120, 80), ("US", 95)]
+      head, *tail = data
+      region, *values = head
+      *_, last = tail[0]
+      print(region, values, last, len(tail))
+      """, verify="stdout"),
+
+    Q("b2-177", "2.1.4", 3,
+      "What does this code print?",
+      ["`{'t': ['tea', 'tea'], 'j': ['jam']} {}`",
+       "`{'t': ['tea', 'tea'], 'j': ['jam']} {'t': ['tea', 'tea'], 'j': ['jam']}`",
+       "`{'t': ['tea'], 'j': ['jam']} {}`",
+       "A KeyError is raised"],
+      0,
+      {1: "`get` returns a new empty list without storing it in the dict, so the appends to it are lost.",
+       2: "`setdefault` returns the list already stored under \"t\" on the second \"tea\", so both are kept.",
+       3: "Neither method raises for a missing key; both fall back to the default."},
+      "`setdefault(k, [])` inserts the empty list the first time and returns the stored list every time, so appending groups the words. `get(k, [])` hands back a temporary list that is never put into `b`, so `b` stays empty.",
+      "Syllabus 2.1.4 · Python docs (dict)", ["dict", "setdefault", "get"],
+      code="""
+      a, b = {}, {}
+      for word in ["tea", "jam", "tea"]:
+          a.setdefault(word[0], []).append(word)
+          b.get(word[0], []).append(word)
+      print(a, b)
+      """, verify="stdout"),
+
+    Q("b2-178", "2.1.4", 3,
+      "What does this code print?",
+      ["`{'Oslo': 3, 'Rome': 4} [3]`",
+       "`{'Oslo': 3, 'Rome': 4} []`",
+       "`{'Oslo': 2, 'Rome': 4} [3]`",
+       "A KeyError is raised for the order with no items"],
+      0,
+      {1: "Order 3's `items` list is empty, and an empty list is falsy, so `not o[\"items\"]` is True for it.",
+       2: "Order 1 has two items (2 + 1 = 3), and both are added.",
+       3: "`sum` over an empty list is 0, and `units.get(city, 0)` handles the first visit to each city."},
+      "For each order, the city comes from the nested customer dict and the quantities from the nested list of items. Oslo gets 3 from order 1 and 0 from order 3; Rome gets 4. Only order 3 has no items.",
+      "Syllabus 2.1.4", ["nested-data", "dict", "comprehension"],
+      code="""
+      orders = [
+          {"id": 1, "customer": {"city": "Oslo"}, "items": [{"sku": "A", "qty": 2}, {"sku": "B", "qty": 1}]},
+          {"id": 2, "customer": {"city": "Rome"}, "items": [{"sku": "B", "qty": 4}]},
+          {"id": 3, "customer": {"city": "Oslo"}, "items": []},
+      ]
+      units = {}
+      for o in orders:
+          city = o["customer"]["city"]
+          units[city] = units.get(city, 0) + sum(i["qty"] for i in o["items"])
+      print(units, [o["id"] for o in orders if not o["items"]])
+      """, verify="stdout"),
+
     # ---------- 2.1.5 PEP 8 and PEP 257 ----------
     Q("b2-040", "2.1.5", 1,
       "Which pair of names follows PEP 8?",
@@ -1158,6 +1220,31 @@ QUESTIONS = [
           except TypeError:
               print("type", end=" ")
       print()
+      """, verify="stdout"),
+
+    Q("b2-068", "2.2.2", 2,
+      "What does this code print?",
+      ["`[0.25, 'whole must be positive']`", "`[0.25, 'zero']`", "`[0.25]`", "An AssertionError escapes and nothing is printed"],
+      0,
+      {1: "The assert runs before the division, so the division by zero is never reached.",
+       2: "The second call's error is caught and its message appended, so the list has two items.",
+       3: "The `except AssertionError as e` clause catches it."},
+      "For (2, 0) the `assert whole > 0` fails first and raises AssertionError with its message, which the second `except` clause catches and stores.",
+      "Syllabus 2.2.2 · Python docs (assert)", ["assert", "exceptions"],
+      code="""
+      def share(part, whole):
+          assert whole > 0, "whole must be positive"
+          return round(part / whole, 2)
+
+      results = []
+      for p, w in [(1, 4), (2, 0)]:
+          try:
+              results.append(share(p, w))
+          except ZeroDivisionError:
+              results.append("zero")
+          except AssertionError as e:
+              results.append(str(e))
+      print(results)
       """, verify="stdout"),
 
     # ---------- 2.3.1 Classes ----------
@@ -1877,6 +1964,59 @@ QUESTIONS = [
       verify={"py": """
       rows = run_sql(setup, code)
       assert len(rows) == 5 and rows[-1] == (14, None), rows
+      """}),
+
+    Q("b2-163", "2.4.1", 3,
+      "Which names does this query return?",
+      ["Ben, Dev", "Dev", "Ana, Cara", "Ben, Dev and a row for customer 5"],
+      0,
+      {1: "Ben's only order (12) is refunded, so Ben has no paid order either.",
+       2: "Ana and Cara are exactly the customers who do have paid orders.",
+       3: "The outer query reads only the customers table; customer 5 isn't in it."},
+      "The subquery lists the customer IDs with a paid order: 1, 1, 3 and 5. `NOT IN` keeps the customers whose ID isn't in that list: Ben (2) and Dev (4).",
+      "Syllabus 2.4.1 · SQLite docs", ["sql", "subquery", "not-in"],
+      code="""
+      SELECT c.name
+      FROM customers AS c
+      WHERE c.id NOT IN (SELECT customer_id FROM orders WHERE status = 'paid')
+      ORDER BY c.name;
+      """, lang="sql", setup=SHOP, tables=["customers", "orders"],
+      verify={"py": """
+      rows = run_sql(setup, code)
+      assert rows == [('Ben',), ('Dev',)], rows
+      """}),
+
+    Q("b2-164", "2.4.1", 3,
+      "What does this query return?",
+      ["`[('Ana', 2, 19.0), ('Ben', 1, 2.5)]`",
+       "`[('Ana', 3, 19.0), ('Ben', 1, 2.5)]`",
+       "`[('Ana', 2, 7.0), ('Ben', 1, 1.0)]`",
+       "`[('Ana', 2, 19.0)]`"],
+      0,
+      {1: "Order 11 has two item rows; `COUNT(DISTINCT o.id)` counts the order once.",
+       2: "7 and 1 are the quantities; the query sums quantity × price.",
+       3: "Ben's order 12 has an item, so Ben appears too."},
+      "Each item row is joined to its order and each order to its customer. Ana has orders 10 and 11 with items worth 2×3.0 + 1×3.0 + 4×2.5 = 19.0; Ben has order 12 worth 2.5. Joining items repeats order rows, which is why `DISTINCT` is needed to count orders.",
+      "Syllabus 2.4.1 · SQLite docs", ["sql", "joins", "count-distinct"],
+      code="""
+      SELECT c.name, COUNT(DISTINCT o.id) AS orders, SUM(i.qty * i.price) AS spent
+      FROM customers AS c
+      JOIN orders AS o ON o.customer_id = c.id
+      JOIN items AS i ON i.order_id = o.id
+      GROUP BY c.name
+      ORDER BY c.name;
+      """, lang="sql", tables=["customers", "orders", "items"],
+      setup="""
+      CREATE TABLE customers (id INTEGER, name TEXT);
+      CREATE TABLE orders (id INTEGER, customer_id INTEGER);
+      CREATE TABLE items (order_id INTEGER, sku TEXT, qty INTEGER, price REAL);
+      INSERT INTO customers VALUES (1, 'Ana'), (2, 'Ben');
+      INSERT INTO orders VALUES (10, 1), (11, 1), (12, 2);
+      INSERT INTO items VALUES (10, 'tea', 2, 3.0), (11, 'tea', 1, 3.0), (11, 'jam', 4, 2.5), (12, 'jam', 1, 2.5);
+      """,
+      verify={"py": """
+      rows = run_sql(setup, code)
+      assert rows == [('Ana', 2, 19.0), ('Ben', 1, 2.5)], rows
       """}),
 
     # ---------- 2.4.2 CRUD ----------

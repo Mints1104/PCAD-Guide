@@ -175,6 +175,24 @@ QUESTIONS = [
       assert good == q["answer"], good
       """}),
 
+    Q("b4-009", "4.1.1", 3,
+      "What does this code print?",
+      ["`2 3 1`", "`3 3 1`", "`2 3 2`", "A TypeError is raised because of the missing value"],
+      0,
+      {1: "`str.contains` is case-sensitive by default, so \"Green Tea\" doesn't match \"tea\".",
+       2: "Only \"teapot\" starts with lowercase \"tea\".",
+       3: "`na=False` turns the missing value into False instead of NaN, so nothing fails."},
+      "Case-sensitive, \"tea\" appears in \"teapot\" and \"Iced tea\" (2); with `case=False`, \"Green Tea\" matches too (3). `startswith(\"tea\")` matches only \"teapot\". Summing a boolean Series counts the Trues.",
+      "Syllabus 4.1.1 · pandas docs", ["str.contains", "filtering", "text"],
+      code="""
+      import pandas as pd
+
+      s = pd.Series(["Green Tea", "teapot", None, "Iced tea", "Jam"])
+      print(s.str.contains("tea", na=False).sum(),
+            s.str.contains("tea", case=False, na=False).sum(),
+            s.str.startswith("tea", na=False).sum())
+      """, verify="stdout"),
+
     # ---------- 4.1.2 Merge and reshape ----------
     Q("b4-010", "4.1.2", 2,
       "What does this code print?",
@@ -458,6 +476,25 @@ QUESTIONS = [
       "A DataFrame is a set of Series (its columns) that share one row index; each column has its own dtype.",
       "Syllabus 4.1.3", ["series", "dataframe"]),
 
+    Q("b4-028", "4.1.3", 2,
+      "What does this code print?",
+      ["`[6, 60] [11, 22, 33] [1, 4, 9]`",
+       "`[11, 22, 33] [6, 60] [1, 4, 9]`",
+       "`[6, 60] [11, 22, 33] [2, 4, 6]`",
+       "`[66] [11, 22, 33] [1, 4, 9]`"],
+      0,
+      {1: "Without `axis=1`, `apply` passes each column; with `axis=1`, each row.",
+       2: "`x ** 2` squares each value; it doesn't double it.",
+       3: "`df.apply(sum)` gives one result per column, not a grand total."},
+      "`df.apply(sum)` sums each column (6 and 60); `axis=1` sums each row (11, 22, 33); `Series.apply` calls the function on every value.",
+      "Syllabus 4.1.3 · pandas docs", ["apply", "axis"],
+      code="""
+      import pandas as pd
+
+      df = pd.DataFrame({"a": [1, 2, 3], "b": [10, 20, 30]})
+      print(df.apply(sum).tolist(), df.apply(sum, axis=1).tolist(), df["a"].apply(lambda x: x ** 2).tolist())
+      """, verify="stdout"),
+
     # ---------- 4.1.4 Locators and slicing ----------
     Q("b4-030", "4.1.4", 2,
       "What does this code print?",
@@ -735,6 +772,25 @@ QUESTIONS = [
                     [4, 5, 6]])
       print(m - m.mean(axis=1))
       """, verify="raises:ValueError"),
+
+    Q("b4-048", "4.1.5", 2,
+      "What does this code print?",
+      ["`['cool' 'warm' 'warm' 'cool'] [1 2] 31`",
+       "`['cool' 'warm' 'warm' 'cool'] [25 31] 31`",
+       "`['warm' 'cool' 'cool' 'warm'] [1 2] 31`",
+       "`['cool' 'warm' 'warm' 'cool'] [1 2] 56`"],
+      0,
+      {1: "With only a condition, `np.where` returns positions, not values.",
+       2: "The first value is used where the condition is True: temperatures above 20 are \"warm\".",
+       3: "Only 31 is above 30; 25 is replaced by 0."},
+      "`np.where(cond, a, b)` chooses element by element; `np.where(cond)` returns a tuple of index arrays, so `[0]` gives the positions 1 and 2; keeping values above 30 and zeroing the rest sums to 31.",
+      "Syllabus 4.1.5 · NumPy docs", ["np.where", "numpy", "vectorization"],
+      code="""
+      import numpy as np
+
+      temps = np.array([12, 25, 31, 18])
+      print(np.where(temps > 20, "warm", "cool"), np.where(temps > 20)[0], np.where(temps > 30, temps, 0).sum())
+      """, verify="stdout"),
 
     # ---------- 4.1.6 Grouping ----------
     Q("b4-050", "4.1.6", 2,

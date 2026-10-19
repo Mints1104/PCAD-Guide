@@ -698,6 +698,41 @@
   ]
  },
  {
+  "id": "b5-028",
+  "objective": "5.1.3",
+  "type": "multi",
+  "stem": "In a notebook, which two calls change the look of every chart drawn after them? Select two.",
+  "options": [
+   "`plt.style.use(\"ggplot\")`",
+   "`sns.set_theme(style=\"whitegrid\", palette=\"colorblind\")`",
+   "`fig, ax = plt.subplots(figsize=(8, 4))`",
+   "`ax.set_title(\"Sales by month\")`",
+   "`ax.legend(loc=\"upper left\")`"
+  ],
+  "answer": [
+   0,
+   1
+  ],
+  "explanation": "Styles and themes change Matplotlib's global defaults (backgrounds, gridlines, colours, fonts), so they affect every later chart. The other calls customize a single figure or Axes.",
+  "why_wrong": [
+   "",
+   "",
+   "`figsize` sets the size of this one figure only.",
+   "A title belongs to one Axes.",
+   "Legend settings apply to one Axes."
+  ],
+  "source": "Syllabus 5.1.3 · Matplotlib and Seaborn docs",
+  "difficulty": 2,
+  "tags": [
+   "style",
+   "theme",
+   "figsize"
+  ],
+  "verify": {
+   "py": "import matplotlib\nmatplotlib.use(\"Agg\")\nimport matplotlib.pyplot as plt\nimport seaborn as sns\nfor i in (0, 1):\n    plt.rcdefaults()\n    before = dict(plt.rcParams)\n    eval(opt(i))\n    assert dict(plt.rcParams) != before, i\nplt.rcdefaults()"
+  }
+ },
+ {
   "id": "b5-030",
   "objective": "5.2.1",
   "type": "single",

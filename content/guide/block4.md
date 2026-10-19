@@ -143,6 +143,25 @@ print(city.str.strip().str.title().nunique())
 2
 ```
 
+**Filtering on text, and the top rows.** `.str.contains("tea")` is True where the text includes "tea"; `case=False` ignores capitals, and `na=False` treats missing text as no match instead of NaN. `nlargest(n, column)` returns the n rows with the biggest values, already sorted; `nsmallest` is the opposite.
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"product": ["Green tea", "Jam", "Mint TEA", "Oats"],
+                   "sales": [120, 80, 150, 60]})
+
+print(df[df["product"].str.contains("tea", case=False)]["product"].tolist())
+print(df[df["product"].str.contains("tea")]["product"].tolist())     # case matters by default
+print(df.nlargest(2, "sales")["product"].tolist())
+```
+
+```text
+['Green tea', 'Mint TEA']
+['Green tea']
+['Mint TEA', 'Green tea']
+```
+
 **Putting it together.** A small messy table cleaned step by step. `.shape` gives (rows, columns).
 
 ```python
@@ -296,6 +315,26 @@ The tools at a glance:
 
 If a key appears several times on **both** sides, the merge produces every combination for that key (many-to-many), so the row count can grow a lot. Section 1.1.2 shows an example.
 
+**Keys with different names.** When the key column is called `cust_id` in one table and `id` in the other, name each side with `left_on` and `right_on`. Both key columns stay in the result, so drop the one you don't need:
+
+```python
+import pandas as pd
+
+orders = pd.DataFrame({"order": [1, 2], "cust_id": [10, 20]})
+custs = pd.DataFrame({"id": [10, 20], "name": ["Ana", "Ben"]})
+
+merged = orders.merge(custs, left_on="cust_id", right_on="id")
+print(merged)
+print(merged.drop(columns="id").columns.tolist())
+```
+
+```text
+   order  cust_id  id name
+0      1       10  10  Ana
+1      2       20  20  Ben
+['order', 'cust_id', 'name']
+```
+
 **Reshaping: long and wide.** The same data can be laid out two ways:
 
 - **Long**: one row per measurement, such as one row per region per quarter.
@@ -422,6 +461,29 @@ print(names.str.upper().tolist())            # every string uppercased
 [False, True, False]
 ['TEA', 'JAM']
 ```
+
+**`apply`: your own function on each value or row.** When no built-in vectorized operation does the job, `s.apply(f)` calls `f` on every value of a Series, and `df.apply(f, axis=1)` calls it on every row, passing the row as a Series. It runs a Python loop underneath, so prefer a vectorized expression when one exists.
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"price": [2.5, 4.0], "qty": [3, 1]})
+
+def band(p):
+    return "high" if p > 3 else "low"
+
+print(df["price"].apply(band).tolist())                                # each value
+print(df.apply(lambda row: row["price"] * row["qty"], axis=1).tolist())  # each row
+print((df["price"] * df["qty"]).tolist())                              # vectorized: same result, much faster
+```
+
+```text
+['low', 'high']
+[7.5, 4.0]
+[7.5, 4.0]
+```
+
+Without `axis=1`, `df.apply(f)` passes each **column** to `f` instead.
 
 **The index labels the rows.** `set_index("id")` turns a column into the index, so you can look rows up by that value. `reset_index()` turns the index back into an ordinary column. A single row comes back as a Series, labelled by the column names.
 
@@ -811,6 +873,24 @@ print(a - row_means)
 (2, 1)
 [[-1.  0.  1.]
  [-1.  0.  1.]]
+```
+
+**`np.where`: a choice for every element.** `np.where(condition, a, b)` takes `a` where the condition is True and `b` where it is False, element by element. It is the vectorized way to build a column from a condition. With only a condition, `np.where(condition)` returns the positions where it is True.
+
+```python
+import numpy as np
+import pandas as pd
+
+df = pd.DataFrame({"sales": [120, 80, 150], "target": [100, 100, 160]})
+df["status"] = np.where(df["sales"] >= df["target"], "hit", "miss")
+print(df["status"].tolist())
+
+print(np.where(np.array([3, -1, 4]) > 0)[0])     # positions where the condition holds
+```
+
+```text
+['hit', 'miss', 'miss']
+[0 2]
 ```
 
 **One type per array.** All elements must share one type, so mixing types converts them. A float makes everything a float, and a string makes everything a string:

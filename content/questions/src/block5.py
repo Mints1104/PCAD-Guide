@@ -346,6 +346,32 @@ QUESTIONS = [
       "Transparency lets dense areas show up darker, and smaller markers overlap less. Both reduce overplotting, so the shape of the data appears.",
       "Syllabus 5.1.3 · Matplotlib docs", ["scatter", "overplotting", "alpha"]),
 
+    Q("b5-028", "5.1.3", 2,
+      "In a notebook, which two calls change the look of every chart drawn after them? Select two.",
+      ["`plt.style.use(\"ggplot\")`",
+       "`sns.set_theme(style=\"whitegrid\", palette=\"colorblind\")`",
+       "`fig, ax = plt.subplots(figsize=(8, 4))`",
+       "`ax.set_title(\"Sales by month\")`",
+       "`ax.legend(loc=\"upper left\")`"],
+      [0, 1],
+      {2: "`figsize` sets the size of this one figure only.",
+       3: "A title belongs to one Axes.",
+       4: "Legend settings apply to one Axes."},
+      "Styles and themes change Matplotlib's global defaults (backgrounds, gridlines, colours, fonts), so they affect every later chart. The other calls customize a single figure or Axes.",
+      "Syllabus 5.1.3 · Matplotlib and Seaborn docs", ["style", "theme", "figsize"],
+      verify={"py": """
+      import matplotlib
+      matplotlib.use("Agg")
+      import matplotlib.pyplot as plt
+      import seaborn as sns
+      for i in (0, 1):
+          plt.rcdefaults()
+          before = dict(plt.rcParams)
+          eval(opt(i))
+          assert dict(plt.rcParams) != before, i
+      plt.rcdefaults()
+      """}),
+
     # ---------- 5.2.1 Audience ----------
     Q("b5-030", "5.2.1", 2,
       "You are presenting a churn analysis to the executive board. How should you structure it?",

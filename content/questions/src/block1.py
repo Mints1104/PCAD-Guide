@@ -1205,6 +1205,30 @@ QUESTIONS = [
       print(rows[1]["region"], rows[0]["amount"] + rows[1]["amount"], len(rows))
       """, verify="stdout"),
 
+    Q("b1-098", "1.4.1", 3,
+      "Orders from an API are flattened to one row per item. What does this code print?",
+      ["`(3, 4) ['sku', 'qty', 'id', 'customer.name'] {'Ana': 3, 'Ben': 5}`",
+       "`(4, 4) ['sku', 'qty', 'id', 'customer.name'] {'Ana': 3, 'Ben': 5, 'Cy': 0}`",
+       "`(3, 4) ['id', 'customer.name', 'sku', 'qty'] {'Ana': 3, 'Ben': 5}`",
+       "`(2, 4) ['sku', 'qty', 'id', 'customer.name'] {'Ana': 2, 'Ben': 5}`"],
+      0,
+      {1: "Cy's order has no items, so `record_path` produces no row for it.",
+       2: "The record columns come first; the `meta` columns are added after them.",
+       3: "Ana's order has two items, so it becomes two rows: 3 rows in all, and Ana's quantities add to 3."},
+      "`record_path=\"items\"` makes one row per item (2 for Ana's order, 1 for Ben's, none for Cy's empty list). `meta` copies `id` and the nested `customer.name` onto each item row, so the items can be grouped by customer.",
+      "Syllabus 1.4.1 · pandas docs", ["json", "json_normalize", "record_path"],
+      code="""
+      import pandas as pd
+
+      orders = [
+          {"id": 1, "customer": {"name": "Ana"}, "items": [{"sku": "A", "qty": 2}, {"sku": "B", "qty": 1}]},
+          {"id": 2, "customer": {"name": "Ben"}, "items": [{"sku": "A", "qty": 5}]},
+          {"id": 3, "customer": {"name": "Cy"}, "items": []},
+      ]
+      items = pd.json_normalize(orders, record_path="items", meta=["id", ["customer", "name"]])
+      print(items.shape, items.columns.tolist(), items.groupby("customer.name")["qty"].sum().to_dict())
+      """, verify="stdout"),
+
     # ---------- 1.4.2 Accessing datasets ----------
     Q("b1-100", "1.4.2", 2,
       "What happens when this code runs?",
