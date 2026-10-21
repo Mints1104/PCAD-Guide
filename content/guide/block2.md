@@ -2280,6 +2280,54 @@ LIMIT    5;
 
 **Logical order** (how the database evaluates it): FROM and JOIN → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT. That is why WHERE cannot use aggregates (groups don't exist yet) and why, in standard SQL, WHERE cannot use a column alias defined in SELECT, while ORDER BY can.
 
+**Aggregates: WHERE fails, HAVING works.** WHERE runs before GROUP BY, so there are no groups to sum yet:
+
+```sql
+-- Fails: aggregate functions are not allowed in WHERE
+SELECT   customer_id, SUM(total) AS spent
+FROM     orders
+WHERE    SUM(total) > 100
+GROUP BY customer_id;
+
+-- Works: HAVING runs after GROUP BY, once each group's SUM exists
+SELECT   customer_id, SUM(total) AS spent
+FROM     orders
+GROUP BY customer_id
+HAVING   SUM(total) > 100;
+```
+
+**Aliases: WHERE fails, ORDER BY works.** The alias `gross` is created in SELECT, which runs after WHERE but before ORDER BY:
+
+```sql
+-- Fails in standard SQL: column "gross" does not exist
+SELECT total * 1.2 AS gross
+FROM   orders
+WHERE  gross > 50;
+
+-- Works: repeat the expression in WHERE
+SELECT total * 1.2 AS gross
+FROM   orders
+WHERE  total * 1.2 > 50;
+
+-- Works: ORDER BY runs after SELECT, so the alias exists by then
+SELECT   total * 1.2 AS gross
+FROM     orders
+ORDER BY gross DESC;
+```
+
+SQLite (and MySQL) relax the alias rule and accept `WHERE gross > 50`; PostgreSQL, SQL Server and Oracle reject it. Rely on the standard rule.
+
+**Both rules together.** Filter rows with WHERE, filter groups with HAVING, sort by the alias:
+
+```sql
+SELECT   customer_id, SUM(total) AS spent
+FROM     orders
+WHERE    total > 10          -- row filter: runs first, no aggregates
+GROUP BY customer_id
+HAVING   SUM(total) > 50     -- group filter: aggregates allowed
+ORDER BY spent DESC;         -- alias allowed: SELECT has already run
+```
+
 **Joins.** A join combines rows from two tables wherever a condition matches, usually an ID in one table equal to an ID in the other. The join type decides what happens to rows that **don't** match:
 
 | Join | Returns |
