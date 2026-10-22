@@ -581,6 +581,27 @@ qty out of range [1]
 end before start [2]
 ```
 
+**Format checks with a regular expression.** A pattern describes what a valid value looks like: `[A-Z]{2}-\d{4}` means two capital letters, a hyphen, then four digits. pandas has three string methods that test a pattern, and they differ in **how much of the value** must match:
+
+```python
+import pandas as pd
+
+codes = pd.Series(["AB-1234", "ab-1234", "AB-123", "XAB-1234", "AB-12345"])
+pattern = r"[A-Z]{2}-\d{4}"
+
+print(codes.str.fullmatch(pattern).tolist())   # the whole value must match
+print(codes.str.match(pattern).tolist())       # the start of the value must match
+print(codes.str.contains(pattern).tolist())    # a match anywhere in the value
+```
+
+```text
+[True, False, False, False, False]
+[True, False, False, False, True]
+[True, False, False, True, True]
+```
+
+Only `fullmatch` rejects `"AB-12345"` (an extra digit at the end) and `"XAB-1234"` (an extra letter at the start), so it is the one to use for validation. `match` and `contains` pass values that merely *include* a valid code. `"ab-1234"` fails all three because `[A-Z]` means capital letters only. To list the bad rows, negate the mask: `codes[~codes.str.fullmatch(pattern)]`. In plain Python, `re.fullmatch(pattern, value)` does the same for one string and returns `None` when it doesn't match.
+
 In plain Python, validate with `isinstance()`, comparisons and `raise ValueError(...)`. Schema tools (pandera, pydantic, Great Expectations) declare the expected columns, types and rules once and check every batch.
 
 **Validate early.** A type check at the start of an ingestion script catches a bad file before its errors spread into joins, aggregations and reports, where they are much harder to trace (fail fast).
@@ -590,6 +611,8 @@ In plain Python, validate with `isinstance()`, comparisons and `raise ValueError
 > **Trap.** Cross-field checks compare fields **within one record**; cross-reference checks look a value up **in another table or list**.
 
 > **Trap.** A value can pass a type check and still be invalid: an integer age of 250 has the right type but fails the range check.
+
+> **Trap.** For a format check, use `str.fullmatch`. `str.contains` accepts a valid pattern anywhere inside the value, and `str.match` only checks the start, so both let extra characters through.
 
 ## 1.3.2 Establish and maintain data integrity
 

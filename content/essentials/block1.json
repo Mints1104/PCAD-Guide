@@ -127,11 +127,13 @@
       {"cue": "What is a cross-field check?", "fact": "A cross-field check compares fields in the same record, such as `end_date >= start_date` or `total == price * qty`.", "why": "Distractors confuse it with cross-reference checks."},
       {"cue": "What is a cross-reference check?", "fact": "A cross-reference (referential) check confirms a value exists in another dataset, such as every order's `customer_id` appearing in the customers table.", "why": "Look for \"exists in\" or \"matches the master list\" in the scenario."},
       {"cue": "Why add type checks at the start of an ingestion script?", "fact": "Early checks fail fast: they stop a bad file before its errors spread into joins, aggregates and reports, where they are much harder to trace.", "why": "The syllabus names the benefit of early type checks explicitly."},
-      {"cue": "How can you validate data in Python?", "fact": "Plain logic (`isinstance`, comparisons, `between`, `is_unique`, regex, `raise ValueError`) or schema tools (pandera, pydantic, Great Expectations) that declare rules once.", "why": "Code items show a validation mask and ask which rows it flags."}
+      {"cue": "How can you validate data in Python?", "fact": "Plain logic (`isinstance`, comparisons, `between`, `is_unique`, regex, `raise ValueError`) or schema tools (pandera, pydantic, Great Expectations) that declare rules once.", "why": "Code items show a validation mask and ask which rows it flags."},
+      {"cue": "Which pandas string method should a format check use?", "fact": "`s.str.fullmatch(pattern)`: the whole value must match. `str.match` checks only the start and `str.contains` finds the pattern anywhere, so both pass values with extra characters.", "why": "Items show the three methods side by side on values such as \"AB-12345\"."}
     ],
     "traps": [
       {"cue": "An age of 250 is stored as an integer. Which check fails?", "answer": "The range check. The type check passes because 250 is a valid integer."},
-      {"cue": "Is \"ship_date must be after order_date\" a cross-reference check?", "answer": "No, it is a cross-field check (two fields in one record). Cross-reference checks look values up in another table."}
+      {"cue": "Is \"ship_date must be after order_date\" a cross-reference check?", "answer": "No, it is a cross-field check (two fields in one record). Cross-reference checks look values up in another table."},
+      {"cue": "With the pattern `[A-Z]{2}-\\d{4}`, does `str.contains` reject \"XAB-1234\"?", "answer": "No. \"XAB-1234\" contains a valid code, so `contains` returns True; only `str.fullmatch` rejects it."}
     ],
     "terms": ["Type check", "Range check", "Cross-field validation", "Cross-reference check"],
     "maps": ["validation-check"]

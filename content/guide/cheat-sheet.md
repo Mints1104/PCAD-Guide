@@ -43,7 +43,7 @@ The distinctions the exam leans on most, one table each. Read it the evening bef
 |---|---|
 | Type | `qty` is an integer |
 | Range | `0 <= age <= 120` |
-| Format | Email matches a pattern |
+| Format | `s.str.fullmatch(r"[A-Z]{2}-\d{4}")`: whole value (`match` = start only, `contains` = anywhere) |
 | Cross-field | `end >= start` in the same row |
 | Cross-reference | `customer_id` exists in customers table |
 
@@ -256,6 +256,8 @@ The distinctions the exam leans on most, one table each. Read it the evening bef
 | `df.iloc[1:3]` | Positions 1 and 2 (end **excluded**) |
 | `df.loc[0:2]` vs `df.iloc[0:2]` (default index) | 3 rows vs 2 rows |
 | `df.loc[mask, "col"] = v` | Conditional update |
+| `df[mask]["col"] = v` | Chained assignment: changes a temporary copy, `df` unchanged |
+| `s1.add(s2, fill_value=0)` | Label missing on one side counts as 0 (`s1 + s2` gives NaN) |
 
 ## More pandas and NumPy
 
@@ -350,6 +352,8 @@ The distinctions the exam leans on most, one table each. Read it the evening bef
 | Output | Any number | Probability 0–1 |
 | Fit | Least squares | Maximum likelihood |
 | `.score()` in scikit-learn | R² | Accuracy |
+| Coefficient | Change in y per unit of x | Change in log-odds; `np.exp(coef)` = odds ratio |
+| Error measures | Residual = actual − predicted; MAE ≤ RMSE (both in y's units) | Precision, recall, F1, confusion matrix |
 
 ## Model fit
 

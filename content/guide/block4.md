@@ -443,6 +443,24 @@ Series DataFrame (2, 2) (2,)
 
 **Arithmetic lines up labels, not positions.** When you add two Series, pandas pairs values with the **same index label**. A label that exists on only one side has nothing to pair with, so the result there is `NaN`. In the example above, `a` and `d` each appear on only one side.
 
+**Filling the gaps with `fill_value`.** The method forms of the operators (`add`, `sub`, `mul`, `div`) take a `fill_value`, which stands in for a missing label on either side before the arithmetic happens. Every label is kept, and none comes out `NaN`:
+
+```python
+import pandas as pd
+
+s1 = pd.Series([10, 20, 30], index=["a", "b", "c"])
+s2 = pd.Series([1, 2, 3], index=["b", "c", "d"])
+print((s1 + s2).tolist())                     # unmatched labels give NaN
+print(s1.add(s2, fill_value=0).tolist())      # unmatched labels count as 0
+```
+
+```text
+[nan, 21.0, 32.0, nan]
+[10.0, 21.0, 32.0, 3.0]
+```
+
+`a` becomes 10 + 0 and `d` becomes 0 + 3. This is the usual way to combine monthly totals when some products sold in only one month. If a label is missing on **both** sides, the result is still `NaN`.
+
 **Vectorized operations.** Writing `s * 2` applies the operation to every value at once, with no loop. These operations run in fast compiled code, so they are much quicker than a Python `for` loop or `.apply()` with a `lambda`.
 
 ```python
@@ -538,6 +556,8 @@ print(df.to_numpy())
 > **Trap.** `df["x"]` is a Series and `df[["x"]]` is a DataFrame. Methods such as `.to_frame()` or `.squeeze()` convert between them.
 
 > **Trap.** Adding two Series with different indexes does not add by position; mismatched labels become NaN.
+
+> **Trap.** `s1 + s2` has no way to fill missing labels; `s1.add(s2, fill_value=0)` treats a label missing from one side as 0.
 
 ## 4.1.4 Access and manipulate data using locators and slicing
 
@@ -672,6 +692,27 @@ y
 x
 ```
 
+**Changing values: one `.loc` call, not two brackets.** Reading with two brackets in a row is fine (`df[df["qty"] > 3]["price"]` above). **Assigning** that way is not. `df[mask]` builds a new, temporary DataFrame, and `["discount"] = 0.1` then changes that temporary copy, not `df`. This is called **chained assignment**. `.loc[rows, column] = value` selects and assigns in a single step on `df` itself:
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"qty": [1, 12, 5], "discount": [0.0, 0.0, 0.0]})
+
+df[df["qty"] > 10]["discount"] = 0.1           # chained: changes a temporary copy
+print(df["discount"].tolist())
+
+df.loc[df["qty"] > 10, "discount"] = 0.1       # one .loc call: changes df
+print(df["discount"].tolist())
+```
+
+```text
+[0.0, 0.0, 0.0]
+[0.0, 0.1, 0.0]
+```
+
+pandas warns about the first line (a `SettingWithCopyWarning` in pandas 2, a `ChainedAssignmentError` warning in pandas 3), but the code still runs, so the mistake is easy to miss. Since pandas 3, **copy-on-write** is always on: any selection behaves as a new object, so a chained assignment never changes the original. If you want a filtered subset to edit on its own, make that explicit with `sub = df[mask].copy()`.
+
 **Indexing for speed.** If you often look rows up by an ID or a date, make that column the index (`set_index`) and keep it sorted. Label lookups and date ranges are then fast. Prefer conditions like `df[df["qty"] > 3]` to looping over rows.
 
 ### Exam traps
@@ -679,6 +720,8 @@ x
 > **Trap.** `.loc` includes the end label; `.iloc` excludes the end position.
 
 > **Trap.** With a non-default index (for example labels 3, 2, 1, 0), `s.loc[1]` looks up the **label** 1 while `s.iloc[1]` takes the **second** item: they return different values.
+
+> **Trap.** `df[df["qty"] > 10]["discount"] = 0.1` leaves `df` unchanged: it assigns into a temporary copy. Use `df.loc[df["qty"] > 10, "discount"] = 0.1`.
 
 ## 4.1.5 Perform array operations and distinguish data structures
 

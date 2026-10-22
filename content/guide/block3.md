@@ -415,6 +415,39 @@ print(log.predict([[2], [5]]), log.predict_proba([[3.5]]).round(2))
 
 A high R² doesn't prove the model is right. Check the residuals (actual minus predicted) for patterns too.
 
+**Residuals and error measures.** A **residual** is one point's miss: actual minus predicted. The fit statistics summarize all the misses at once:
+
+- **MAE** (mean absolute error): the average size of a miss, ignoring its sign.
+- **RMSE** (root mean squared error): square each miss, average, then take the square root. Squaring weights big misses more, so RMSE is never smaller than MAE, and a large gap between them means a few large errors.
+- **R²**: the share of y's variation the model explains, from 0 (no better than always predicting the mean) to 1 (perfect).
+
+MAE and RMSE are in the units of y, so "RMSE = 0.135" means the predictions are typically about 0.1 units off. R² has no units.
+
+```python
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+
+X = np.array([[1], [2], [3], [4], [5]])
+y = np.array([3.1, 4.9, 7.2, 8.8, 11.0])
+model = LinearRegression().fit(X, y)
+pred = model.predict(X)
+
+print((y - pred).round(2))                                 # residuals
+print(round(mean_absolute_error(y, pred), 3))              # MAE
+print(round(np.sqrt(mean_squared_error(y, pred)), 3))      # RMSE
+print(round(r2_score(y, pred), 3))                         # R², same as model.score(X, y)
+```
+
+```text
+[ 0.04 -0.13  0.2  -0.17  0.06]
+0.12
+0.135
+0.998
+```
+
+The residuals are small and switch between positive and negative with no pattern, which is what a good straight-line fit looks like. If they formed a curve (all positive at the ends, negative in the middle, say), the relationship isn't linear, however high R² is. Lower MAE and RMSE are better; higher R² is better. On a real project, compute these on the **test** set (see 4.2.2), not the data the model was fitted on.
+
 **Probabilities and classes in logistic regression.** `predict_proba` gives a probability for each class, one column per class: here P(fail) and P(pass). `predict` turns that into a class using a 0.5 cut-off.
 
 ```python
@@ -436,6 +469,31 @@ print(model.predict([[1], [6]]))                  # the class with probability a
 ```
 
 1 hour of study gives a high chance of failing, so the prediction is 0. 6 hours gives a high chance of passing, so the prediction is 1.
+
+**Reading a logistic coefficient as an odds ratio.** The **odds** of passing are P(pass) / P(fail): a probability of 0.8 is odds of 4 (4 to 1). A logistic coefficient is the change in the **log** of the odds for one more unit of x, so `np.exp(coef)` gives the **odds ratio**: how many times the odds multiply for each extra unit.
+
+```python
+import numpy as np
+from sklearn.linear_model import LogisticRegression
+
+hours = np.array([[1], [2], [3], [4], [5], [6], [7], [8]])
+passed = np.array([0, 0, 1, 0, 1, 0, 1, 1])
+model = LogisticRegression().fit(hours, passed)
+
+b = model.coef_[0][0]
+print(round(b, 2), round(np.exp(b), 2))         # coefficient, odds ratio
+
+p = model.predict_proba([[4], [5]])[:, 1]       # P(pass) after 4 and 5 hours
+odds = p / (1 - p)
+print(p.round(3), odds.round(3), round(odds[1] / odds[0], 2))
+```
+
+```text
+0.51 1.66
+[0.437 0.563] [0.776 1.288] 1.66
+```
+
+Each extra hour multiplies the odds of passing by about 1.66 (a 66% increase in the **odds**). The second line checks it: the odds go from 0.776 to 1.288, and 1.288 / 0.776 ≈ 1.66. The **probability** only rises from 0.437 to 0.563, and the same extra hour would add a different amount of probability elsewhere on the curve. An odds ratio above 1 means x raises the chance of the outcome, below 1 lowers it, and exactly 1 (a coefficient of 0) means no effect.
 
 **A quick line with `np.polyfit`.** `np.polyfit(x, y, 1)` fits a straight line (degree 1) and returns `[slope, intercept]`. It needs no scikit-learn and takes plain 1-D lists:
 
@@ -466,3 +524,5 @@ print(round(slope * 6 + intercept, 2))           # predict y when x = 6
 > **Trap.** Predicting whether a customer will churn is logistic; predicting how much they will spend is linear.
 
 > **Trap.** A logistic coefficient is not a change in probability. It is a change in log-odds; exponentiate it for the odds ratio.
+
+> **Trap.** RMSE is always at least as large as MAE, because squaring weights big misses more. Both are in y's units; R² has none.

@@ -58,12 +58,14 @@
       {"cue": "What does a linear regression coefficient mean?", "fact": "The expected change in y for a one-unit increase in that predictor, holding the others constant; the intercept is the prediction when all predictors are 0.", "why": "Items ask you to interpret a fitted coefficient."},
       {"cue": "What are the assumptions of linear regression?", "fact": "LINE: Linearity, Independent errors, Normally distributed residuals, Equal variance of residuals (homoscedasticity), plus no strong multicollinearity.", "why": "Expect to spot which assumption a residual plot violates."},
       {"cue": "What does logistic regression output, and how is it fitted?", "fact": "A probability between 0 and 1 from the sigmoid of a linear score (it models the log-odds), fitted by maximum likelihood; a threshold (0.5 by default) turns it into a class.", "why": "`predict_proba` vs `predict` items."},
-      {"cue": "What does R² tell you?", "fact": "The share of variance in y explained by the model (0 to 1 for OLS on training data); scikit-learn's `LinearRegression.score()` returns it.", "why": "Items compare R² values, or confuse R² with accuracy."}
+      {"cue": "What does R² tell you?", "fact": "The share of variance in y explained by the model (0 to 1 for OLS on training data); scikit-learn's `LinearRegression.score()` returns it.", "why": "Items compare R² values, or confuse R² with accuracy."},
+      {"cue": "What are MAE and RMSE, and how do they compare?", "fact": "The average size of a miss (MAE) and the square root of the average squared miss (RMSE), both in y's units. RMSE ≥ MAE, and a big gap means a few large errors.", "why": "Fit-statistic items ask which measure punishes large errors more."}
     ],
     "traps": [
       {"cue": "Is logistic regression a regression or a classification method?", "answer": "Classification: it predicts class probabilities, despite the name."},
       {"cue": "What is wrong with linear regression on a 0/1 target?", "answer": "It can predict values below 0 or above 1, which are impossible as probabilities."},
-      {"cue": "Is a logistic coefficient a change in probability?", "answer": "No, it is a change in log-odds; e raised to the coefficient is the odds ratio."}
+      {"cue": "Is a logistic coefficient a change in probability?", "answer": "No, it is a change in log-odds; e raised to the coefficient is the odds ratio."},
+      {"cue": "A logistic coefficient is 0.51. What does `np.exp(0.51)` ≈ 1.66 mean?", "answer": "Each extra unit of x multiplies the odds of the outcome by about 1.66. It is an odds ratio, not a change in probability."}
     ],
     "terms": ["Linear regression", "Logistic regression", "R²", "Log-odds", "Homoscedasticity"],
     "maps": ["regression"]

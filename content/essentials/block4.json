@@ -44,7 +44,8 @@
       {"cue": "Why prefer vectorized operations over loops?", "fact": "Vectorized operations (`s * 2`, `.str.upper()`, `np.log(s)`) run in optimized compiled code over the whole column, far faster than Python loops or row-wise `apply`.", "why": "Performance items reward the vectorized option."},
       {"cue": "What do `axis=0` and `axis=1` mean in a DataFrame aggregation?", "fact": "`axis=0` aggregates down the rows, giving one result per column; `axis=1` aggregates across columns, giving one result per row.", "why": "Expect to predict the length of `df.sum(axis=1)`."},
       {"cue": "What do `set_index` and `reset_index` do?", "fact": "`set_index(\"col\")` makes a column the row index; `reset_index()` moves the index back into a column (`drop=True` discards it).", "why": "Items check which labels remain after reset_index."},
-      {"cue": "When do you use `apply`, and what does `axis=1` change?", "fact": "`s.apply(f)` calls `f` on each value; `df.apply(f, axis=1)` calls it on each row (as a Series), and without `axis=1` on each column. It loops in Python, so a vectorized expression is faster when one exists.", "why": "Performance items reward vectorization over `apply`; output items use `axis=1`."}
+      {"cue": "When do you use `apply`, and what does `axis=1` change?", "fact": "`s.apply(f)` calls `f` on each value; `df.apply(f, axis=1)` calls it on each row (as a Series), and without `axis=1` on each column. It loops in Python, so a vectorized expression is faster when one exists.", "why": "Performance items reward vectorization over `apply`; output items use `axis=1`."},
+      {"cue": "How do you add two Series without getting NaN for labels only one of them has?", "fact": "`s1.add(s2, fill_value=0)`: a label missing on one side counts as 0. `sub`, `mul` and `div` take `fill_value` too.", "why": "Items compare `s1 + s2` with `s1.add(s2, fill_value=0)`."}
     ],
     "traps": [
       {"cue": "What is the shape of a Series with 5 values?", "answer": "(5,): a one-element tuple, because a Series is one-dimensional."}
@@ -60,11 +61,13 @@
       {"cue": "With a default integer index, how many rows does `df.loc[0:2]` return, and `df.iloc[0:2]`?", "fact": "`df.loc[0:2]` returns 3 rows (labels 0, 1, 2); `df.iloc[0:2]` returns 2 rows (positions 0 and 1).", "why": "Expect exactly this comparison."},
       {"cue": "How do you select a column's values for rows meeting a condition?", "fact": "`df.loc[df[\"qty\"] > 2, \"price\"]`: a boolean mask for rows, a label for the column; the same form assigns values.", "why": "Filter-and-update items use this pattern."},
       {"cue": "What do `df.iloc[0]`, `df.iloc[:, 0]` and `df.iloc[-1]` return?", "fact": "The first row as a Series, the first column as a Series, and the last row as a Series.", "why": "Position-based recall items."},
-      {"cue": "What do plain brackets select?", "fact": "`df[\"col\"]` selects a column, `df[1:3]` slices rows by position, and `df[mask]` filters rows.", "why": "Distractors mix these with `.loc`."}
+      {"cue": "What do plain brackets select?", "fact": "`df[\"col\"]` selects a column, `df[1:3]` slices rows by position, and `df[mask]` filters rows.", "why": "Distractors mix these with `.loc`."},
+      {"cue": "Why does `df[df[\"qty\"] > 10][\"discount\"] = 0.1` fail to change `df`?", "fact": "It is chained assignment: `df[mask]` builds a temporary copy and the assignment changes that copy. `df.loc[mask, \"discount\"] = 0.1` changes `df` in every pandas version.", "why": "Copy-on-write in pandas 3 makes chained assignment a silent no-op."}
     ],
     "traps": [
       {"cue": "A Series has index labels 3, 2, 1, 0. Do `s.loc[1]` and `s.iloc[1]` return the same item?", "answer": "No. `s.loc[1]` returns the item labeled 1 (the third one); `s.iloc[1]` returns the item in position 1 (the second one)."},
-      {"cue": "What do `df.at` and `df.iat` do?", "answer": "Get or set a single value quickly: `at` by labels, `iat` by positions."}
+      {"cue": "What do `df.at` and `df.iat` do?", "answer": "Get or set a single value quickly: `at` by labels, `iat` by positions."},
+      {"cue": "How do you edit a filtered subset on its own without touching `df`?", "answer": "Make the copy explicit: `sub = df[mask].copy()`, then assign into `sub`."}
     ],
     "terms": [".loc", ".iloc", "Boolean mask"],
     "maps": ["pandas-select"]
